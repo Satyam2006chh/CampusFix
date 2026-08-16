@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login — CampusFix</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/auth.css" />
+</head>
+<body class="auth-body">
+
+  <div class="auth-bg-grid"></div>
+  <div class="auth-orb auth-orb-1"></div>
+  <div class="auth-orb auth-orb-2"></div>
+
+  <!-- ─── BACK TO HOME ─────────────────────────── -->
+  <a href="../index.html" class="back-home">
+    ← Back to Home
+  </a>
+
+  <!-- ─── AUTH WRAPPER ────────────────────────── -->
+  <div class="auth-wrapper">
+
+    <!-- LEFT PANEL -->
+    <div class="auth-left">
+      <div class="auth-brand">
+        <div class="logo-icon">
+          <svg width="36" height="36" viewBox="0 0 28 28" fill="none">
+            <path d="M14 2L3 7V14C3 19.55 7.84 24.74 14 26C20.16 24.74 25 19.55 25 14V7L14 2Z" fill="url(#grad-login)" opacity="0.9"/>
+            <path d="M10 13.5L12.5 16L18 10.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="grad-login" x1="3" y1="2" x2="25" y2="26" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#6c63ff"/>
+                <stop offset="100%" stop-color="#00d4ff"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text">CampusFix</span>
+      </div>
+      <h1 class="auth-left-title">Your Campus.<br/><span class="gradient-text">Your Voice.</span></h1>
+      <p class="auth-left-sub">Report problems, track resolutions, and hold departments accountable — all in one place.</p>
+      <div class="auth-left-features">
+        <div class="auth-feat"><span class="af-icon">✅</span> Real-time complaint tracking</div>
+        <div class="auth-feat"><span class="af-icon">🔒</span> Role-based secure access</div>
+        <div class="auth-feat"><span class="af-icon">📊</span> Data-driven analytics</div>
+        <div class="auth-feat"><span class="af-icon">🤖</span> AI-powered assistance</div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="auth-right">
+
+      <!-- ── PORTAL SELECTION (shown by default) ── -->
+      <div class="auth-panel" id="portalSelect">
+        <h2 class="auth-panel-title">Welcome Back</h2>
+        <p class="auth-panel-sub">Select your portal to securely access the system.</p>
+
+        <div class="portal-options">
+          <button class="portal-btn" id="adminPortalBtn" onclick="showLogin('admin')">
+            <div class="portal-btn-left">
+              <span class="portal-icon">👑</span>
+              <div>
+                <span class="portal-name">Admin Portal</span>
+                <span class="portal-desc">Full campus management</span>
+              </div>
+            </div>
+            <span class="portal-arrow">→</span>
+          </button>
+
+          <button class="portal-btn" id="deptPortalBtn" onclick="showLogin('dept_head')">
+            <div class="portal-btn-left">
+              <span class="portal-icon">👨‍💼</span>
+              <div>
+                <span class="portal-name">Department Head Portal</span>
+                <span class="portal-desc">Manage your department</span>
+              </div>
+            </div>
+            <span class="portal-arrow">→</span>
+          </button>
+
+          <button class="portal-btn" id="studentPortalBtn" onclick="showLogin('student')">
+            <div class="portal-btn-left">
+              <span class="portal-icon">👨‍🎓</span>
+              <div>
+                <span class="portal-name">Student Portal</span>
+                <span class="portal-desc">Report & track issues</span>
+              </div>
+            </div>
+            <span class="portal-arrow">→</span>
+          </button>
+        </div>
+
+        <p class="auth-footer-note">© 2026 CampusFix. All rights reserved.</p>
+      </div>
+
+      <!-- ── LOGIN FORM (shown after role selection) ── -->
+      <div class="auth-panel hidden" id="loginPanel">
+        <button class="back-btn" onclick="showPortalSelect()">← Back to portals</button>
+
+        <div class="login-role-badge" id="loginRoleBadge"></div>
+        <h2 class="auth-panel-title" id="loginTitle">Admin Portal</h2>
+        <p class="auth-panel-sub" id="loginSubtitle">Sign in to manage the organization</p>
+
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label for="loginEmail">Email address</label>
+            <input type="email" id="loginEmail" placeholder="Enter your email" required autocomplete="email" />
+          </div>
+          <div class="form-group">
+            <label for="loginPassword">Password</label>
+            <div class="password-wrapper">
+              <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password" />
+              <button type="button" class="eye-btn" id="eyeBtn" onclick="togglePassword()">👁</button>
+            </div>
+          </div>
+          <div id="loginError" class="form-error hidden">Invalid email or password. Please try again.</div>
+          <button type="submit" class="btn-primary btn-full" id="loginSubmitBtn">
+            <span id="loginBtnText">Sign In</span>
+          </button>
+        </form>
+
+        <!-- Student only: sign up link -->
+        <div id="signupLink" class="signup-link hidden">
+          <p>New to CampusFix? <a href="student_register.html" id="goToSignup">Create an account →</a></p>
+        </div>
+
+        <p class="auth-footer-note">© 2026 CampusFix. All rights reserved.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="../js/auth.js"></script>
+</body>
+</html>
