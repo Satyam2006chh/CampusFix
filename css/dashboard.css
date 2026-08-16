@@ -252,6 +252,30 @@
   border-color: var(--purple);
 }
 
+select option {
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font);
+}
+
+.form-error {
+  background: rgba(255,92,122,0.1);
+  border: 1px solid rgba(255,92,122,0.3);
+  color: var(--red);
+  font-size: 0.85rem;
+  padding: 12px;
+  border-radius: var(--radius);
+}
+.form-success {
+  background: rgba(0,229,160,0.1);
+  border: 1px solid rgba(0,229,160,0.3);
+  color: var(--green);
+  font-size: 0.85rem;
+  padding: 12px;
+  border-radius: var(--radius);
+}
+.hidden { display: none !important; }
+
 /* ─── MODALS ────────────────────────────────────────────────── */
 .modal {
   position: fixed;

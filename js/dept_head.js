@@ -33,8 +33,11 @@ let complaintsData = [];
 async function loadComplaints() {
   try {
     const statusFilt = document.getElementById('filterStatus').value;
-    let url = '/depthead/complaints';
-    if (statusFilt) url += `?status=${encodeURIComponent(statusFilt)}`;
+    const dateFilt = document.getElementById('filterDate').value;
+    
+    let url = '/depthead/complaints?';
+    if (statusFilt) url += `status=${encodeURIComponent(statusFilt)}&`;
+    if (dateFilt) url += `date=${encodeURIComponent(dateFilt)}`;
     
     complaintsData = await apiFetch(url);
     
@@ -92,6 +95,8 @@ function renderAllComplaints() {
       actionHtml = `<button class="action-btn" onclick="openAssignModal(${c.complaint_id})">Assign</button>`;
     } else if (c.status === 'In Progress') {
       actionHtml = `<button class="action-btn" onclick="markResolved(${c.complaint_id})" style="color:var(--green)">Mark Resolved</button>`;
+    } else if (c.status === 'Waiting Confirmation') {
+      actionHtml = `<span style="font-size:0.8rem; color:var(--text-secondary)">Awaiting Student</span>`;
     }
     
     tbody.innerHTML += `
@@ -165,51 +170,70 @@ async function submitAssignment() {
     loadStats();
     loadComplaints();
     loadEmployees(); // Update availability status
+    showCustomAlert('Task assigned successfully!');
   } catch (err) {
-    alert(err.message);
+    showCustomAlert(err.message);
   }
 }
 
 async function markResolved(compId) {
-  if (!confirm("Are you sure this is resolved? It will be sent to the student for confirmation.")) return;
-  
-  try {
-    await apiFetch(`/depthead/complaints/${compId}/resolve`, { method: 'POST' });
-    loadStats();
-    loadComplaints();
-    loadEmployees(); // Free up employee
-  } catch (err) {
-    alert(err.message);
-  }
+  showCustomConfirm("Are you sure this is resolved? It will be sent to the student for confirmation.", async (confirmed) => {
+    if (!confirmed) return;
+    
+    try {
+      await apiFetch(`/depthead/complaints/${compId}/resolve`, { method: 'POST' });
+      loadStats();
+      loadComplaints();
+      loadEmployees(); // Free up employee
+      showCustomAlert('Complaint marked as resolved!');
+    } catch (err) {
+      showCustomAlert(err.message);
+    }
+  });
 }
 
 // ─── MANAGE EMPLOYEES ────────────────────────────────────────
 function renderEmployees() {
-  const tbody = document.getElementById('employeesBody');
-  tbody.innerHTML = '';
+  const grid = document.getElementById('employeesGrid');
+  grid.innerHTML = '';
   
   if (allEmployees.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No employees found.</td></tr>';
+    grid.innerHTML = '<div style="text-align:center; width:100%; color:var(--text-muted);">No employees found.</div>';
     return;
   }
   
   allEmployees.forEach(e => {
     let statColor = e.availability === 'Available' ? 'var(--green)' : 'var(--yellow)';
+    let initials = e.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     
-    tbody.innerHTML += `
-      <tr>
-        <td>EMP-${e.employee_id}</td>
-        <td>
-          <div style="font-weight:600; color:var(--text-primary); margin-bottom:2px;">${e.name}</div>
-          <div style="font-size:0.75rem; color:var(--text-muted);">${e.email}</div>
-          <div style="font-size:0.75rem; color:var(--text-muted);">${e.phone || ''}</div>
-        </td>
-        <td>${e.designation}</td>
-        <td style="color:${statColor}; font-size:0.8rem; font-weight:600;">${e.availability}</td>
-        <td>
-          <button class="action-btn" style="color:var(--red)" onclick="removeEmployee(${e.employee_id})">Remove</button>
-        </td>
-      </tr>
+    grid.innerHTML += `
+      <div style="background:var(--bg-card); border:1px solid var(--border-light); border-radius:12px; padding:20px; position:relative; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+        
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <span style="font-size:0.75rem; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; color:var(--text-secondary);">EMP-${e.employee_id}</span>
+          <span style="color:${statColor}; font-size:0.75rem; font-weight:600; padding:4px 8px; border-radius:4px; background:rgba(255,255,255,0.05);">${e.availability}</span>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
+          <div style="width:50px; height:50px; border-radius:50%; background:linear-gradient(135deg, var(--purple-light), var(--purple)); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.2rem; color:#fff;">
+            ${initials}
+          </div>
+          <div>
+            <div style="font-weight:600; color:var(--text-primary); font-size:1.1rem; margin-bottom:4px;">${e.name}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted);">${e.designation}</div>
+          </div>
+        </div>
+
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:20px; display:flex; flex-direction:column; gap:6px;">
+          <div>📧 ${e.email}</div>
+          <div>📞 ${e.phone || 'N/A'}</div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid var(--border-light); padding-top:16px;">
+          <button class="btn-ghost" style="padding:6px 12px; font-size:0.85rem;" onclick='openEditEmpModal(${JSON.stringify(e).replace(/'/g, "&apos;")})'>✏️ Edit</button>
+          <button class="btn-ghost" style="padding:6px 12px; font-size:0.85rem; color:var(--red);" onclick="removeEmployee(${e.employee_id})">🗑️ Delete</button>
+        </div>
+      </div>
     `;
   });
 }
@@ -241,18 +265,58 @@ async function submitEmployee(e) {
     });
     closeEmpModal();
     loadEmployees();
+    showCustomAlert('Employee created/reactivated successfully!');
   } catch (err) {
-    alert(err.message);
+    showCustomAlert(err.message);
+  }
+}
+
+// Edit Employee Flow
+function openEditEmpModal(e) {
+  document.getElementById('editEmpId').value = e.employee_id;
+  document.getElementById('editEmpName').value = e.name;
+  document.getElementById('editEmpDesig').value = e.designation;
+  document.getElementById('editEmpPhone').value = e.phone || '';
+  
+  document.getElementById('editEmpModal').classList.remove('hidden');
+}
+
+function closeEditEmpModal() {
+  document.getElementById('editEmpModal').classList.add('hidden');
+}
+
+async function submitEditEmployee(event) {
+  event.preventDefault();
+  const id = document.getElementById('editEmpId').value;
+  const data = {
+    name: document.getElementById('editEmpName').value,
+    designation: document.getElementById('editEmpDesig').value,
+    phone: document.getElementById('editEmpPhone').value
+  };
+  
+  try {
+    await apiFetch(`/depthead/employees/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data)
+    });
+    closeEditEmpModal();
+    loadEmployees();
+    showCustomAlert('Employee details updated!');
+  } catch (err) {
+    showCustomAlert(err.message);
   }
 }
 
 async function removeEmployee(id) {
-  if (!confirm("Are you sure you want to remove this employee?")) return;
-  
-  try {
-    await apiFetch(`/depthead/employees/${id}`, { method: 'DELETE' });
-    loadEmployees();
-  } catch (err) {
-    alert(err.message);
-  }
+  showCustomConfirm("Are you sure you want to remove this employee?", async (confirmed) => {
+    if (!confirmed) return;
+    
+    try {
+      await apiFetch(`/depthead/employees/${id}`, { method: 'DELETE' });
+      loadEmployees();
+      showCustomAlert('Employee removed successfully!');
+    } catch (err) {
+      showCustomAlert(err.message);
+    }
+  });
 }

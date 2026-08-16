@@ -151,7 +151,10 @@ async function submitComplaint(e) {
       document.getElementById('complaintForm').reset();
       loadStats();
       loadComplaints();
-      setTimeout(() => switchTab('my-complaints'), 2000);
+      setTimeout(() => {
+        successEl.classList.add('hidden');
+        switchTab('my-complaints');
+      }, 1500);
     }
   } catch (err) {
     errorEl.textContent = err.message;

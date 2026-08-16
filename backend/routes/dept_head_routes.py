@@ -41,6 +41,7 @@ def get_complaints():
 
     dept_id = user['department_id']
     status  = request.args.get('status')  # optional filter
+    date_filter = request.args.get('date') # optional filter
 
     query = """
         SELECT
@@ -61,6 +62,9 @@ def get_complaints():
     if status:
         query += " AND c.status = ?"
         params.append(status)
+    if date_filter:
+        query += " AND DATE(c.created_at) = ?"
+        params.append(date_filter)
 
     query += " ORDER BY CASE c.urgency WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END, c.created_at ASC"
 
@@ -116,12 +120,24 @@ def add_employee():
         return jsonify({'message': 'Name, email, password, and designation are required.'}), 400
 
     conn = get_db()
-    existing = conn.execute("SELECT employee_id FROM employees WHERE email = ?", (email,)).fetchone()
-    if existing:
-        conn.close()
-        return jsonify({'message': 'An employee with this email already exists.'}), 409
-
+    existing = conn.execute("SELECT employee_id, is_active FROM employees WHERE email = ?", (email,)).fetchone()
+    
     hashed = bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+    
+    if existing:
+        if existing['is_active'] == 1:
+            conn.close()
+            return jsonify({'message': 'An active employee with this email already exists.'}), 409
+        else:
+            # Reactivate soft-deleted employee
+            conn.execute("""
+                UPDATE employees SET name=?, password_hash=?, phone=?, designation=?, join_date=?, bio=?, is_active=1
+                WHERE employee_id=?
+            """, (name, hashed, phone, designation, join_date, bio, existing['employee_id']))
+            conn.commit()
+            conn.close()
+            return jsonify({'message': 'Employee reactivated successfully!', 'employee_id': existing['employee_id']}), 201
+
     conn.execute("""
         INSERT INTO employees (name, email, password_hash, phone, designation, department_id, join_date, bio)
         VALUES (?,?,?,?,?,?,?,?)
@@ -170,6 +186,35 @@ def remove_employee(emp_id):
     conn.commit()
     conn.close()
     return jsonify({'message': 'Employee removed successfully.'}), 200
+
+@dept_head_bp.route('/employees/<int:emp_id>', methods=['PUT'])
+def edit_employee(emp_id):
+    user, err, code = validate_token(request, required_role='dept_head')
+    if err: return err, code
+    
+    data = request.json
+    name = data.get('name')
+    designation = data.get('designation')
+    phone = data.get('phone')
+
+    if not name or not designation:
+        return jsonify({'message': 'Name and designation are required.'}), 400
+
+    conn = get_db()
+    # Check if this employee belongs to this dept head
+    emp = conn.execute("SELECT department_id FROM employees WHERE employee_id = ?", (emp_id,)).fetchone()
+    if not emp or emp['department_id'] != user['department_id']:
+        conn.close()
+        return jsonify({'message': 'Unauthorized or employee not found.'}), 403
+
+    conn.execute("""
+        UPDATE employees 
+        SET name=?, designation=?, phone=?
+        WHERE employee_id=?
+    """, (name, designation, phone, emp_id))
+    conn.commit()
+    conn.close()
+    return jsonify({'message': 'Employee updated successfully.'}), 200
 
 
 # ─── ASSIGN COMPLAINT TO EMPLOYEE ────────────────────────────

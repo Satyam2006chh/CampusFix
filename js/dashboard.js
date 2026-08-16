@@ -116,3 +116,43 @@ function getStatusBadge(status) {
   const cls = map[status] || 'status-pending';
   return `<span class="status-badge ${cls}">${status}</span>`;
 }
+
+// ─── CUSTOM MODALS (Overrides alert & confirm) ───────────────
+function createGlobalModals() {
+  if (document.getElementById('globalAlertModal')) return;
+  const modalHTML = `
+    <div id="globalAlertModal" class="modal hidden" style="z-index:9999;">
+      <div class="modal-content" style="max-width: 400px; text-align: center; border-color: var(--purple);">
+        <h3 style="margin-bottom: 12px; color: var(--text-primary);">Notification</h3>
+        <p id="globalAlertMsg" style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem;"></p>
+        <button class="btn-primary btn-full" onclick="document.getElementById('globalAlertModal').classList.add('hidden')">OK</button>
+      </div>
+    </div>
+    <div id="globalConfirmModal" class="modal hidden" style="z-index:9999;">
+      <div class="modal-content" style="max-width: 400px; text-align: center; border-color: var(--yellow);">
+        <h3 style="margin-bottom: 12px; color: var(--text-primary);">Are you sure?</h3>
+        <p id="globalConfirmMsg" style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem;"></p>
+        <div style="display:flex; justify-content:center; gap:12px;">
+          <button class="btn-ghost" onclick="window._confirmCb(false)">Cancel</button>
+          <button class="btn-primary" onclick="window._confirmCb(true)">Yes, Proceed</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+document.addEventListener('DOMContentLoaded', createGlobalModals);
+
+window.showCustomAlert = function(msg) {
+  document.getElementById('globalAlertMsg').textContent = msg;
+  document.getElementById('globalAlertModal').classList.remove('hidden');
+};
+
+window.showCustomConfirm = function(msg, callback) {
+  document.getElementById('globalConfirmMsg').textContent = msg;
+  document.getElementById('globalConfirmModal').classList.remove('hidden');
+  window._confirmCb = function(result) {
+    document.getElementById('globalConfirmModal').classList.add('hidden');
+    callback(result);
+  };
+};

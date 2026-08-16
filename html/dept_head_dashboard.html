@@ -93,7 +93,7 @@
       <!-- ── TAB: COMPLAINTS ── -->
       <section id="tab-dept-complaints" class="tab-pane">
         <div style="margin-bottom:16px; display:flex; gap:12px;">
-          <select id="filterStatus" onchange="loadComplaints()" style="padding:8px 12px; border-radius:8px; background:var(--bg-card); border:1px solid var(--border-light); color:#fff;">
+          <select id="filterStatus" onchange="loadComplaints()" style="padding:8px; border-radius:4px; background:var(--bg-card); color:#fff; border:1px solid var(--border-light);">
             <option value="">All Statuses</option>
             <option value="Pending">Pending</option>
             <option value="In Progress">In Progress</option>
@@ -101,6 +101,7 @@
             <option value="Closed">Closed</option>
             <option value="Reopened">Reopened</option>
           </select>
+          <input type="date" id="filterDate" onchange="loadComplaints()" style="padding:8px; border-radius:4px; background:var(--bg-card); color:#fff; border:1px solid var(--border-light);" />
         </div>
         <div class="table-container">
           <table class="data-table">
@@ -125,13 +126,10 @@
           <h3>Manage Employees</h3>
           <button class="btn-primary" onclick="openEmpModal()">+ Add Employee</button>
         </div>
-        <div class="table-container">
-          <table class="data-table">
-            <thead>
-              <tr><th>ID</th><th>Name & Contact</th><th>Designation</th><th>Status</th><th>Actions</th></tr>
-            </thead>
-            <tbody id="employeesBody"></tbody>
-          </table>
+        <div class="table-container" style="border:none; background:transparent; padding:0;">
+          <div id="employeesGrid" class="employee-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+            <!-- Rendered via JS -->
+          </div>
         </div>
       </section>
 
@@ -188,6 +186,31 @@
         <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
           <button type="button" class="btn-ghost" onclick="closeEmpModal()">Cancel</button>
           <button type="submit" class="btn-primary">Save Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="editEmpModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Edit Employee</h3>
+      <form id="editEmpForm" onsubmit="submitEditEmployee(event)" style="margin-top:16px;">
+        <input type="hidden" id="editEmpId" />
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Full Name</label>
+          <input type="text" id="editEmpName" required />
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Designation</label>
+          <input type="text" id="editEmpDesig" required />
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Phone</label>
+          <input type="text" id="editEmpPhone" />
+        </div>
+        <div style="display:flex; justify-content:center; gap:12px; margin-top:20px;">
+          <button type="button" class="btn-ghost" onclick="closeEditEmpModal()">Cancel</button>
+          <button type="submit" class="btn-primary">Save Changes</button>
         </div>
       </form>
     </div>
