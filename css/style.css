@@ -4,29 +4,32 @@
    Theme: Dark Neon (Purple + Cyan)
    ============================================================ */
 
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
 /* ─── RESET & BASE ─────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg-primary:   #07070f;
+  --bg-primary: #0a0a16;
   --bg-secondary: #0d0d1a;
-  --bg-card:      #111128;
+  --bg-card: #131326;
   --bg-card-hover:#161630;
   --border:       rgba(108,99,255,0.18);
-  --border-light: rgba(255,255,255,0.06);
+  --border-light: rgba(255, 255, 255, 0.08);
 
-  --purple:       #6c63ff;
-  --purple-light: #8b84ff;
-  --cyan:         #00d4ff;
-  --green:        #00e5a0;
-  --yellow:       #ffc147;
-  --red:          #ff5c7a;
+  --purple:       #ff007f;
+  --purple-light: #ff66b2;
+  --purple-dark:  #99004c;
+  --cyan:         #00f0ff;
+  --green:        #39ff14;
+  --yellow:       #ffea00;
+  --red:          #ff003c;
 
-  --text-primary:   #f0f0ff;
-  --text-secondary: #9898b8;
-  --text-muted:     #5a5a7a;
+  --text-primary:   #ffffff;
+  --text-secondary: #a0a0b8;
+  --text-muted:     #6b6b85;
 
-  --font: 'Inter', sans-serif;
+  --font: 'Poppins', sans-serif;
   --radius:    12px;
   --radius-lg: 20px;
   --shadow:    0 4px 32px rgba(0,0,0,0.4);

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Login — CampusFix</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/auth.css" />
 </head>
@@ -43,10 +43,10 @@
       <h1 class="auth-left-title">Your Campus.<br/><span class="gradient-text">Your Voice.</span></h1>
       <p class="auth-left-sub">Report problems, track resolutions, and hold departments accountable — all in one place.</p>
       <div class="auth-left-features">
-        <div class="auth-feat"><span class="af-icon">✅</span> Real-time complaint tracking</div>
-        <div class="auth-feat"><span class="af-icon">🔒</span> Role-based secure access</div>
-        <div class="auth-feat"><span class="af-icon">📊</span> Data-driven analytics</div>
-        <div class="auth-feat"><span class="af-icon">🤖</span> AI-powered assistance</div>
+        <div class="auth-feat"><span class="af-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span> Real-time complaint tracking</div>
+        <div class="auth-feat"><span class="af-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--cyan)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span> Role-based secure access</div>
+        <div class="auth-feat"><span class="af-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> Data-driven analytics</div>
+        <div class="auth-feat"><span class="af-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--purple-light)" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span> AI-powered assistance</div>
       </div>
     </div>
 
@@ -61,7 +61,7 @@
         <div class="portal-options">
           <button class="portal-btn" id="adminPortalBtn" onclick="showLogin('admin')">
             <div class="portal-btn-left">
-              <span class="portal-icon">👑</span>
+              <span class="portal-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></span>
               <div>
                 <span class="portal-name">Admin Portal</span>
                 <span class="portal-desc">Full campus management</span>
@@ -72,7 +72,7 @@
 
           <button class="portal-btn" id="deptPortalBtn" onclick="showLogin('dept_head')">
             <div class="portal-btn-left">
-              <span class="portal-icon">👨‍💼</span>
+              <span class="portal-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></span>
               <div>
                 <span class="portal-name">Department Head Portal</span>
                 <span class="portal-desc">Manage your department</span>
@@ -83,7 +83,7 @@
 
           <button class="portal-btn" id="studentPortalBtn" onclick="showLogin('student')">
             <div class="portal-btn-left">
-              <span class="portal-icon">👨‍🎓</span>
+              <span class="portal-icon"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
               <div>
                 <span class="portal-name">Student Portal</span>
                 <span class="portal-desc">Report & track issues</span>
@@ -113,7 +113,7 @@
             <label for="loginPassword">Password</label>
             <div class="password-wrapper">
               <input type="password" id="loginPassword" placeholder="Enter your password" required autocomplete="current-password" />
-              <button type="button" class="eye-btn" id="eyeBtn" onclick="togglePassword()">👁</button>
+              <button type="button" class="eye-btn" id="eyeBtn" onclick="togglePassword()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
             </div>
           </div>
           <div id="loginError" class="form-error hidden">Invalid email or password. Please try again.</div>

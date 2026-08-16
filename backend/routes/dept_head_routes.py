@@ -187,34 +187,6 @@ def remove_employee(emp_id):
     conn.close()
     return jsonify({'message': 'Employee removed successfully.'}), 200
 
-@dept_head_bp.route('/employees/<int:emp_id>', methods=['PUT'])
-def edit_employee(emp_id):
-    user, err, code = validate_token(request, required_role='dept_head')
-    if err: return err, code
-    
-    data = request.json
-    name = data.get('name')
-    designation = data.get('designation')
-    phone = data.get('phone')
-
-    if not name or not designation:
-        return jsonify({'message': 'Name and designation are required.'}), 400
-
-    conn = get_db()
-    # Check if this employee belongs to this dept head
-    emp = conn.execute("SELECT department_id FROM employees WHERE employee_id = ?", (emp_id,)).fetchone()
-    if not emp or emp['department_id'] != user['department_id']:
-        conn.close()
-        return jsonify({'message': 'Unauthorized or employee not found.'}), 403
-
-    conn.execute("""
-        UPDATE employees 
-        SET name=?, designation=?, phone=?
-        WHERE employee_id=?
-    """, (name, designation, phone, emp_id))
-    conn.commit()
-    conn.close()
-    return jsonify({'message': 'Employee updated successfully.'}), 200
 
 
 # ─── ASSIGN COMPLAINT TO EMPLOYEE ────────────────────────────

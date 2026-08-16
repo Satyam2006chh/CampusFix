@@ -22,6 +22,7 @@ async function loadStats() {
     document.getElementById('statPending').textContent = stats.pending || 0;
     document.getElementById('statInProgress').textContent = stats.in_progress || 0;
     document.getElementById('statClosed').textContent = stats.closed || 0;
+    document.getElementById('statReopened').textContent = stats.reopened || 0;
   } catch (err) {
     console.error(err);
   }
@@ -207,31 +208,28 @@ function renderEmployees() {
     let initials = e.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     
     grid.innerHTML += `
-      <div style="background:var(--bg-card); border:1px solid var(--border-light); border-radius:12px; padding:20px; position:relative; box-shadow: 0 4px 15px rgba(0,0,0,0.1);">
+      <div style="background:var(--bg-card); border:1px solid var(--border-light); border-radius:16px; padding:32px 24px; position:relative; box-shadow: 0 8px 24px rgba(0,0,0,0.15); display:flex; flex-direction:column; align-items:center; text-align:center; transition: transform 0.2s ease;">
         
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-          <span style="font-size:0.75rem; background:rgba(255,255,255,0.05); padding:4px 8px; border-radius:4px; color:var(--text-secondary);">EMP-${e.employee_id}</span>
-          <span style="color:${statColor}; font-size:0.75rem; font-weight:600; padding:4px 8px; border-radius:4px; background:rgba(255,255,255,0.05);">${e.availability}</span>
+        <div style="position:absolute; top:16px; left:16px; background:rgba(255,255,255,0.05); padding:4px 12px; border-radius:20px; font-size:0.7rem; color:var(--text-secondary); font-weight:600; letter-spacing:0.5px;">
+          ${e.availability}
         </div>
 
-        <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
-          <div style="width:50px; height:50px; border-radius:50%; background:linear-gradient(135deg, var(--purple-light), var(--purple)); display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:1.2rem; color:#fff;">
-            ${initials}
-          </div>
-          <div>
-            <div style="font-weight:600; color:var(--text-primary); font-size:1.1rem; margin-bottom:4px;">${e.name}</div>
-            <div style="font-size:0.8rem; color:var(--text-muted);">${e.designation}</div>
-          </div>
+        <div style="width:88px; height:88px; border-radius:50%; background:rgba(108, 99, 255, 0.1); display:flex; align-items:center; justify-content:center; font-weight:600; font-size:2rem; color:var(--purple); margin-top:12px; margin-bottom:20px;">
+          ${initials}
         </div>
 
-        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:20px; display:flex; flex-direction:column; gap:6px;">
-          <div>📧 ${e.email}</div>
-          <div>📞 ${e.phone || 'N/A'}</div>
-        </div>
+        <div style="font-weight:600; color:var(--text-primary); font-size:1.15rem; margin-bottom:6px;">${e.name}</div>
+        <div style="font-size:0.85rem; color:var(--text-muted); margin-bottom:24px;">${e.designation}</div>
 
-        <div style="display:flex; justify-content:flex-end; gap:8px; border-top:1px solid var(--border-light); padding-top:16px;">
-          <button class="btn-ghost" style="padding:6px 12px; font-size:0.85rem;" onclick='openEditEmpModal(${JSON.stringify(e).replace(/'/g, "&apos;")})'>✏️ Edit</button>
-          <button class="btn-ghost" style="padding:6px 12px; font-size:0.85rem; color:var(--red);" onclick="removeEmployee(${e.employee_id})">🗑️ Delete</button>
+        <div style="display:flex; justify-content:center; gap:12px; width:100%;">
+          <button class="btn-ghost" style="flex:1; padding:10px; font-size:0.85rem; background:rgba(255,255,255,0.03); border-radius:8px; display:flex; align-items:center; justify-content:center; gap:6px;" onclick='openEditEmpModal(${JSON.stringify(e).replace(/'/g, "&apos;")})'>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+            Edit
+          </button>
+          <button class="btn-ghost" style="flex:1; padding:10px; font-size:0.85rem; color:var(--red); background:rgba(255,92,122,0.05); border-radius:8px; display:flex; align-items:center; justify-content:center; gap:6px;" onclick="removeEmployee(${e.employee_id})">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            Delete
+          </button>
         </div>
       </div>
     `;
