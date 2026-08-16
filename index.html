@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="CampusFix — A centralized college infrastructure problem reporting, tracking, and resolution system." />
+  <title>CampusFix — Fix Your Campus, Fast.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════
+       NAVBAR
+  ═══════════════════════════════════════════ -->
+  <nav class="navbar" id="navbar">
+    <div class="nav-container">
+      <div class="nav-logo">
+        <div class="logo-icon">
+          <svg width="28" height="28" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14 2L3 7V14C3 19.55 7.84 24.74 14 26C20.16 24.74 25 19.55 25 14V7L14 2Z" fill="url(#grad1)" opacity="0.9"/>
+            <path d="M10 13.5L12.5 16L18 10.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="grad1" x1="3" y1="2" x2="25" y2="26" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#6c63ff"/>
+                <stop offset="100%" stop-color="#00d4ff"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text">CampusFix</span>
+      </div>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#home"    class="nav-link">Home</a></li>
+        <li><a href="#about"   class="nav-link">About</a></li>
+        <li><a href="#problems" class="nav-link">Problems</a></li>
+        <li><a href="#contact" class="nav-link">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="html/login.html" class="btn-login" id="loginBtn">Login</a>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══════════════════════════════════════════
+       HERO SECTION
+  ═══════════════════════════════════════════ -->
+  <section class="hero" id="home">
+    <div class="hero-bg-grid"></div>
+    <div class="hero-orb orb-1"></div>
+    <div class="hero-orb orb-2"></div>
+    <div class="hero-orb orb-3"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Centralized Campus Infrastructure System
+      </div>
+      <h1 class="hero-title">
+        Fix Your Campus.<br/>
+        <span class="gradient-text">Fast. Smart. Tracked.</span>
+      </h1>
+      <p class="hero-subtitle">
+        CampusFix bridges the gap between students and campus maintenance.<br/>
+        Report problems, track resolutions, and hold departments accountable — all in one place.
+      </p>
+      <div class="hero-actions">
+        <a href="html/login.html" class="btn-primary" id="getStartedBtn">Get Started →</a>
+        <a href="#about" class="btn-ghost">Learn More</a>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-number">3</span>
+          <span class="stat-label">User Roles</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">7</span>
+          <span class="stat-label">Departments</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-number">100%</span>
+          <span class="stat-label">Transparent</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-visual">
+      <div class="dashboard-preview">
+        <div class="preview-header">
+          <div class="preview-dots">
+            <span class="dot red"></span>
+            <span class="dot yellow"></span>
+            <span class="dot green"></span>
+          </div>
+          <span class="preview-title">CampusFix Dashboard</span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-card card-blue">
+            <span class="preview-num">1,284</span>
+            <span class="preview-lbl">Total Complaints</span>
+          </div>
+          <div class="preview-card card-green">
+            <span class="preview-num">1,021</span>
+            <span class="preview-lbl">Resolved</span>
+          </div>
+          <div class="preview-card card-yellow">
+            <span class="preview-num">163</span>
+            <span class="preview-lbl">Pending</span>
+          </div>
+          <div class="preview-card card-red">
+            <span class="preview-num">22</span>
+            <span class="preview-lbl">Overdue</span>
+          </div>
+          <div class="preview-bar-section">
+            <span class="preview-bar-label">Electrical</span>
+            <div class="preview-bar"><div class="bar-fill" style="width:80%"></div></div>
+            <span class="preview-bar-label">IT</span>
+            <div class="preview-bar"><div class="bar-fill" style="width:65%"></div></div>
+            <span class="preview-bar-label">Water</span>
+            <div class="preview-bar"><div class="bar-fill bar-cyan" style="width:45%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       HOW IT WORKS
+  ═══════════════════════════════════════════ -->
+  <section class="how-it-works" id="how">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">The Flow</span>
+        <h2 class="section-title">How CampusFix Works</h2>
+        <p class="section-subtitle">A seamless loop from complaint to resolution — with full accountability at every step.</p>
+      </div>
+
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="step-icon">📸</div>
+          <div class="step-num">01</div>
+          <h3>Student Reports</h3>
+          <p>Student submits a structured complaint with photo, location, and category. The system checks for duplicates instantly.</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">🏢</div>
+          <div class="step-num">02</div>
+          <h3>Auto Routed</h3>
+          <p>Complaint is automatically sent to the correct department based on the category selected.</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">👨‍🔧</div>
+          <div class="step-num">03</div>
+          <h3>Assigned & Fixed</h3>
+          <p>Department Head assigns the task to an available staff member. Student sees who is working on their issue in real-time.</p>
+        </div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">
+          <div class="step-icon">✅</div>
+          <div class="step-num">04</div>
+          <h3>Student Confirms</h3>
+          <p>After the department marks it resolved, the student confirms YES or NO. Only then is the complaint truly closed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       ABOUT SECTION
+  ═══════════════════════════════════════════ -->
+  <section class="about" id="about">
+    <div class="section-container">
+      <div class="about-grid">
+        <div class="about-text">
+          <span class="section-tag">About CampusFix</span>
+          <h2 class="section-title">One Platform.<br/>Every Campus Problem.</h2>
+          <p class="about-desc">
+            CampusFix is a centralized college infrastructure management system designed to eliminate the chaos of verbal complaints, forgotten reports, and unaccountable departments.
+          </p>
+          <p class="about-desc">
+            Built for three distinct roles — Students, Department Heads, and Super Admins — each with their own responsibilities, dashboards, and AI capabilities. Not just different interfaces, but genuinely different powers.
+          </p>
+          <div class="about-roles">
+            <div class="role-badge role-student">👨‍🎓 Student</div>
+            <div class="role-badge role-dept">👨‍💼 Dept Head</div>
+            <div class="role-badge role-admin">👑 Admin</div>
+          </div>
+        </div>
+
+        <div class="about-cards">
+          <div class="about-feature-card">
+            <div class="afc-icon">📍</div>
+            <h4>Structured Locations</h4>
+            <p>Campus → Block → Floor → Room. Structured data enables powerful location-based analytics.</p>
+          </div>
+          <div class="about-feature-card">
+            <div class="afc-icon">🔁</div>
+            <h4>Feedback Loop</h4>
+            <p>Student confirms resolution. A department can't fake-close a complaint — the student has the final say.</p>
+          </div>
+          <div class="about-feature-card">
+            <div class="afc-icon">🧠</div>
+            <h4>AI Powered</h4>
+            <p>Langchain AI helps structure complaints, detect duplicates, and generate campus intelligence reports.</p>
+          </div>
+          <div class="about-feature-card">
+            <div class="afc-icon">📊</div>
+            <h4>Real Analytics</h4>
+            <p>SQL-powered dashboards show complaint trends by department, location, and time — for real decisions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       PROBLEMS SECTION
+  ═══════════════════════════════════════════ -->
+  <section class="problems" id="problems">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">The Problem</span>
+        <h2 class="section-title">Why Does CampusFix Exist?</h2>
+        <p class="section-subtitle">Campus infrastructure management is broken. Here's exactly what we're fixing.</p>
+      </div>
+
+      <div class="problems-grid">
+
+        <div class="problem-card">
+          <div class="problem-icon">😤</div>
+          <h3>Verbal Complaints Get Forgotten</h3>
+          <p>Students report problems verbally to wardens. With hundreds of students and issues, complaints get delayed, forgotten, or simply overlooked.</p>
+        </div>
+
+        <div class="problem-card">
+          <div class="problem-icon">❓</div>
+          <h3>No Complaint Tracking</h3>
+          <p>After reporting, students don't know: Was it registered? Who is handling it? Has it been assigned? When will it be fixed? Is it still pending?</p>
+        </div>
+
+        <div class="problem-card">
+          <div class="problem-icon">🤷</div>
+          <h3>Students Don't Know Whom to Approach</h3>
+          <p>If a water cooler in Block B breaks — does the student go to the warden? Faculty? Maintenance? Electrical? Plumbing? No one should have to figure out the college hierarchy just to report a broken cooler.</p>
+        </div>
+
+        <div class="problem-card">
+          <div class="problem-icon">🏫</div>
+          <h3>Problems Are Everywhere</h3>
+          <p>Issues aren't limited to hostels. They happen in classrooms, labs, washrooms, corridors, IT infrastructure, and security systems — with no single place to report them.</p>
+        </div>
+
+        <div class="problem-card">
+          <div class="problem-icon">📋</div>
+          <h3>No Centralized Data</h3>
+          <p>Nobody can see: how many problems exist, which departments have the most complaints, which locations have recurring issues, or which complaints are overdue.</p>
+        </div>
+
+        <div class="problem-card">
+          <div class="problem-icon">🔁</div>
+          <h3>Duplicate Complaints</h3>
+          <p>If 10 students find the same broken water cooler, all 10 separately report it. CampusFix detects duplicate complaints and lets students upvote existing ones instead.</p>
+        </div>
+
+        <div class="problem-card">
+          <div class="problem-icon">👻</div>
+          <h3>Zero Accountability</h3>
+          <p>If a complaint stays unresolved for weeks, nobody is held responsible. There are no deadlines, no SLAs, no escalation paths, and no visibility into who dropped the ball.</p>
+        </div>
+
+        <div class="problem-card">
+          <div class="problem-icon">📉</div>
+          <h3>No Useful Data for Authorities</h3>
+          <p>100 Wi-Fi complaints in Block B isn't just 100 individual issues — it's a campus-level infrastructure failure. Without data, nobody notices the pattern.</p>
+        </div>
+
+        <div class="problem-card highlight-card">
+          <div class="problem-icon">🚀</div>
+          <h3>The CampusFix Solution</h3>
+          <p>Student → Complaint → Correct Department → Dept Head → Staff → Resolution → Student Confirmation. <br/><br/>Instead of: Student → tells someone → waits → asks again → waits again 😭</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       ROLES SECTION
+  ═══════════════════════════════════════════ -->
+  <section class="roles" id="roles">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">Three Roles</span>
+        <h2 class="section-title">Built for Everyone on Campus</h2>
+        <p class="section-subtitle">Each role has a completely different dashboard, different responsibilities, and different AI capabilities.</p>
+      </div>
+
+      <div class="roles-grid">
+        <div class="role-card">
+          <div class="role-card-icon">👨‍🎓</div>
+          <h3>Student</h3>
+          <p class="role-tag">The Reporter</p>
+          <ul class="role-features">
+            <li>✓ Report problems with photos</li>
+            <li>✓ Structured location picker</li>
+            <li>✓ Real-time complaint tracking</li>
+            <li>✓ See who is assigned to your issue</li>
+            <li>✓ Upvote existing complaints</li>
+            <li>✓ Confirm resolution (YES/NO)</li>
+            <li>✓ AI: Auto-format your complaint</li>
+          </ul>
+        </div>
+
+        <div class="role-card role-card-featured">
+          <div class="role-featured-badge">Most Powerful</div>
+          <div class="role-card-icon">👑</div>
+          <h3>Admin</h3>
+          <p class="role-tag">The Super God</p>
+          <ul class="role-features">
+            <li>✓ Full campus analytics dashboard</li>
+            <li>✓ Manage all departments</li>
+            <li>✓ Create & deactivate dept heads</li>
+            <li>✓ Complaints by dept, location, date</li>
+            <li>✓ Escalate & reassign complaints</li>
+            <li>✓ Manage campus locations</li>
+            <li>✓ AI: Campus Intelligence Reports</li>
+          </ul>
+        </div>
+
+        <div class="role-card">
+          <div class="role-card-icon">👨‍💼</div>
+          <h3>Dept Head</h3>
+          <p class="role-tag">The Manager</p>
+          <ul class="role-features">
+            <li>✓ See only their department's issues</li>
+            <li>✓ Add & manage staff members</li>
+            <li>✓ View available vs busy staff</li>
+            <li>✓ Assign complaints to staff</li>
+            <li>✓ Update complaint status</li>
+            <li>✓ Department analytics</li>
+            <li>✓ AI: Weekly dept summary</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       CONTACT SECTION
+  ═══════════════════════════════════════════ -->
+  <section class="contact" id="contact">
+    <div class="section-container">
+      <div class="contact-grid">
+        <div class="contact-text">
+          <span class="section-tag">Get In Touch</span>
+          <h2 class="section-title">Contact Us</h2>
+          <p class="about-desc">Have feedback, or want to know more about the CampusFix project? Reach out to us.</p>
+          <div class="contact-info">
+            <div class="contact-item">
+              <span class="ci-icon">📧</span>
+              <span>campusfix@college.edu</span>
+            </div>
+            <div class="contact-item">
+              <span class="ci-icon">📍</span>
+              <span>Department of Computer Science</span>
+            </div>
+          </div>
+        </div>
+
+        <form class="contact-form" id="contactForm" onsubmit="handleContactSubmit(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="contactName">Your Name</label>
+              <input type="text" id="contactName" placeholder="Enter your name" required />
+            </div>
+            <div class="form-group">
+              <label for="contactEmail">Email Address</label>
+              <input type="email" id="contactEmail" placeholder="Enter your email" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="contactSubject">Subject</label>
+            <input type="text" id="contactSubject" placeholder="What is this about?" required />
+          </div>
+          <div class="form-group">
+            <label for="contactMessage">Message</label>
+            <textarea id="contactMessage" rows="5" placeholder="Write your message here..." required></textarea>
+          </div>
+          <button type="submit" class="btn-primary btn-full">Send Message →</button>
+          <div id="contactSuccess" class="form-success" style="display:none">✅ Message sent! We'll get back to you soon.</div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════════
+       FOOTER
+  ═══════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="nav-logo">
+          <div class="logo-icon">
+            <svg width="24" height="24" viewBox="0 0 28 28" fill="none">
+              <path d="M14 2L3 7V14C3 19.55 7.84 24.74 14 26C20.16 24.74 25 19.55 25 14V7L14 2Z" fill="url(#grad2)" opacity="0.9"/>
+              <path d="M10 13.5L12.5 16L18 10.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <defs>
+                <linearGradient id="grad2" x1="3" y1="2" x2="25" y2="26" gradientUnits="userSpaceOnUse">
+                  <stop offset="0%" stop-color="#6c63ff"/>
+                  <stop offset="100%" stop-color="#00d4ff"/>
+                </linearGradient>
+              </defs>
+            </svg>
+          </div>
+          <span class="logo-text">CampusFix</span>
+        </div>
+        <p class="footer-tagline">Centralized. Transparent. Accountable.</p>
+      </div>
+
+      <div class="footer-links-group">
+        <h4>Navigation</h4>
+        <ul>
+          <li><a href="#home">Home</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#problems">Problems</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links-group">
+        <h4>Portals</h4>
+        <ul>
+          <li><a href="html/login.html">Student Login</a></li>
+          <li><a href="html/login.html">Dept Head Login</a></li>
+          <li><a href="html/login.html">Admin Login</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-links-group">
+        <h4>Tech Stack</h4>
+        <ul>
+          <li><span>HTML + CSS + JS</span></li>
+          <li><span>Python Flask</span></li>
+          <li><span>SQLite Database</span></li>
+          <li><span>Langchain AI</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 CampusFix. Built for CE-1 — Department of Computer Science.</p>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
