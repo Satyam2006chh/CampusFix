@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — CampusFix</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+</head>
+<body class="dash-body">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2L3 7V14C3 19.55 7.84 24.74 14 26C20.16 24.74 25 19.55 25 14V7L14 2Z" fill="#6c63ff" opacity="0.9"/>
+          <path d="M10 13.5L12.5 16L18 10.5" stroke="#111128" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">CampusFix</span>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li><a href="#" class="nav-item active" data-tab="overview">
+        <span class="nav-icon">🌍</span> Campus Overview
+      </a></li>
+      <li><a href="#" class="nav-item" data-tab="complaints">
+        <span class="nav-icon">📋</span> All Complaints
+      </a></li>
+      <li><a href="#" class="nav-item" data-tab="departments">
+        <span class="nav-icon">🏢</span> Departments
+      </a></li>
+      <li><a href="#" class="nav-item" data-tab="locations">
+        <span class="nav-icon">📍</span> Locations
+      </a></li>
+      <li><a href="#" class="nav-item" data-tab="users">
+        <span class="nav-icon">👥</span> Users
+      </a></li>
+    </ul>
+
+    <div class="sidebar-bottom">
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar" style="background: linear-gradient(135deg, #6c63ff, #00d4ff)">A</div>
+        <div class="user-details">
+          <span class="user-name" id="userNameDisplay">Admin</span>
+          <span class="user-role">Super Admin</span>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">
+        <span class="nav-icon">🚪</span> Logout
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <h2 class="topbar-title" id="pageTitle">Campus Overview</h2>
+    </header>
+
+    <div class="content-wrapper">
+      
+      <!-- ── TAB: OVERVIEW ── -->
+      <section id="tab-overview" class="tab-pane active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="sc-header"><span class="sc-icon">📋</span><span class="sc-title">Global Total</span></div>
+            <span class="sc-value" id="aStatTotal">0</span>
+          </div>
+          <div class="stat-card">
+            <div class="sc-header"><span class="sc-icon">⏳</span><span class="sc-title">Pending</span></div>
+            <span class="sc-value" id="aStatPending">0</span>
+          </div>
+          <div class="stat-card card-purple">
+            <div class="sc-header"><span class="sc-icon">🛠</span><span class="sc-title">In Progress</span></div>
+            <span class="sc-value" id="aStatInProgress">0</span>
+          </div>
+          <div class="stat-card card-green">
+            <div class="sc-header"><span class="sc-icon">✅</span><span class="sc-title">Resolved</span></div>
+            <span class="sc-value" id="aStatResolved">0</span>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
+          <div class="table-container">
+            <div style="padding:16px; border-bottom:1px solid var(--border-light); font-weight:600;">Complaints by Department</div>
+            <table class="data-table">
+              <thead><tr><th>Department</th><th>Total Complaints</th></tr></thead>
+              <tbody id="deptStatsBody"></tbody>
+            </table>
+          </div>
+          
+          <div class="table-container">
+            <div style="padding:16px; border-bottom:1px solid var(--border-light); font-weight:600;">Hotspots (by Block)</div>
+            <table class="data-table">
+              <thead><tr><th>Block</th><th>Issue Count</th></tr></thead>
+              <tbody id="blockStatsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── TAB: COMPLAINTS ── -->
+      <section id="tab-complaints" class="tab-pane">
+        <div style="margin-bottom:16px; display:flex; gap:12px;">
+          <select id="filtDept" onchange="loadAllComplaints()" style="padding:8px; border-radius:4px; background:var(--bg-card); color:#fff; border:1px solid var(--border-light);">
+            <option value="">All Departments</option>
+            <!-- Loaded via JS -->
+          </select>
+          <select id="filtStatus" onchange="loadAllComplaints()" style="padding:8px; border-radius:4px; background:var(--bg-card); color:#fff; border:1px solid var(--border-light);">
+            <option value="">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr><th>ID</th><th>Title & Location</th><th>Dept</th><th>Status</th><th>Submitted</th></tr>
+            </thead>
+            <tbody id="globalComplaintsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── TAB: DEPARTMENTS ── -->
+      <section id="tab-departments" class="tab-pane">
+        <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+          <h3>Manage Departments</h3>
+          <div style="display:flex; gap:12px;">
+            <button class="btn-ghost" onclick="openAddDeptModal()">+ Add Dept</button>
+            <button class="btn-primary" onclick="openAddHeadModal()">+ Assign Head</button>
+          </div>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr><th>Department</th><th>Tag</th><th>Head Name</th><th>Contact</th><th>Issues</th></tr>
+            </thead>
+            <tbody id="deptsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── TAB: LOCATIONS ── -->
+      <section id="tab-locations" class="tab-pane">
+        <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+          <h3>Manage Locations</h3>
+          <button class="btn-primary" onclick="openLocModal()">+ Add Location</button>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr><th>Campus</th><th>Block</th><th>Floor</th><th>Room/Area</th></tr>
+            </thead>
+            <tbody id="locationsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── TAB: USERS ── -->
+      <section id="tab-users" class="tab-pane">
+        <div style="margin-bottom:16px;">
+          <select id="userFiltRole" onchange="loadUsers()" style="padding:8px; border-radius:4px; background:var(--bg-card); color:#fff; border:1px solid var(--border-light);">
+            <option value="">All Roles</option>
+            <option value="student">Students</option>
+            <option value="dept_head">Dept Heads</option>
+            <option value="admin">Admins</option>
+          </select>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Role</th><th>Dept</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="usersBody"></tbody>
+          </table>
+        </div>
+      </section>
+      
+    </div>
+  </main>
+
+  <!-- ── MODALS ── -->
+  <div id="addDeptModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Add Department</h3>
+      <form onsubmit="submitDept(event)" style="margin-top:16px;">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Department Name</label>
+          <input type="text" id="dName" required />
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Category Tag (Used for auto-routing)</label>
+          <input type="text" id="dTag" placeholder="e.g. electrical" required />
+        </div>
+        <div class="form-group" style="margin-bottom:20px;">
+          <label>Description</label>
+          <textarea id="dDesc" rows="2"></textarea>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:12px;">
+          <button type="button" class="btn-ghost" onclick="closeModals()">Cancel</button>
+          <button type="submit" class="btn-primary">Add Department</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="addHeadModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Assign Department Head</h3>
+      <form onsubmit="submitHead(event)" style="margin-top:16px;">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Department</label>
+          <select id="hDept" required></select>
+        </div>
+        <div class="form-row" style="margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="hName" required />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="hEmail" required />
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="hPass" required minlength="6" />
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="hPhone" />
+          </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
+          <button type="button" class="btn-ghost" onclick="closeModals()">Cancel</button>
+          <button type="submit" class="btn-primary">Assign Head</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="addLocModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Add Location</h3>
+      <form onsubmit="submitLoc(event)" style="margin-top:16px;">
+        <div class="form-row" style="margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>Campus</label><input type="text" id="lCampus" required /></div>
+          <div class="form-group"><label>Block</label><input type="text" id="lBlock" required /></div>
+        </div>
+        <div class="form-row" style="margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group"><label>Floor</label><input type="text" id="lFloor" required /></div>
+          <div class="form-group"><label>Room / Area</label><input type="text" id="lRoom" required /></div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
+          <button type="button" class="btn-ghost" onclick="closeModals()">Cancel</button>
+          <button type="submit" class="btn-primary">Add Location</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/admin.js"></script>
+</body>
+</html>

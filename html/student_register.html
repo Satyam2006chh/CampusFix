@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Registration — CampusFix</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/auth.css" />
+</head>
+<body class="auth-body">
+
+  <div class="auth-bg-grid"></div>
+  <div class="auth-orb auth-orb-1"></div>
+  <div class="auth-orb auth-orb-2"></div>
+
+  <!-- ─── BACK TO HOME ─────────────────────────── -->
+  <a href="../index.html" class="back-home">
+    ← Back to Home
+  </a>
+
+  <div class="auth-wrapper">
+    <!-- LEFT PANEL -->
+    <div class="auth-left">
+      <div class="auth-brand">
+        <div class="logo-icon">
+          <svg width="36" height="36" viewBox="0 0 28 28" fill="none">
+            <path d="M14 2L3 7V14C3 19.55 7.84 24.74 14 26C20.16 24.74 25 19.55 25 14V7L14 2Z" fill="url(#grad-reg)" opacity="0.9"/>
+            <path d="M10 13.5L12.5 16L18 10.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs>
+              <linearGradient id="grad-reg" x1="3" y1="2" x2="25" y2="26" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stop-color="#6c63ff"/>
+                <stop offset="100%" stop-color="#00d4ff"/>
+              </linearGradient>
+            </defs>
+          </svg>
+        </div>
+        <span class="logo-text">CampusFix</span>
+      </div>
+      <h1 class="auth-left-title">Join Your Campus.<br/><span class="gradient-text">Make an Impact.</span></h1>
+      <p class="auth-left-sub">Create your student account to start reporting issues and improving the campus environment.</p>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="auth-right">
+      <div class="auth-panel">
+        <div class="login-role-badge">👨‍🎓 Student</div>
+        <h2 class="auth-panel-title">Create Account</h2>
+        <p class="auth-panel-sub">Fill in your details to register as a student.</p>
+
+        <form id="registerForm" onsubmit="handleRegister(event)">
+          <div class="register-grid">
+            <div class="form-group">
+              <label for="regName">Full Name</label>
+              <input type="text" id="regName" placeholder="e.g., John Doe" required />
+            </div>
+            <div class="form-group">
+              <label for="regRollNo">Roll Number</label>
+              <input type="text" id="regRollNo" placeholder="e.g., 2026CS123" required />
+            </div>
+            <div class="form-group" style="grid-column: 1 / -1;">
+              <label for="regEmail">Email Address</label>
+              <input type="email" id="regEmail" placeholder="student@campus.edu" required />
+            </div>
+            <div class="form-group">
+              <label for="regPhone">Phone Number (Optional)</label>
+              <input type="tel" id="regPhone" placeholder="e.g., 9876543210" />
+            </div>
+            <div class="form-group">
+              <label for="regPassword">Password</label>
+              <div class="password-wrapper">
+                <input type="password" id="regPassword" placeholder="Min. 6 characters" required minlength="6" />
+                <button type="button" class="eye-btn" onclick="toggleRegPassword()">👁</button>
+              </div>
+            </div>
+          </div>
+          
+          <div id="regError" class="form-error hidden" style="margin-top: 16px;"></div>
+          
+          <button type="submit" class="btn-primary btn-full" id="regSubmitBtn" style="margin-top: 24px;">
+            <span id="regBtnText">Create Account</span>
+          </button>
+        </form>
+
+        <div class="signup-link">
+          <p>Already have an account? <a href="login.html">Sign in instead →</a></p>
+        </div>
+
+        <p class="auth-footer-note">© 2026 CampusFix. All rights reserved.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleRegPassword() {
+      const input = document.getElementById('regPassword');
+      const btn   = event.currentTarget;
+      if (input.type === 'password') {
+        input.type = 'text';
+        btn.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        btn.textContent = '👁';
+      }
+    }
+
+    async function handleRegister(e) {
+      e.preventDefault();
+      
+      const name     = document.getElementById('regName').value;
+      const roll_no  = document.getElementById('regRollNo').value;
+      const email    = document.getElementById('regEmail').value;
+      const phone    = document.getElementById('regPhone').value;
+      const password = document.getElementById('regPassword').value;
+      const errorEl  = document.getElementById('regError');
+      const btnText  = document.getElementById('regBtnText');
+      const btn      = document.getElementById('regSubmitBtn');
+      
+      errorEl.classList.add('hidden');
+      btnText.textContent = 'Creating Account...';
+      btn.disabled = true;
+      
+      try {
+        const res = await fetch('http://127.0.0.1:5000/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, roll_no, email, phone, password })
+        });
+        const data = await res.json();
+        
+        if (res.ok) {
+          // Store token & redirect to dashboard
+          sessionStorage.setItem('cf_token', data.token);
+          sessionStorage.setItem('cf_user', JSON.stringify(data.user));
+          sessionStorage.setItem('cf_role', 'student');
+          window.location.href = 'student_dashboard.html';
+        } else {
+          errorEl.textContent = data.message || 'Registration failed.';
+          errorEl.classList.remove('hidden');
+        }
+      } catch (err) {
+        errorEl.textContent = 'Cannot connect to the server.';
+        errorEl.classList.remove('hidden');
+      } finally {
+        btnText.textContent = 'Create Account';
+        btn.disabled = false;
+      }
+    }
+  </script>
+</body>
+</html>

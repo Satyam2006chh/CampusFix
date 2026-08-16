@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dept Head Dashboard — CampusFix</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+</head>
+<body class="dash-body">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2L3 7V14C3 19.55 7.84 24.74 14 26C20.16 24.74 25 19.55 25 14V7L14 2Z" fill="#ffc147" opacity="0.9"/>
+          <path d="M10 13.5L12.5 16L18 10.5" stroke="#111128" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">CampusFix</span>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li><a href="#" class="nav-item active" data-tab="overview">
+        <span class="nav-icon">📊</span> Overview
+      </a></li>
+      <li><a href="#" class="nav-item" data-tab="dept-complaints">
+        <span class="nav-icon">📋</span> Complaints
+      </a></li>
+      <li><a href="#" class="nav-item" data-tab="employees">
+        <span class="nav-icon">👨‍🔧</span> Employees
+      </a></li>
+    </ul>
+
+    <div class="sidebar-bottom">
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar" style="background: linear-gradient(135deg, #ffc147, #ff9a44)">D</div>
+        <div class="user-details">
+          <span class="user-name" id="userNameDisplay">Dept Head</span>
+          <span class="user-role">Dept Head</span>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">
+        <span class="nav-icon">🚪</span> Logout
+      </button>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <h2 class="topbar-title" id="pageTitle">Dashboard Overview</h2>
+    </header>
+
+    <div class="content-wrapper">
+      
+      <!-- ── TAB: OVERVIEW ── -->
+      <section id="tab-overview" class="tab-pane active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="sc-header"><span class="sc-icon">📋</span><span class="sc-title">Total</span></div>
+            <span class="sc-value" id="statTotal">0</span>
+          </div>
+          <div class="stat-card">
+            <div class="sc-header"><span class="sc-icon">⏳</span><span class="sc-title">Pending</span></div>
+            <span class="sc-value" id="statPending">0</span>
+          </div>
+          <div class="stat-card card-purple">
+            <div class="sc-header"><span class="sc-icon">🛠</span><span class="sc-title">In Progress</span></div>
+            <span class="sc-value" id="statInProgress">0</span>
+          </div>
+          <div class="stat-card card-green">
+            <div class="sc-header"><span class="sc-icon">✅</span><span class="sc-title">Closed</span></div>
+            <span class="sc-value" id="statClosed">0</span>
+          </div>
+        </div>
+
+        <div class="recent-section">
+          <div class="section-header-row" style="display:flex; justify-content:space-between; margin-bottom:16px;">
+            <h3>Action Required (Reopened / Pending)</h3>
+            <a href="#" class="view-all" onclick="switchTab('dept-complaints')">View All →</a>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead><tr><th>ID</th><th>Title & Location</th><th>Urgency</th><th>Status</th><th>Date</th></tr></thead>
+              <tbody id="actionRequiredBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── TAB: COMPLAINTS ── -->
+      <section id="tab-dept-complaints" class="tab-pane">
+        <div style="margin-bottom:16px; display:flex; gap:12px;">
+          <select id="filterStatus" onchange="loadComplaints()" style="padding:8px 12px; border-radius:8px; background:var(--bg-card); border:1px solid var(--border-light); color:#fff;">
+            <option value="">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Waiting Confirmation">Waiting Confirmation</option>
+            <option value="Closed">Closed</option>
+            <option value="Reopened">Reopened</option>
+          </select>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title / Location / Details</th>
+                <th>Urgency</th>
+                <th>Status</th>
+                <th>Assigned To</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="allComplaintsBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── TAB: EMPLOYEES ── -->
+      <section id="tab-employees" class="tab-pane">
+        <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+          <h3>Manage Employees</h3>
+          <button class="btn-primary" onclick="openEmpModal()">+ Add Employee</button>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr><th>ID</th><th>Name & Contact</th><th>Designation</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="employeesBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ── ASSIGN MODAL ── -->
+  <div id="assignModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Assign Complaint</h3>
+      <p style="color:var(--text-secondary); margin-bottom:16px; font-size:0.9rem;">Select an available employee to handle this issue.</p>
+      
+      <div class="form-group" style="margin-bottom:20px;">
+        <label>Available Employees</label>
+        <select id="assignSelect"></select>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:12px;">
+        <button class="btn-ghost" onclick="closeAssignModal()">Cancel</button>
+        <button class="btn-primary" onclick="submitAssignment()">Assign</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ADD EMPLOYEE MODAL ── -->
+  <div id="empModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Add New Employee</h3>
+      <form id="empForm" onsubmit="submitEmployee(event)" style="margin-top:16px;">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label>Full Name</label>
+          <input type="text" id="empName" required />
+        </div>
+        <div class="form-row" style="margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="empEmail" required />
+          </div>
+          <div class="form-group">
+            <label>Password (Temporary)</label>
+            <input type="password" id="empPassword" required minlength="6" />
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+          <div class="form-group">
+            <label>Designation</label>
+            <input type="text" id="empDesig" placeholder="e.g. Senior Electrician" required />
+          </div>
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="empPhone" />
+          </div>
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
+          <button type="button" class="btn-ghost" onclick="closeEmpModal()">Cancel</button>
+          <button type="submit" class="btn-primary">Save Employee</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/dept_head.js"></script>
+</body>
+</html>

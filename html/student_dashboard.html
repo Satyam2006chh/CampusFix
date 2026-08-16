@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Dashboard — CampusFix</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+</head>
+<body class="dash-body">
+
+  <!-- ─── SIDEBAR ────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <path d="M14 2L3 7V14C3 19.55 7.84 24.74 14 26C20.16 24.74 25 19.55 25 14V7L14 2Z" fill="#00e5a0" opacity="0.9"/>
+          <path d="M10 13.5L12.5 16L18 10.5" stroke="#111128" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="logo-text">CampusFix</span>
+    </div>
+
+    <ul class="sidebar-nav">
+      <li><a href="#" class="nav-item active" data-tab="overview">
+        <span class="nav-icon">📊</span> Overview
+      </a></li>
+      <li><a href="#" class="nav-item" data-tab="new-complaint">
+        <span class="nav-icon">➕</span> Report Issue
+      </a></li>
+      <li><a href="#" class="nav-item" data-tab="my-complaints">
+        <span class="nav-icon">📋</span> My Complaints
+      </a></li>
+    </ul>
+
+    <div class="sidebar-bottom">
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar">S</div>
+        <div class="user-details">
+          <span class="user-name" id="userNameDisplay">Student Name</span>
+          <span class="user-role">Student</span>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">
+        <span class="nav-icon">🚪</span> Logout
+      </button>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN CONTENT ───────────────────────────────────────── -->
+  <main class="main-content">
+    <header class="topbar">
+      <h2 class="topbar-title" id="pageTitle">Dashboard Overview</h2>
+      <div class="topbar-actions">
+        <button class="btn-primary" onclick="switchTab('new-complaint')">
+          + New Complaint
+        </button>
+      </div>
+    </header>
+
+    <div class="content-wrapper">
+      
+      <!-- ── TAB: OVERVIEW ── -->
+      <section id="tab-overview" class="tab-pane active">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="sc-header">
+              <span class="sc-icon">📋</span>
+              <span class="sc-title">Total Reported</span>
+            </div>
+            <span class="sc-value" id="statTotal">0</span>
+          </div>
+          <div class="stat-card">
+            <div class="sc-header">
+              <span class="sc-icon">⏳</span>
+              <span class="sc-title">Pending</span>
+            </div>
+            <span class="sc-value" id="statPending">0</span>
+          </div>
+          <div class="stat-card">
+            <div class="sc-header">
+              <span class="sc-icon">🛠</span>
+              <span class="sc-title">In Progress</span>
+            </div>
+            <span class="sc-value" id="statInProgress">0</span>
+          </div>
+          <div class="stat-card card-green">
+            <div class="sc-header">
+              <span class="sc-icon">✅</span>
+              <span class="sc-title">Resolved</span>
+            </div>
+            <span class="sc-value" id="statResolved">0</span>
+          </div>
+        </div>
+
+        <div class="recent-section">
+          <div class="section-header-row">
+            <h3>Recent Complaints</h3>
+            <a href="#" class="view-all" onclick="switchTab('my-complaints')">View All →</a>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Title</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody id="recentComplaintsBody">
+                <!-- Populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── TAB: NEW COMPLAINT ── -->
+      <section id="tab-new-complaint" class="tab-pane">
+        <div class="form-card">
+          <h3>Report a New Issue</h3>
+          <p class="form-desc">Provide details about the issue to help the maintenance team locate and fix it faster.</p>
+          
+          <form id="complaintForm" onsubmit="submitComplaint(event)">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cTitle">Issue Title</label>
+                <input type="text" id="cTitle" placeholder="e.g., Fan not working in Lab 1" required />
+              </div>
+              <div class="form-group">
+                <label for="cCategory">Category</label>
+                <select id="cCategory" required>
+                  <option value="" disabled selected>Select a category</option>
+                  <option value="Electrical">Electrical</option>
+                  <option value="Water">Plumbing & Water</option>
+                  <option value="Civil">Civil & Infrastructure</option>
+                  <option value="IT">IT & Networking</option>
+                  <option value="Cleaning">Cleaning & Sanitation</option>
+                  <option value="Security">Security & Safety</option>
+                  <option value="Hostel">Hostel Maintenance</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="cLocation">Location</label>
+                <select id="cLocation" required>
+                  <option value="" disabled selected>Loading locations...</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="cUrgency">Urgency</label>
+                <select id="cUrgency">
+                  <option value="Low">Low (Can wait a few days)</option>
+                  <option value="Medium" selected>Medium (Needs attention soon)</option>
+                  <option value="High">High (Immediate hazard/blocker)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="cDesc">Detailed Description</label>
+              <textarea id="cDesc" rows="4" placeholder="Describe the issue in detail..." required></textarea>
+            </div>
+
+            <div id="cError" class="form-error hidden" style="margin-bottom: 16px;"></div>
+            <div id="cSuccess" class="form-success hidden" style="margin-bottom: 16px;">Complaint submitted successfully!</div>
+            
+            <button type="submit" class="btn-primary" id="cSubmitBtn">Submit Complaint</button>
+          </form>
+        </div>
+
+        <!-- DUPLICATE WARNING MODAL -->
+        <div id="duplicateModal" class="modal hidden">
+          <div class="modal-content">
+            <h3 style="color: var(--yellow); margin-bottom: 12px;">⚠️ Similar Issue Found</h3>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+              A complaint of this category already exists for this location. Do you want to upvote it instead?
+            </p>
+            <div class="duplicate-details" id="duplicateDetails" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.85rem;">
+              <!-- Inserted via JS -->
+            </div>
+            <div style="display: flex; gap: 12px; justify-content: flex-end;">
+              <button class="btn-ghost" onclick="closeDuplicateModal()">Cancel</button>
+              <button class="btn-primary" id="btnUpvoteInstead">Upvote Existing Issue</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── TAB: MY COMPLAINTS ── -->
+      <section id="tab-my-complaints" class="tab-pane">
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Title & Location</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Date Submitted</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="allComplaintsBody">
+              <!-- Populated by JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- ─── CONFIRMATION MODAL ─────────────────────────────────── -->
+  <div id="confirmModal" class="modal hidden">
+    <div class="modal-content">
+      <h3 style="color: var(--green); margin-bottom: 12px;">Verify Resolution</h3>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;">
+        The maintenance team has marked this issue as resolved. Is the problem fixed?
+      </p>
+      
+      <div id="confirmReasonGroup" class="form-group hidden" style="margin-bottom: 20px;">
+        <label for="confirmReason">Reason for reopening:</label>
+        <textarea id="confirmReason" rows="3" placeholder="Explain why it's not fixed..."></textarea>
+      </div>
+
+      <div style="display: flex; gap: 12px; justify-content: flex-end;">
+        <button class="btn-ghost" id="btnConfirmNo" onclick="handleConfirmNo()">No, it's not fixed</button>
+        <button class="btn-primary" id="btnConfirmYes" style="background: var(--green); color: #000;" onclick="submitConfirmation(true)">Yes, it's fixed</button>
+        <button class="btn-primary hidden" id="btnSubmitReopen" onclick="submitConfirmation(false)">Submit Feedback</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/student.js"></script>
+</body>
+</html>
