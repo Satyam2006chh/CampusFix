@@ -22,6 +22,8 @@ async function loadStats() {
     document.getElementById('statInProgress').textContent = stats.in_progress || 0;
     document.getElementById('statClosed').textContent    = stats.closed     || 0;
     document.getElementById('statReopened').textContent  = stats.reopened   || 0;
+    const overdueEl = document.getElementById('statOverdue');
+    if (overdueEl) overdueEl.textContent = stats.overdue || 0;
   } catch (err) { console.error(err); }
 }
 
@@ -45,22 +47,23 @@ function renderActionRequired() {
   const tbody = document.getElementById('actionRequiredBody');
   tbody.innerHTML = '';
   const actionReq = complaintsData
-    .filter(c => c.status === 'Pending' || c.status === 'Reopened')
+    .filter(c => c.status === 'Pending' || c.status === 'Reopened' || c.status === 'Overdue')
     .slice(0, 5);
   if (actionReq.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px;">No pending actions.</td></tr>';
     return;
   }
   actionReq.forEach(c => {
+    const rowStyle = c.status === 'Overdue' ? ' style="background:var(--danger-bg);"' : '';
     tbody.innerHTML += `
-      <tr>
+      <tr${rowStyle}>
         <td>#CF-${c.complaint_id}</td>
         <td>
           <strong>${c.title}</strong>
           <small>${c.block}, ${c.room_area}</small>
         </td>
         <td><span class="urgency-${(c.urgency||'').toLowerCase()}">${c.urgency}</span></td>
-        <td>${getStatusBadge(c.status)}</td>
+        <td>${getStatusBadge(c.status)}${getDeadlineBadge(c.deadline, c.status)}</td>
         <td>${formatDate(c.created_at)}</td>
       </tr>`;
   });
@@ -74,10 +77,13 @@ function renderAllComplaints() {
     return;
   }
   complaintsData.forEach(c => {
+    const isOverdue = c.status === 'Overdue';
+    const rowStyle  = isOverdue ? ' style="background:var(--danger-bg);"' : '';
+
     let actionHtml = '<span style="color:var(--text-muted);font-size:0.8rem;">—</span>';
     if (c.status === 'Pending' || c.status === 'Reopened') {
       actionHtml = `<button class="action-btn" onclick="openAssignModal(${c.complaint_id})">Assign</button>`;
-    } else if (c.status === 'In Progress') {
+    } else if (c.status === 'In Progress' || c.status === 'Overdue') {
       actionHtml = `<button class="action-btn" onclick="markResolved(${c.complaint_id})"
         style="color:var(--success); border-color:rgba(16,185,129,0.3);">Mark Resolved</button>`;
     } else if (c.status === 'Waiting Confirmation') {
@@ -94,7 +100,7 @@ function renderAllComplaints() {
       : '';
 
     tbody.innerHTML += `
-      <tr>
+      <tr${rowStyle}>
         <td>#CF-${c.complaint_id}</td>
         <td>
           <strong>${c.title}</strong>${upvoteBadge}
@@ -102,11 +108,36 @@ function renderAllComplaints() {
           <small>By: ${c.student_name}</small>
         </td>
         <td><span class="urgency-${(c.urgency||'').toLowerCase()}">${c.urgency}</span></td>
-        <td>${getStatusBadge(c.status)}</td>
+        <td>
+          ${getStatusBadge(c.status)}
+          ${getDeadlineBadge(c.deadline, c.status)}
+        </td>
         <td style="font-size:0.84rem;color:var(--text-secondary);">${c.assigned_to_name || 'Unassigned'}</td>
         <td>${actionHtml}</td>
       </tr>`;
   });
+}
+
+// ─── DEADLINE BADGE HELPER ───────────────────────────────────
+function getDeadlineBadge(deadline, status) {
+  if (!deadline) return '';
+
+  const today  = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dDay   = new Date(deadline + 'T00:00:00');
+  const diffMs = dDay - today;
+  const diff   = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (status === 'Overdue' || diff < 0) {
+    const n = Math.abs(diff);
+    return `<span class="deadline-badge overdue">🔴 ${n} day${n !== 1 ? 's' : ''} overdue</span>`;
+  } else if (diff === 0) {
+    return `<span class="deadline-badge due-today">⚠️ Due today</span>`;
+  } else if (diff <= 2) {
+    return `<span class="deadline-badge soon">⏳ ${diff} day${diff !== 1 ? 's' : ''} left</span>`;
+  } else {
+    return `<span class="deadline-badge normal">📅 ${diff} days left</span>`;
+  }
 }
 
 // ─── MARK RESOLVED ───────────────────────────────────────────
@@ -150,12 +181,27 @@ function openAssignModal(compId) {
     select.innerHTML = '<option disabled>No employees added yet.</option>';
   }
   available.forEach(e => {
-    select.innerHTML += `<option value="${e.employee_id}">${e.name} — Available</option>`;
+    const ow = e.overdue_count > 0 ? ` ⚠️ ${e.overdue_count} overdue` : '';
+    select.innerHTML += `<option value="${e.employee_id}">${e.name} — Available${ow}</option>`;
   });
   busy.forEach(e => {
-    select.innerHTML += `<option value="${e.employee_id}" style="color:var(--warning)">${e.name} — Busy</option>`;
+    const ow = e.overdue_count > 0 ? ` ⚠️ ${e.overdue_count} overdue` : '';
+    select.innerHTML += `<option value="${e.employee_id}" style="color:var(--warning)">${e.name} — Busy${ow}</option>`;
   });
+
+  // Default deadline = today + 3 days
+  setDeadlineDays(3);
+
   document.getElementById('assignModal').classList.remove('hidden');
+}
+
+// ─── DEADLINE QUICK-SET HELPER ───────────────────────────────
+function setDeadlineDays(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  const iso = d.toISOString().split('T')[0];
+  const el = document.getElementById('assignDeadline');
+  if (el) el.value = iso;
 }
 
 function closeAssignModal() {
@@ -164,12 +210,14 @@ function closeAssignModal() {
 }
 
 async function submitAssignment() {
-  const empId = document.getElementById('assignSelect').value;
+  const empId    = document.getElementById('assignSelect').value;
+  const deadlineEl = document.getElementById('assignDeadline');
+  const deadline = deadlineEl ? (deadlineEl.value || null) : null;
   if (!empId) return;
   try {
     await apiFetch(`/depthead/complaints/${assignCompId}/assign`, {
       method: 'POST',
-      body: JSON.stringify({ employee_id: empId })
+      body: JSON.stringify({ employee_id: empId, deadline: deadline })
     });
     closeAssignModal();
     loadStats();
@@ -190,15 +238,23 @@ function renderEmployees() {
     return;
   }
   allEmployees.forEach(e => {
-    const initials = e.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    const isAvail  = e.availability === 'Available';
+    const initials   = e.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    const isAvail    = e.availability === 'Available';
+    const hasOverdue = (e.overdue_count || 0) > 0;
+    const cardStyle  = hasOverdue ? 'border-color:var(--warning);box-shadow:0 0 0 1px var(--warning),var(--shadow-xs);' : '';
+
+    const overdueTag = hasOverdue
+      ? `<span class="employee-overdue-tag">⚠️ ${e.overdue_count} overdue task${e.overdue_count !== 1 ? 's' : ''}</span>`
+      : '';
+
     grid.innerHTML += `
-      <div class="employee-card">
+      <div class="employee-card" style="${cardStyle}">
         <div class="employee-card-top">
           <div class="employee-avatar">${initials}</div>
           <div>
             <div class="employee-name">${e.name}</div>
             <div class="employee-desig">${e.designation}</div>
+            ${overdueTag}
           </div>
           <span class="employee-status ${isAvail ? 'available' : 'busy'}">${e.availability}</span>
         </div>

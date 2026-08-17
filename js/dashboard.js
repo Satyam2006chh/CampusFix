@@ -111,7 +111,8 @@ function getStatusBadge(status) {
     'In Progress': 'status-progress',
     'Waiting Confirmation': 'status-waiting',
     'Closed': 'status-closed',
-    'Reopened': 'status-reopened'
+    'Reopened': 'status-reopened',
+    'Overdue': 'status-overdue'
   };
   const cls = map[status] || 'status-pending';
   return `<span class="status-badge ${cls}">${status}</span>`;

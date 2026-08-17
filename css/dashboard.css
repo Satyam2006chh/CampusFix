@@ -848,3 +848,39 @@ select option {
   .topbar { padding: 0 20px; }
   .content-wrapper { padding: 16px; }
 }
+
+/* ─── DEADLINE FEATURE STYLES ────────────────────────────────── */
+
+/* Status badge for Overdue */
+.status-overdue {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+.status-overdue::before { background: var(--warning); }
+
+/* Inline deadline countdown badges shown under the status badge */
+.deadline-badge {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}
+.deadline-badge.overdue   { background: var(--danger-bg);  color: var(--danger); }
+.deadline-badge.due-today { background: var(--warning-bg); color: var(--warning); }
+.deadline-badge.soon      { background: var(--warning-bg); color: var(--warning); }
+.deadline-badge.normal    { background: var(--bg-surface-2); color: var(--text-muted); }
+
+/* Overdue task counter on employee cards */
+.employee-overdue-tag {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--warning);
+  background: var(--warning-bg);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}

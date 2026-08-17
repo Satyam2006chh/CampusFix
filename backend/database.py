@@ -71,6 +71,7 @@ def init_db():
         join_date     DATE,
         bio           TEXT,
         is_active     INTEGER DEFAULT 1,
+        overdue_count INTEGER DEFAULT 0,
         created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (department_id) REFERENCES departments(dept_id)
     )""")
@@ -92,6 +93,8 @@ def init_db():
         assigned_to    INTEGER,
         assigned_by    INTEGER,
         assigned_at    DATETIME,
+        deadline       DATE,
+        is_overdue     INTEGER DEFAULT 0,
         resolved_at    DATETIME,
         closed_at      DATETIME,
         reopen_reason  TEXT,
@@ -101,6 +104,19 @@ def init_db():
         FOREIGN KEY (department_id) REFERENCES departments(dept_id),
         FOREIGN KEY (assigned_to)   REFERENCES employees(employee_id)
     )""")
+
+    conn.commit()
+
+    # ─── MIGRATE EXISTING DB: add deadline columns if missing ────
+    existing_cols = [row[1] for row in cursor.execute("PRAGMA table_info(complaints)").fetchall()]
+    if 'deadline' not in existing_cols:
+        cursor.execute("ALTER TABLE complaints ADD COLUMN deadline DATE")
+    if 'is_overdue' not in existing_cols:
+        cursor.execute("ALTER TABLE complaints ADD COLUMN is_overdue INTEGER DEFAULT 0")
+
+    emp_cols = [row[1] for row in cursor.execute("PRAGMA table_info(employees)").fetchall()]
+    if 'overdue_count' not in emp_cols:
+        cursor.execute("ALTER TABLE employees ADD COLUMN overdue_count INTEGER DEFAULT 0")
 
     conn.commit()
 

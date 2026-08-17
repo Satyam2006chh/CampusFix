@@ -61,6 +61,7 @@ CREATE TABLE IF NOT EXISTS employees (
     join_date     DATE,
     bio           TEXT,
     is_active     INTEGER DEFAULT 1,
+    overdue_count INTEGER DEFAULT 0,  -- incremented when a deadline is breached
     created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (department_id) REFERENCES departments(dept_id)
 );
@@ -78,13 +79,15 @@ CREATE TABLE IF NOT EXISTS complaints (
     photo_path     TEXT,
     urgency        TEXT    DEFAULT 'Medium' CHECK(urgency IN ('Low','Medium','High')),
     status         TEXT    DEFAULT 'Pending'
-                           CHECK(status IN ('Pending','In Progress','Waiting Confirmation','Closed','Reopened')),
+                           CHECK(status IN ('Pending','In Progress','Waiting Confirmation','Closed','Reopened','Overdue')),
     upvote_count   INTEGER DEFAULT 0,
     submitted_by   INTEGER NOT NULL,   -- user_id of student
     department_id  INTEGER,            -- auto-assigned based on category
     assigned_to    INTEGER,            -- employee_id
     assigned_by    INTEGER,            -- user_id of dept_head
     assigned_at    DATETIME,
+    deadline       DATE,               -- resolution deadline set at assignment
+    is_overdue     INTEGER DEFAULT 0,  -- 1 once deadline has been breached
     resolved_at    DATETIME,
     closed_at      DATETIME,
     reopen_reason  TEXT,

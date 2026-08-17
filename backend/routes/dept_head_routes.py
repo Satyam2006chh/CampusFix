@@ -26,7 +26,8 @@ def get_stats():
             SUM(CASE WHEN status = 'In Progress'          THEN 1 END)    AS in_progress,
             SUM(CASE WHEN status = 'Waiting Confirmation' THEN 1 END)    AS waiting,
             SUM(CASE WHEN status = 'Closed'               THEN 1 END)    AS closed,
-            SUM(CASE WHEN status = 'Reopened'             THEN 1 END)    AS reopened
+            SUM(CASE WHEN status = 'Reopened'             THEN 1 END)    AS reopened,
+            SUM(CASE WHEN status = 'Overdue'              THEN 1 END)    AS overdue
         FROM complaints WHERE department_id = ?
     """, (dept_id,)).fetchone()
     conn.close()
@@ -40,14 +41,44 @@ def get_complaints():
     if err: return err, code
 
     dept_id = user['department_id']
-    status  = request.args.get('status')  # optional filter
-    date_filter = request.args.get('date') # optional filter
+    status  = request.args.get('status')
+    date_filter = request.args.get('date')
+
+    conn = get_db()
+
+    # ── DEADLINE CHECK (Option A — runs on every page load) ────
+    newly_overdue = conn.execute("""
+        SELECT complaint_id, assigned_to FROM complaints
+        WHERE department_id = ?
+          AND status = 'In Progress'
+          AND deadline IS NOT NULL
+          AND deadline < DATE('now')
+          AND is_overdue = 0
+    """, (dept_id,)).fetchall()
+
+    for row in newly_overdue:
+        conn.execute("""
+            UPDATE complaints
+            SET status = 'Overdue', is_overdue = 1
+            WHERE complaint_id = ?
+        """, (row['complaint_id'],))
+        if row['assigned_to']:
+            conn.execute("""
+                UPDATE employees
+                SET overdue_count = overdue_count + 1
+                WHERE employee_id = ?
+            """, (row['assigned_to'],))
+
+    if newly_overdue:
+        conn.commit()
+    # ─────────────────────────────────────────────────────────────
 
     query = """
         SELECT
             c.complaint_id, c.title, c.description, c.category,
             c.urgency, c.status, c.upvote_count, c.created_at,
             c.assigned_at, c.reopen_reason,
+            c.deadline, c.is_overdue,
             l.campus, l.block, l.floor, l.room_area,
             u.name AS student_name,
             e.name AS assigned_to_name,
@@ -68,7 +99,6 @@ def get_complaints():
 
     query += " ORDER BY CASE c.urgency WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END, c.created_at ASC"
 
-    conn = get_db()
     complaints = conn.execute(query, params).fetchall()
     conn.close()
     return jsonify([dict(c) for c in complaints]), 200
@@ -89,7 +119,7 @@ def get_employees():
             CASE WHEN (
                 SELECT COUNT(*) FROM complaints
                 WHERE assigned_to = e.employee_id
-                  AND status IN ('In Progress', 'Waiting Confirmation')
+                  AND status IN ('In Progress', 'Waiting Confirmation', 'Overdue')
             ) > 0 THEN 'Busy' ELSE 'Available' END AS availability
         FROM employees e
         WHERE e.department_id = ? AND e.is_active = 1
@@ -197,6 +227,7 @@ def assign_complaint(complaint_id):
 
     data        = request.get_json()
     employee_id = data.get('employee_id')
+    deadline    = data.get('deadline')   # optional ISO date string YYYY-MM-DD
 
     if not employee_id:
         return jsonify({'message': 'employee_id is required.'}), 400
@@ -204,9 +235,10 @@ def assign_complaint(complaint_id):
     conn = get_db()
     conn.execute("""
         UPDATE complaints
-        SET assigned_to=?, assigned_by=?, assigned_at=CURRENT_TIMESTAMP, status='In Progress'
+        SET assigned_to=?, assigned_by=?, assigned_at=CURRENT_TIMESTAMP,
+            status='In Progress', deadline=?, is_overdue=0
         WHERE complaint_id=? AND department_id=?
-    """, (employee_id, user['user_id'], complaint_id, user['department_id']))
+    """, (employee_id, user['user_id'], deadline, complaint_id, user['department_id']))
     conn.commit()
     conn.close()
     return jsonify({'message': 'Complaint assigned successfully.'}), 200
@@ -221,7 +253,7 @@ def resolve_complaint(complaint_id):
     conn = get_db()
     conn.execute("""
         UPDATE complaints
-        SET status='Waiting Confirmation', resolved_at=CURRENT_TIMESTAMP
+        SET status='Waiting Confirmation', resolved_at=CURRENT_TIMESTAMP, is_overdue=0
         WHERE complaint_id=? AND department_id=?
     """, (complaint_id, user['department_id']))
     conn.commit()
