@@ -1,93 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dept Head Dashboard — CampusFix</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/dashboard.css" />
 </head>
 <body class="dash-body">
 
+  <!-- ─── SIDEBAR ───────────────────────────────────────────── -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <div class="logo-icon">
-        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
-          <path d="M14 2L3 7V14C3 19.55 7.84 24.74 14 26C20.16 24.74 25 19.55 25 14V7L14 2Z" fill="#ffc147" opacity="0.9"/>
-          <path d="M10 13.5L12.5 16L18 10.5" stroke="#111128" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <span class="logo-text">CampusFix</span>
+      <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="40" height="40" rx="9" fill="#4f46e5"/>
+        <path d="M20 9L11 13V19C11 24.2 15 29.1 20 30.3C25 29.1 29 24.2 29 19V13L20 9Z" fill="white" fill-opacity="0.12" stroke="white" stroke-width="1" stroke-opacity="0.25"/>
+        <path d="M23.5 14.5C22.1 13.1 20.1 12.7 18.3 13.5L20.8 16L19.5 17.3L17 14.8C16.2 16.6 16.6 18.6 18 20C19.2 21.2 20.9 21.6 22.5 21.1L25.5 24.1C25.9 24.5 26.5 24.5 26.9 24.1C27.3 23.7 27.3 23.1 26.9 22.7L23.9 19.7C24.4 18.1 24 16.4 23.5 14.5Z" fill="white"/>
+      </svg>
+      <span class="logo-text">Campus<span>Fix</span></span>
     </div>
 
+    <span class="sidebar-nav-label">Navigation</span>
+
     <ul class="sidebar-nav">
-      <li><a href="#" class="nav-item active" data-tab="overview">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg></span> Overview
-      </a></li>
-      <li><a href="#" class="nav-item" data-tab="dept-complaints">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></span> Complaints
-      </a></li>
-      <li><a href="#" class="nav-item" data-tab="employees">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span> Employees
-      </a></li>
+      <li>
+        <a href="#" class="nav-item active" data-tab="overview">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+          Overview
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-item" data-tab="dept-complaints">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+          Complaints
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-item" data-tab="employees">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
+          Employees
+        </a>
+      </li>
     </ul>
 
     <div class="sidebar-bottom">
       <div class="user-info">
-        <div class="user-avatar" id="userAvatar" style="background: linear-gradient(135deg, #ffc147, #ff9a44)">D</div>
+        <div class="user-avatar" id="userAvatar">D</div>
         <div class="user-details">
           <span class="user-name" id="userNameDisplay">Dept Head</span>
           <span class="user-role">Dept Head</span>
         </div>
       </div>
       <button class="btn-logout" onclick="logout()">
-        <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></span> Logout
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Log out
       </button>
     </div>
   </aside>
 
+  <!-- ─── MAIN CONTENT ──────────────────────────────────────── -->
   <main class="main-content">
     <header class="topbar">
       <h2 class="topbar-title" id="pageTitle">Dashboard Overview</h2>
+      <div class="topbar-actions">
+        <button class="dash-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
     </header>
 
     <div class="content-wrapper">
-      
+
       <!-- ── TAB: OVERVIEW ── -->
       <section id="tab-overview" class="tab-pane active">
         <div class="stats-grid">
           <div class="stat-card">
-            <div class="sc-header"><span class="sc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></span><span class="sc-title">Total</span></div>
-            <span class="sc-value" id="statTotal">0</span>
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Total</span></div>
+              <span class="sc-value" id="statTotal">0</span>
+            </div>
+            <div class="sc-icon-box indigo">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
           </div>
           <div class="stat-card">
-            <div class="sc-header"><span class="sc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></span><span class="sc-title">Pending</span></div>
-            <span class="sc-value" id="statPending">0</span>
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Pending</span></div>
+              <span class="sc-value" id="statPending">0</span>
+            </div>
+            <div class="sc-icon-box yellow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
           </div>
-          <div class="stat-card card-purple">
-            <div class="sc-header"><span class="sc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span><span class="sc-title">In Progress</span></div>
-            <span class="sc-value" id="statInProgress">0</span>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">In Progress</span></div>
+              <span class="sc-value" id="statInProgress">0</span>
+            </div>
+            <div class="sc-icon-box blue">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            </div>
           </div>
-          <div class="stat-card card-green">
-            <div class="sc-header"><span class="sc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg></span><span class="sc-title">Closed</span></div>
-            <span class="sc-value" id="statClosed">0</span>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Closed</span></div>
+              <span class="sc-value" id="statClosed">0</span>
+            </div>
+            <div class="sc-icon-box green">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
           </div>
-          <div class="stat-card card-red">
-            <div class="sc-header"><span class="sc-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><polyline points="23 20 23 14 17 14"></polyline><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg></span><span class="sc-title">Reopened</span></div>
-            <span class="sc-value" id="statReopened">0</span>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Reopened</span></div>
+              <span class="sc-value" id="statReopened">0</span>
+            </div>
+            <div class="sc-icon-box red">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><polyline points="23 20 23 14 17 14"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4-4.64 4.36A9 9 0 0 1 3.51 15"/></svg>
+            </div>
           </div>
         </div>
 
         <div class="recent-section">
-          <div class="section-header-row" style="display:flex; justify-content:space-between; margin-bottom:16px;">
-            <h3>Action Required (Reopened / Pending)</h3>
+          <div class="section-header-row">
+            <h3>Action Required</h3>
             <a href="#" class="view-all" onclick="switchTab('dept-complaints')">View All →</a>
           </div>
           <div class="table-container">
             <table class="data-table">
-              <thead><tr><th>ID</th><th>Title & Location</th><th>Urgency</th><th>Status</th><th>Date</th></tr></thead>
+              <thead><tr><th>ID</th><th>Title &amp; Location</th><th>Urgency</th><th>Status</th><th>Date</th></tr></thead>
               <tbody id="actionRequiredBody"></tbody>
             </table>
           </div>
@@ -96,8 +141,8 @@
 
       <!-- ── TAB: COMPLAINTS ── -->
       <section id="tab-dept-complaints" class="tab-pane">
-        <div style="margin-bottom:16px; display:flex; gap:12px;">
-          <select id="filterStatus" onchange="loadComplaints()" style="padding:8px; border-radius:4px; background:var(--bg-card); color:#fff; border:1px solid var(--border-light);">
+        <div class="filter-row">
+          <select id="filterStatus" onchange="loadComplaints()">
             <option value="">All Statuses</option>
             <option value="Pending">Pending</option>
             <option value="In Progress">In Progress</option>
@@ -105,19 +150,12 @@
             <option value="Closed">Closed</option>
             <option value="Reopened">Reopened</option>
           </select>
-          <input type="date" id="filterDate" onchange="loadComplaints()" style="padding:8px; border-radius:4px; background:var(--bg-card); color:#fff; border:1px solid var(--border-light);" />
+          <input type="date" id="filterDate" onchange="loadComplaints()" />
         </div>
         <div class="table-container">
           <table class="data-table">
             <thead>
-              <tr>
-                <th>ID</th>
-                <th>Title / Location / Details</th>
-                <th>Urgency</th>
-                <th>Status</th>
-                <th>Assigned To</th>
-                <th>Action</th>
-              </tr>
+              <tr><th>ID</th><th>Title / Location</th><th>Urgency</th><th>Status</th><th>Assigned To</th><th>Action</th></tr>
             </thead>
             <tbody id="allComplaintsBody"></tbody>
           </table>
@@ -126,48 +164,62 @@
 
       <!-- ── TAB: EMPLOYEES ── -->
       <section id="tab-employees" class="tab-pane">
-        <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
-          <h3>Manage Employees</h3>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+          <div>
+            <h3 style="font-size:1rem; font-weight:700; color:var(--text-primary);">Manage Employees</h3>
+            <p style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;">Add and manage your department staff.</p>
+          </div>
           <button class="btn-primary" onclick="openEmpModal()">+ Add Employee</button>
         </div>
-        <div class="table-container" style="border:none; background:transparent; padding:0;">
-          <div id="employeesGrid" class="employee-grid" style="display:grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-            <!-- Rendered via JS -->
-          </div>
+        <div id="employeesGrid" class="employee-grid"
+          style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px;">
         </div>
       </section>
 
     </div>
   </main>
 
-  <!-- ── ASSIGN MODAL ── -->
+  <!-- ── MODAL: ASSIGN COMPLAINT ── -->
   <div id="assignModal" class="modal hidden">
     <div class="modal-content">
-      <h3>Assign Complaint</h3>
-      <p style="color:var(--text-secondary); margin-bottom:16px; font-size:0.9rem;">Select an available employee to handle this issue.</p>
-      
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Assign Complaint</h3>
+          <p class="modal-subtitle">Select an available employee to handle this issue.</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeAssignModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
       <div class="form-group" style="margin-bottom:20px;">
         <label>Available Employees</label>
         <select id="assignSelect"></select>
       </div>
-
-      <div style="display:flex; justify-content:flex-end; gap:12px;">
+      <div class="modal-footer">
         <button class="btn-ghost" onclick="closeAssignModal()">Cancel</button>
-        <button class="btn-primary" onclick="submitAssignment()">Assign</button>
+        <button class="btn-primary" onclick="submitAssignment()">Assign →</button>
       </div>
     </div>
   </div>
 
-  <!-- ── ADD EMPLOYEE MODAL ── -->
+  <!-- ── MODAL: ADD EMPLOYEE ── -->
   <div id="empModal" class="modal hidden">
     <div class="modal-content">
-      <h3>Add New Employee</h3>
-      <form id="empForm" onsubmit="submitEmployee(event)" style="margin-top:16px;">
-        <div class="form-group" style="margin-bottom:12px;">
-          <label>Full Name</label>
-          <input type="text" id="empName" required />
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Add New Employee</h3>
+          <p class="modal-subtitle">Create a staff account for your department.</p>
         </div>
-        <div class="form-row" style="margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <button class="modal-close-btn" onclick="closeEmpModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="empForm" onsubmit="submitEmployee(event)">
+        <div class="form-group" style="margin-bottom:14px;">
+          <label>Full Name</label>
+          <input type="text" id="empName" required placeholder="e.g. Rajan Sharma" />
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
           <div class="form-group">
             <label>Email</label>
             <input type="email" id="empEmail" required />
@@ -177,17 +229,17 @@
             <input type="password" id="empPassword" required minlength="6" />
           </div>
         </div>
-        <div class="form-row" style="margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+        <div class="form-row" style="margin-bottom:14px;">
           <div class="form-group">
             <label>Designation</label>
-            <input type="text" id="empDesig" placeholder="e.g. Senior Electrician" required />
+            <input type="text" id="empDesig" required placeholder="e.g. Senior Electrician" />
           </div>
           <div class="form-group">
             <label>Phone</label>
-            <input type="text" id="empPhone" />
+            <input type="text" id="empPhone" placeholder="Optional" />
           </div>
         </div>
-        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:20px;">
+        <div class="modal-footer">
           <button type="button" class="btn-ghost" onclick="closeEmpModal()">Cancel</button>
           <button type="submit" class="btn-primary">Save Employee</button>
         </div>
@@ -195,24 +247,33 @@
     </div>
   </div>
 
+  <!-- ── MODAL: EDIT EMPLOYEE ── -->
   <div id="editEmpModal" class="modal hidden">
     <div class="modal-content">
-      <h3>Edit Employee</h3>
-      <form id="editEmpForm" onsubmit="submitEditEmployee(event)" style="margin-top:16px;">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Edit Employee</h3>
+          <p class="modal-subtitle">Update staff details.</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeEditEmpModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="editEmpForm" onsubmit="submitEditEmployee(event)">
         <input type="hidden" id="editEmpId" />
-        <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-group" style="margin-bottom:14px;">
           <label>Full Name</label>
           <input type="text" id="editEmpName" required />
         </div>
-        <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-group" style="margin-bottom:14px;">
           <label>Designation</label>
           <input type="text" id="editEmpDesig" required />
         </div>
-        <div class="form-group" style="margin-bottom:12px;">
+        <div class="form-group" style="margin-bottom:14px;">
           <label>Phone</label>
           <input type="text" id="editEmpPhone" />
         </div>
-        <div style="display:flex; justify-content:center; gap:12px; margin-top:20px;">
+        <div class="modal-footer">
           <button type="button" class="btn-ghost" onclick="closeEditEmpModal()">Cancel</button>
           <button type="submit" class="btn-primary">Save Changes</button>
         </div>
@@ -222,5 +283,17 @@
 
   <script src="../js/dashboard.js"></script>
   <script src="../js/dept_head.js"></script>
+  <script>
+    (function() {
+      const saved = localStorage.getItem('cf-theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+    })();
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('cf-theme', next);
+    }
+  </script>
 </body>
 </html>

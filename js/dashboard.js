@@ -122,19 +122,28 @@ function createGlobalModals() {
   if (document.getElementById('globalAlertModal')) return;
   const modalHTML = `
     <div id="globalAlertModal" class="modal hidden" style="z-index:9999;">
-      <div class="modal-content" style="max-width: 400px; text-align: center; border-color: var(--purple);">
-        <h3 style="margin-bottom: 12px; color: var(--text-primary);">Notification</h3>
-        <p id="globalAlertMsg" style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem;"></p>
+      <div class="modal-content" style="max-width:380px;">
+        <div class="modal-header" style="margin-bottom:12px;">
+          <h3 class="modal-title" id="globalAlertTitle">Notification</h3>
+          <button class="modal-close-btn" onclick="document.getElementById('globalAlertModal').classList.add('hidden')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <p id="globalAlertMsg" style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;line-height:1.6;"></p>
         <button class="btn-primary btn-full" onclick="document.getElementById('globalAlertModal').classList.add('hidden')">OK</button>
       </div>
     </div>
+
     <div id="globalConfirmModal" class="modal hidden" style="z-index:9999;">
-      <div class="modal-content" style="max-width: 400px; text-align: center; border-color: var(--yellow);">
-        <h3 style="margin-bottom: 12px; color: var(--text-primary);">Are you sure?</h3>
-        <p id="globalConfirmMsg" style="color: var(--text-secondary); margin-bottom: 24px; font-size: 0.95rem;"></p>
-        <div style="display:flex; justify-content:center; gap:12px;">
+      <div class="modal-content" style="max-width:380px;">
+        <div class="modal-header" style="margin-bottom:12px;">
+          <h3 class="modal-title" id="globalConfirmTitle">Confirm Action</h3>
+        </div>
+        <p id="globalConfirmMsg" style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:24px;line-height:1.6;"></p>
+        <div style="display:flex;justify-content:flex-end;gap:10px;">
           <button class="btn-ghost" onclick="window._confirmCb(false)">Cancel</button>
-          <button class="btn-primary" onclick="window._confirmCb(true)">Yes, Proceed</button>
+          <button id="globalConfirmYesBtn" class="btn-primary" onclick="window._confirmCb(true)"
+            style="background:var(--danger);">Yes, Proceed</button>
         </div>
       </div>
     </div>
@@ -143,16 +152,29 @@ function createGlobalModals() {
 }
 document.addEventListener('DOMContentLoaded', createGlobalModals);
 
-window.showCustomAlert = function(msg) {
-  document.getElementById('globalAlertMsg').textContent = msg;
+// showCustomAlert(title, msg) OR showCustomAlert(msg)
+window.showCustomAlert = function(titleOrMsg, msg) {
+  const message = msg !== undefined ? msg : titleOrMsg;
+  document.getElementById('globalAlertMsg').textContent = message;
   document.getElementById('globalAlertModal').classList.remove('hidden');
 };
 
-window.showCustomConfirm = function(msg, callback) {
-  document.getElementById('globalConfirmMsg').textContent = msg;
+// showCustomConfirm(title, msg, callback) OR showCustomConfirm(msg, callback)
+window.showCustomConfirm = function(titleOrMsg, msgOrCallback, callbackArg) {
+  let message, callback;
+  if (typeof msgOrCallback === 'function') {
+    // Called as showCustomConfirm(msg, callback)
+    message  = titleOrMsg;
+    callback = msgOrCallback;
+  } else {
+    // Called as showCustomConfirm(title, msg, callback)
+    message  = msgOrCallback;
+    callback = callbackArg;
+  }
+  document.getElementById('globalConfirmMsg').textContent = message;
   document.getElementById('globalConfirmModal').classList.remove('hidden');
   window._confirmCb = function(result) {
     document.getElementById('globalConfirmModal').classList.add('hidden');
-    callback(result);
+    if (result) callback();   // only fire callback when user clicks "Yes"
   };
 };

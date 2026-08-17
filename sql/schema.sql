@@ -95,3 +95,19 @@ CREATE TABLE IF NOT EXISTS complaints (
     FOREIGN KEY (assigned_to)   REFERENCES employees(employee_id),
     FOREIGN KEY (assigned_by)   REFERENCES users(user_id)
 );
+
+-- ─────────────────────────────────────────────
+-- TABLE: complaint_upvotes
+-- Tracks which students upvoted which complaints
+-- Prevents duplicate upvotes and enables showing
+-- upvoted complaints in the student's dashboard
+-- ─────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS complaint_upvotes (
+    upvote_id    INTEGER PRIMARY KEY AUTOINCREMENT,
+    complaint_id INTEGER NOT NULL,
+    user_id      INTEGER NOT NULL,
+    created_at   DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(complaint_id, user_id),   -- one upvote per student per complaint
+    FOREIGN KEY (complaint_id) REFERENCES complaints(complaint_id),
+    FOREIGN KEY (user_id)      REFERENCES users(user_id)
+);

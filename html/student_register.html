@@ -1,10 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Registration — CampusFix</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/auth.css" />
@@ -15,37 +16,62 @@
   <div class="auth-orb auth-orb-1"></div>
   <div class="auth-orb auth-orb-2"></div>
 
-  <!-- ─── BACK TO HOME ─────────────────────────── -->
-  <a href="../index.html" class="back-home">
-    ← Back to Home
-  </a>
+  <a href="../index.html" class="back-home">← Back to Home</a>
+
+  <!-- Theme toggle -->
+  <button class="nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme"
+    style="position:fixed; top:20px; right:20px; z-index:200;">
+    <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg class="icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  </button>
 
   <div class="auth-wrapper">
-    <!-- LEFT PANEL -->
+
+    <!-- ── LEFT PANEL ── -->
     <div class="auth-left">
       <div class="auth-brand">
-        <div class="logo-icon">
-          <svg width="36" height="36" viewBox="0 0 28 28" fill="none">
-            <path d="M14 2L3 7V14C3 19.55 7.84 24.74 14 26C20.16 24.74 25 19.55 25 14V7L14 2Z" fill="url(#grad-reg)" opacity="0.9"/>
-            <path d="M10 13.5L12.5 16L18 10.5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            <defs>
-              <linearGradient id="grad-reg" x1="3" y1="2" x2="25" y2="26" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#6c63ff"/>
-                <stop offset="100%" stop-color="#00d4ff"/>
-              </linearGradient>
-            </defs>
-          </svg>
-        </div>
-        <span class="logo-text">CampusFix</span>
+        <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="40" height="40" rx="10" fill="#4f46e5"/>
+          <path d="M20 9L11 13V19C11 24.2 15 29.1 20 30.3C25 29.1 29 24.2 29 19V13L20 9Z" fill="white" fill-opacity="0.1" stroke="white" stroke-width="1" stroke-opacity="0.3"/>
+          <path d="M23.5 14.5C22.1 13.1 20.1 12.7 18.3 13.5L20.8 16L19.5 17.3L17 14.8C16.2 16.6 16.6 18.6 18 20C19.2 21.2 20.9 21.6 22.5 21.1L25.5 24.1C25.9 24.5 26.5 24.5 26.9 24.1C27.3 23.7 27.3 23.1 26.9 22.7L23.9 19.7C24.4 18.1 24 16.4 23.5 14.5Z" fill="white"/>
+        </svg>
+        <span class="logo-text">Campus<span>Fix</span></span>
       </div>
-      <h1 class="auth-left-title">Join Your Campus.<br/><span class="gradient-text">Make an Impact.</span></h1>
-      <p class="auth-left-sub">Create your student account to start reporting issues and improving the campus environment.</p>
+
+      <h1 class="auth-left-title">
+        Join Your Campus.<br/>
+        <span class="gradient-text">Make an Impact.</span>
+      </h1>
+      <p class="auth-left-sub">
+        Create your student account to start reporting issues and improving the campus environment for everyone.
+      </p>
+
+      <div class="auth-left-features">
+        <div class="auth-feat">
+          <span class="af-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </span>
+          Submit complaints in seconds
+        </div>
+        <div class="auth-feat">
+          <span class="af-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </span>
+          Track resolution in real-time
+        </div>
+        <div class="auth-feat">
+          <span class="af-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#a5b4fc" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          </span>
+          Hold departments accountable
+        </div>
+      </div>
     </div>
 
-    <!-- RIGHT PANEL -->
+    <!-- ── RIGHT PANEL ── -->
     <div class="auth-right">
       <div class="auth-panel">
-        <div class="login-role-badge">👨‍🎓 Student</div>
+        <div class="login-role-badge">Student Account</div>
         <h2 class="auth-panel-title">Create Account</h2>
         <p class="auth-panel-sub">Fill in your details to register as a student.</p>
 
@@ -53,33 +79,35 @@
           <div class="register-grid">
             <div class="form-group">
               <label for="regName">Full Name</label>
-              <input type="text" id="regName" placeholder="e.g., John Doe" required />
+              <input type="text" id="regName" placeholder="e.g. John Doe" required />
             </div>
             <div class="form-group">
               <label for="regRollNo">Roll Number</label>
-              <input type="text" id="regRollNo" placeholder="e.g., 2026CS123" required />
+              <input type="text" id="regRollNo" placeholder="e.g. 2026CS123" required />
             </div>
             <div class="form-group" style="grid-column: 1 / -1;">
               <label for="regEmail">Email Address</label>
               <input type="email" id="regEmail" placeholder="student@campus.edu" required />
             </div>
             <div class="form-group">
-              <label for="regPhone">Phone Number (Optional)</label>
-              <input type="tel" id="regPhone" placeholder="e.g., 9876543210" />
+              <label for="regPhone">Phone (Optional)</label>
+              <input type="tel" id="regPhone" placeholder="9876543210" />
             </div>
             <div class="form-group">
               <label for="regPassword">Password</label>
               <div class="password-wrapper">
                 <input type="password" id="regPassword" placeholder="Min. 6 characters" required minlength="6" />
-                <button type="button" class="eye-btn" onclick="toggleRegPassword()">👁</button>
+                <button type="button" class="eye-btn" onclick="toggleRegPassword()">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
               </div>
             </div>
           </div>
-          
-          <div id="regError" class="form-error hidden" style="margin-top: 16px;"></div>
-          
-          <button type="submit" class="btn-primary btn-full" id="regSubmitBtn" style="margin-top: 24px;">
-            <span id="regBtnText">Create Account</span>
+
+          <div id="regError" class="form-error hidden" style="margin-top:16px;"></div>
+
+          <button type="submit" class="btn-primary btn-full" id="regSubmitBtn" style="margin-top:20px;">
+            <span id="regBtnText">Create Account →</span>
           </button>
         </form>
 
@@ -90,24 +118,26 @@
         <p class="auth-footer-note">© 2026 CampusFix. All rights reserved.</p>
       </div>
     </div>
+
   </div>
 
   <script>
+    (function() {
+      const saved = localStorage.getItem('cf-theme');
+      if (saved) document.documentElement.setAttribute('data-theme', saved);
+    })();
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('cf-theme', next);
+    }
     function toggleRegPassword() {
       const input = document.getElementById('regPassword');
-      const btn   = event.currentTarget;
-      if (input.type === 'password') {
-        input.type = 'text';
-        btn.textContent = '🙈';
-      } else {
-        input.type = 'password';
-        btn.textContent = '👁';
-      }
+      input.type = input.type === 'password' ? 'text' : 'password';
     }
-
     async function handleRegister(e) {
       e.preventDefault();
-      
       const name     = document.getElementById('regName').value;
       const roll_no  = document.getElementById('regRollNo').value;
       const email    = document.getElementById('regEmail').value;
@@ -116,11 +146,9 @@
       const errorEl  = document.getElementById('regError');
       const btnText  = document.getElementById('regBtnText');
       const btn      = document.getElementById('regSubmitBtn');
-      
       errorEl.classList.add('hidden');
       btnText.textContent = 'Creating Account...';
       btn.disabled = true;
-      
       try {
         const res = await fetch('http://127.0.0.1:5000/api/auth/register', {
           method: 'POST',
@@ -128,9 +156,7 @@
           body: JSON.stringify({ name, roll_no, email, phone, password })
         });
         const data = await res.json();
-        
         if (res.ok) {
-          // Store token & redirect to dashboard
           sessionStorage.setItem('cf_token', data.token);
           sessionStorage.setItem('cf_user', JSON.stringify(data.user));
           sessionStorage.setItem('cf_role', 'student');
@@ -143,7 +169,7 @@
         errorEl.textContent = 'Cannot connect to the server.';
         errorEl.classList.remove('hidden');
       } finally {
-        btnText.textContent = 'Create Account';
+        btnText.textContent = 'Create Account →';
         btn.disabled = false;
       }
     }

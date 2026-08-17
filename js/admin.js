@@ -124,10 +124,21 @@ async function loadUsers() {
 
 async function toggleUserStatus(userId, activate) {
   const action = activate ? "activate" : "deactivate";
-  showCustomConfirm(`${activate?"Activate":"Deactivate"} User`, `Are you sure you want to ${action} this user?`, async () => {
-    try { await apiFetch(`/admin/users/${userId}/${action}`, {method:"POST"}); loadUsers(); loadDepartments(); }
-    catch (err) { showCustomAlert("Error", err.message||"Something went wrong."); }
-  });
+  const label  = activate ? "Activate" : "Deactivate";
+  showCustomConfirm(
+    `${label} User`,
+    `Are you sure you want to ${action} this user? ${!activate ? "They will be locked out immediately on their next login attempt." : "They will regain access immediately."}`,
+    async () => {
+      try {
+        await apiFetch(`/admin/users/${userId}/${action}`, { method: "POST" });
+        showCustomAlert(`${label} User`, `User has been ${action}d successfully.`);
+        loadUsers();
+        loadDepartments();
+      } catch (err) {
+        showCustomAlert("Error", err.message || "Something went wrong.");
+      }
+    }
+  );
 }
 
 function closeModals() { document.querySelectorAll(".modal").forEach(m=>m.classList.add("hidden")); }

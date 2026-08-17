@@ -95,6 +95,30 @@ def upvote_complaint(complaint_id):
         return err_resp, err_code
 
     conn = get_db()
+
+    # Prevent upvoting your own complaint
+    owner = conn.execute(
+        "SELECT submitted_by FROM complaints WHERE complaint_id = ?",
+        (complaint_id,)
+    ).fetchone()
+    if owner and owner['submitted_by'] == user['user_id']:
+        conn.close()
+        return jsonify({'message': 'You cannot upvote your own complaint.'}), 400
+
+    # Prevent duplicate upvotes
+    already = conn.execute(
+        "SELECT upvote_id FROM complaint_upvotes WHERE complaint_id = ? AND user_id = ?",
+        (complaint_id, user['user_id'])
+    ).fetchone()
+    if already:
+        conn.close()
+        return jsonify({'message': 'You have already upvoted this complaint.'}), 400
+
+    # Record the upvote and increment counter
+    conn.execute(
+        "INSERT INTO complaint_upvotes (complaint_id, user_id) VALUES (?, ?)",
+        (complaint_id, user['user_id'])
+    )
     conn.execute(
         "UPDATE complaints SET upvote_count = upvote_count + 1 WHERE complaint_id = ?",
         (complaint_id,)
@@ -104,7 +128,7 @@ def upvote_complaint(complaint_id):
     return jsonify({'message': 'Upvoted successfully.'}), 200
 
 
-# ─── GET MY COMPLAINTS ────────────────────────────────────────
+# ─── GET MY COMPLAINTS (submitted + upvoted) ─────────────────
 @student_bp.route('/complaints', methods=['GET'])
 def get_my_complaints():
     user, err_resp, err_code = validate_token(request, required_role='student')
@@ -112,24 +136,49 @@ def get_my_complaints():
         return err_resp, err_code
 
     conn = get_db()
-    complaints = conn.execute("""
+
+    # Complaints submitted by this student
+    submitted = conn.execute("""
         SELECT
             c.complaint_id, c.title, c.description, c.category,
             c.urgency, c.status, c.upvote_count,
             c.created_at, c.resolved_at, c.closed_at, c.reopen_reason,
             l.campus, l.block, l.floor, l.room_area,
-            d.name AS department_name,
-            e.name AS assigned_to_name
+            d.name  AS department_name,
+            e.name  AS assigned_to_name,
+            'submitted' AS source
         FROM complaints c
-        LEFT JOIN locations l  ON c.location_id   = l.location_id
+        LEFT JOIN locations l   ON c.location_id   = l.location_id
         LEFT JOIN departments d ON c.department_id = d.dept_id
-        LEFT JOIN employees e  ON c.assigned_to   = e.employee_id
+        LEFT JOIN employees e   ON c.assigned_to   = e.employee_id
         WHERE c.submitted_by = ?
         ORDER BY c.created_at DESC
     """, (user['user_id'],)).fetchall()
+
+    # Complaints this student upvoted (but did not submit)
+    upvoted = conn.execute("""
+        SELECT
+            c.complaint_id, c.title, c.description, c.category,
+            c.urgency, c.status, c.upvote_count,
+            c.created_at, c.resolved_at, c.closed_at, c.reopen_reason,
+            l.campus, l.block, l.floor, l.room_area,
+            d.name  AS department_name,
+            e.name  AS assigned_to_name,
+            'upvoted' AS source
+        FROM complaint_upvotes cu
+        JOIN complaints c       ON cu.complaint_id  = c.complaint_id
+        LEFT JOIN locations l   ON c.location_id    = l.location_id
+        LEFT JOIN departments d ON c.department_id  = d.dept_id
+        LEFT JOIN employees e   ON c.assigned_to    = e.employee_id
+        WHERE cu.user_id = ? AND c.submitted_by != ?
+        ORDER BY c.created_at DESC
+    """, (user['user_id'], user['user_id'])).fetchall()
+
     conn.close()
 
-    return jsonify([dict(c) for c in complaints]), 200
+    # Merge: submitted first, then upvoted (no duplicates possible due to ownership check)
+    result = [dict(r) for r in submitted] + [dict(r) for r in upvoted]
+    return jsonify(result), 200
 
 
 # ─── CONFIRM RESOLUTION (YES / NO) ───────────────────────────
