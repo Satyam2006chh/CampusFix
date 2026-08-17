@@ -203,7 +203,14 @@
       </div>
       <div class="form-group" style="margin-bottom:16px;">
         <label>Available Employees</label>
-        <select id="assignSelect"></select>
+        <div style="position:relative; display:flex; align-items:center; gap:10px;">
+          <span id="assignStatusDot" title="Status" style="
+            width:10px; height:10px; border-radius:50%;
+            background:var(--border); flex-shrink:0;
+            transition: background 0.2s ease;
+          "></span>
+          <select id="assignSelect" style="flex:1;"></select>
+        </div>
       </div>
       <div class="form-group" style="margin-bottom:8px;">
         <label style="display:flex;align-items:center;gap:6px;">

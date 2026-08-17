@@ -180,19 +180,62 @@ function openAssignModal(compId) {
   if (available.length === 0 && busy.length === 0) {
     select.innerHTML = '<option disabled>No employees added yet.</option>';
   }
-  available.forEach(e => {
-    const ow = e.overdue_count > 0 ? ` ⚠️ ${e.overdue_count} overdue` : '';
-    select.innerHTML += `<option value="${e.employee_id}">${e.name} — Available${ow}</option>`;
-  });
-  busy.forEach(e => {
-    const ow = e.overdue_count > 0 ? ` ⚠️ ${e.overdue_count} overdue` : '';
-    select.innerHTML += `<option value="${e.employee_id}" style="color:var(--warning)">${e.name} — Busy${ow}</option>`;
-  });
+
+  // Group label for available
+  if (available.length > 0) {
+    const grpA = document.createElement('optgroup');
+    grpA.label = '🟢 Available';
+    available.forEach(e => {
+      const ow = e.overdue_count > 0 ? ` · ⚠️ ${e.overdue_count} overdue` : '';
+      const opt = document.createElement('option');
+      opt.value = e.employee_id;
+      opt.textContent = `${e.name} — ${e.designation}${ow}`;
+      opt.dataset.status = 'available';
+      grpA.appendChild(opt);
+    });
+    select.appendChild(grpA);
+  }
+
+  // Group label for busy
+  if (busy.length > 0) {
+    const grpB = document.createElement('optgroup');
+    grpB.label = '🔴 Busy';
+    busy.forEach(e => {
+      const ow = e.overdue_count > 0 ? ` · ⚠️ ${e.overdue_count} overdue` : '';
+      const opt = document.createElement('option');
+      opt.value = e.employee_id;
+      opt.textContent = `${e.name} — ${e.designation}${ow}`;
+      opt.dataset.status = 'busy';
+      grpB.appendChild(opt);
+    });
+    select.appendChild(grpB);
+  }
+
+  // Update dot indicator when selection changes
+  updateAssignDot(select);
+  select.onchange = () => updateAssignDot(select);
 
   // Default deadline = today + 3 days
   setDeadlineDays(3);
-
   document.getElementById('assignModal').classList.remove('hidden');
+}
+
+// Shows a colored dot next to the select based on selected option's status
+function updateAssignDot(select) {
+  const dot = document.getElementById('assignStatusDot');
+  if (!dot) return;
+  const selected = select.options[select.selectedIndex];
+  const status = selected ? selected.dataset.status : '';
+  if (status === 'available') {
+    dot.style.background = 'var(--success)';
+    dot.title = 'Available';
+  } else if (status === 'busy') {
+    dot.style.background = 'var(--warning)';
+    dot.title = 'Busy';
+  } else {
+    dot.style.background = 'var(--border)';
+    dot.title = '';
+  }
 }
 
 // ─── DEADLINE QUICK-SET HELPER ───────────────────────────────

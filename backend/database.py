@@ -176,6 +176,60 @@ def init_db():
             ('Super Admin', 'admin@campusfix.com', hashed, 'admin')
         )
 
+    # ─── SEED EMPLOYEES (only if table is empty) ─────────────────
+    if cursor.execute("SELECT COUNT(*) FROM employees").fetchone()[0] == 0:
+        import bcrypt
+        default_pw = bcrypt.hashpw('staff123'.encode(), bcrypt.gensalt()).decode()
+
+        # dept_id lookup helper
+        def dept_id(tag):
+            return cursor.execute(
+                "SELECT dept_id FROM departments WHERE category_tag=?", (tag,)
+            ).fetchone()[0]
+
+        employees = [
+            # Electrical (dept 1)
+            ('Prishit Sharma',   'prishit@campusfix.com',   default_pw, '9876543210', 'Senior Electrician',  dept_id('electrical'), '2023-06-01', None),
+            ('Karan Mehta',      'karan.e@campusfix.com',   default_pw, '9876543211', 'Electrician',         dept_id('electrical'), '2023-08-15', None),
+            ('Deepak Rawat',     'deepak.e@campusfix.com',  default_pw, '9876543212', 'Junior Electrician',  dept_id('electrical'), '2024-01-10', None),
+
+            # Plumbing & Water (dept 2)
+            ('Ramesh Gupta',     'ramesh.p@campusfix.com',  default_pw, '9876543220', 'Senior Plumber',      dept_id('water'),      '2022-11-01', None),
+            ('Suresh Yadav',     'suresh.p@campusfix.com',  default_pw, '9876543221', 'Plumber',             dept_id('water'),      '2023-03-20', None),
+            ('Manoj Tiwari',     'manoj.p@campusfix.com',   default_pw, '9876543222', 'Junior Plumber',      dept_id('water'),      '2024-02-05', None),
+
+            # Civil & Infrastructure (dept 3)
+            ('Vikram Singh',     'vikram.c@campusfix.com',  default_pw, '9876543230', 'Civil Engineer',      dept_id('civil'),      '2022-07-01', None),
+            ('Ajay Pandey',      'ajay.c@campusfix.com',    default_pw, '9876543231', 'Maintenance Worker',  dept_id('civil'),      '2023-05-10', None),
+            ('Rohit Verma',      'rohit.c@campusfix.com',   default_pw, '9876543232', 'Carpenter',           dept_id('civil'),      '2023-09-01', None),
+
+            # IT & Networking (dept 4)
+            ('Ankit Joshi',      'ankit.it@campusfix.com',  default_pw, '9876543240', 'Network Engineer',    dept_id('it'),         '2022-09-01', None),
+            ('Neha Kapoor',      'neha.it@campusfix.com',   default_pw, '9876543241', 'IT Technician',       dept_id('it'),         '2023-04-15', None),
+            ('Rahul Saxena',     'rahul.it@campusfix.com',  default_pw, '9876543242', 'System Administrator',dept_id('it'),         '2023-10-01', None),
+
+            # Cleaning & Sanitation (dept 5)
+            ('Sunita Devi',      'sunita.cl@campusfix.com', default_pw, '9876543250', 'Supervisor',          dept_id('cleaning'),   '2022-05-01', None),
+            ('Raju Prasad',      'raju.cl@campusfix.com',   default_pw, '9876543251', 'Cleaning Staff',      dept_id('cleaning'),   '2023-01-10', None),
+            ('Geeta Bai',        'geeta.cl@campusfix.com',  default_pw, '9876543252', 'Cleaning Staff',      dept_id('cleaning'),   '2023-07-01', None),
+
+            # Security & Safety (dept 6)
+            ('Harpreet Singh',   'harp.sec@campusfix.com',  default_pw, '9876543260', 'Security Supervisor', dept_id('security'),   '2022-03-01', None),
+            ('Ravi Kumar',       'ravi.sec@campusfix.com',  default_pw, '9876543261', 'Security Guard',      dept_id('security'),   '2023-02-14', None),
+            ('Sanjay Mishra',    'sanjay.sec@campusfix.com',default_pw, '9876543262', 'CCTV Technician',     dept_id('security'),   '2023-11-01', None),
+
+            # Hostel Maintenance (dept 7)
+            ('Dinesh Pal',       'dinesh.h@campusfix.com',  default_pw, '9876543270', 'Hostel Supervisor',   dept_id('hostel'),     '2022-08-01', None),
+            ('Mukesh Nair',      'mukesh.h@campusfix.com',  default_pw, '9876543271', 'Maintenance Worker',  dept_id('hostel'),     '2023-06-15', None),
+            ('Pooja Sharma',     'pooja.h@campusfix.com',   default_pw, '9876543272', 'Warden Assistant',    dept_id('hostel'),     '2024-01-01', None),
+        ]
+
+        cursor.executemany("""
+            INSERT INTO employees
+              (name, email, password_hash, phone, designation, department_id, join_date, bio)
+            VALUES (?,?,?,?,?,?,?,?)
+        """, employees)
+
     conn.commit()
     conn.close()
     print("[OK] Database initialized successfully.")
