@@ -311,14 +311,30 @@ function renderEmployees() {
 
 function openEmpModal() {
   document.getElementById('empForm').reset();
+  clearAllErrors(document.getElementById('empForm'));
   document.getElementById('empModal').classList.remove('hidden');
+  // Inject strength meter once (idempotent)
+  injectPasswordMeter('empPassword', 'emp-pw-meter');
 }
 function closeEmpModal() {
   document.getElementById('empModal').classList.add('hidden');
+  clearAllErrors(document.getElementById('empForm'));
 }
 
 async function submitEmployee(e) {
   e.preventDefault();
+  clearAllErrors(document.getElementById('empForm'));
+
+  // ── Validation ──────────────────────────────────────────
+  let ok = true;
+  ok = validateRequired('empName',  'Full name')    && ok;
+  ok = validateEmail('empEmail')                    && ok;
+  ok = validateStrongPassword('empPassword')        && ok;
+  ok = validateRequired('empDesig', 'Designation')  && ok;
+  ok = validatePhone('empPhone')                    && ok;
+  if (!ok) return;
+  // ────────────────────────────────────────────────────────
+
   const data = {
     name: document.getElementById('empName').value,
     email: document.getElementById('empEmail').value,
@@ -345,10 +361,21 @@ function openEditEmpModal(e) {
 }
 function closeEditEmpModal() {
   document.getElementById('editEmpModal').classList.add('hidden');
+  clearAllErrors(document.getElementById('editEmpForm'));
 }
 
 async function submitEditEmployee(event) {
   event.preventDefault();
+  clearAllErrors(document.getElementById('editEmpForm'));
+
+  // ── Validation ──────────────────────────────────────────
+  let ok = true;
+  ok = validateRequired('editEmpName',  'Full name')   && ok;
+  ok = validateRequired('editEmpDesig', 'Designation') && ok;
+  ok = validatePhone('editEmpPhone')                   && ok;
+  if (!ok) return;
+  // ────────────────────────────────────────────────────────
+
   const id   = document.getElementById('editEmpId').value;
   const data = {
     name: document.getElementById('editEmpName').value,

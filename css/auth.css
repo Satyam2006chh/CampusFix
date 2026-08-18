@@ -401,3 +401,65 @@
   .register-grid { grid-template-columns: 1fr; }
   .auth-right { padding: 48px 20px; }
 }
+
+/* ─── SHARED VALIDATION STYLES (used in auth + dashboard) ───── */
+.cf-input-error {
+  border-color: var(--danger, #ef4444) !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important;
+}
+.cf-field-error {
+  display: none;
+  font-size: 0.75rem;
+  color: var(--danger, #ef4444);
+  font-weight: 500;
+  margin-top: 4px;
+  padding-left: 2px;
+}
+
+/* Password strength meter */
+.cf-pw-meter {
+  margin-top: 8px;
+}
+.cf-pw-bar-track {
+  height: 4px;
+  background: var(--border, #e2e8f0);
+  border-radius: 99px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+.cf-pw-bar {
+  height: 100%;
+  width: 0%;
+  border-radius: 99px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+.cf-bar-weak   { background: #ef4444; }
+.cf-bar-fair   { background: #f59e0b; }
+.cf-bar-good   { background: #3b82f6; }
+.cf-bar-strong { background: #10b981; }
+
+.cf-pw-rules {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.cf-rule {
+  font-size: 0.74rem;
+  color: var(--text-muted, #94a3b8);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s;
+}
+.cf-rule-pass {
+  color: #10b981;
+}
+.cf-rule-icon {
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 14px;
+  text-align: center;
+}

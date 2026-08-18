@@ -81,8 +81,22 @@ def register():
     if not name or not email or not password:
         return jsonify({'message': 'Name, email, and password are required.'}), 400
 
-    if len(password) < 6:
-        return jsonify({'message': 'Password must be at least 6 characters.'}), 400
+    # ── Strong password validation (new registrations only) ──
+    import re
+    pw_errors = []
+    if len(password) < 8:
+        pw_errors.append('at least 8 characters')
+    if not re.search(r'[A-Z]', password):
+        pw_errors.append('at least 1 uppercase letter')
+    if not re.search(r'[a-z]', password):
+        pw_errors.append('at least 1 lowercase letter')
+    if not re.search(r'[0-9]', password):
+        pw_errors.append('at least 1 number')
+    if not re.search(r'[^A-Za-z0-9]', password):
+        pw_errors.append('at least 1 special character')
+    if pw_errors:
+        return jsonify({'message': f"Password must contain: {', '.join(pw_errors)}."}), 400
+    # ─────────────────────────────────────────────────────────
 
     conn = get_db()
 
