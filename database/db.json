@@ -4,90 +4,330 @@
       "id": 1,
       "name": "Super Admin",
       "email": "admin@campusfix.com",
-      "password": "password123",
+      "password": "admin@123",
       "role": "admin",
       "is_active": 1
     },
     {
       "id": 2,
-      "name": "Saksham Sharma",
-      "email": "saksham@student.com",
+      "name": "Ramesh",
+      "email": "ramesh@gmail.com",
       "password": "password123",
-      "role": "student",
-      "roll_no": "2026CS101",
+      "role": "dept_head",
+      "department_id": 3,
       "is_active": 1
     },
     {
       "id": 3,
-      "name": "Raj IT Head",
-      "email": "ithead@campusfix.com",
+      "name": "suresh",
+      "email": "suresh@gmail.com",
       "password": "password123",
       "role": "dept_head",
-      "department_id": 1,
+      "department_id": 6,
+      "is_active": 1
+    },
+    {
+      "name": "satyam",
+      "roll_no": "2410993396",
+      "email": "satyam@gmail.com",
+      "phone": "8998987678",
+      "password": "Satyam@123",
+      "role": "student",
+      "is_active": 1,
+      "id": 4
+    },
+    {
+      "id": 5,
+      "name": "Vikram Singh",
+      "email": "vikram@campusfix.com",
+      "password": "Employee@123",
+      "role": "employee",
+      "department_id": 3,
+      "designation": "Electrician",
+      "phone": "9876501111",
+      "availability": "Busy",
+      "is_active": 1
+    },
+    {
+      "id": 6,
+      "name": "Anil Kumar",
+      "email": "anil@campusfix.com",
+      "password": "Employee@123",
+      "role": "employee",
+      "department_id": 3,
+      "designation": "Senior Electrician",
+      "phone": "9876502222",
+      "availability": "Busy",
+      "is_active": 1
+    },
+    {
+      "id": 7,
+      "name": "Deepak Sharma",
+      "email": "deepak@campusfix.com",
+      "password": "Employee@123",
+      "role": "employee",
+      "department_id": 3,
+      "designation": "Electrical Technician",
+      "phone": "9876503333",
+      "availability": "Busy",
+      "is_active": 1
+    },
+    {
+      "id": 8,
+      "name": "Mohan Lal",
+      "email": "mohan@campusfix.com",
+      "password": "Employee@123",
+      "role": "employee",
+      "department_id": 6,
+      "designation": "Plumber",
+      "phone": "9876504444",
+      "availability": "Available",
+      "is_active": 1
+    },
+    {
+      "id": 9,
+      "name": "Ravi Patel",
+      "email": "ravi@campusfix.com",
+      "password": "Employee@123",
+      "role": "employee",
+      "department_id": 6,
+      "designation": "Senior Plumber",
+      "phone": "9876505555",
+      "availability": "Available",
+      "is_active": 1
+    },
+    {
+      "id": 10,
+      "name": "Santosh Yadav",
+      "email": "santosh@campusfix.com",
+      "password": "Employee@123",
+      "role": "employee",
+      "department_id": 6,
+      "designation": "Pipe Fitter",
+      "phone": "9876506666",
+      "availability": "Busy",
       "is_active": 1
     }
   ],
   "departments": [
     {
       "id": 1,
-      "name": "IT & Networking",
-      "description": "Handles computers, wifi, and projectors.",
-      "category_tag": "it"
+      "name": "Civil & Infrastructure",
+      "description": "civil",
+      "category_tag": "civil"
     },
     {
       "id": 2,
-      "name": "Electrical",
-      "description": "Handles fans, lights, switches.",
+      "name": "Cleaning & Sanitation",
+      "description": "cleaning",
+      "category_tag": "cleaning"
+    },
+    {
+      "id": 3,
+      "name": "Electrical Department",
+      "description": "electrical",
       "category_tag": "electrical"
+    },
+    {
+      "id": 4,
+      "name": "Hostel Maintenance",
+      "description": "hostel",
+      "category_tag": "hostel"
+    },
+    {
+      "id": 5,
+      "name": "IT & Networking",
+      "description": "it",
+      "category_tag": "it"
+    },
+    {
+      "id": 6,
+      "name": "Plumbing & Water",
+      "description": "water",
+      "category_tag": "water"
+    },
+    {
+      "id": 7,
+      "name": "Security & Safety",
+      "description": "security",
+      "category_tag": "security"
     }
   ],
   "locations": [
     {
       "id": 1,
+      "campus": "Hostel",
+      "block": "Hostel Block A",
+      "floor": "First Floor",
+      "room_area": "Room 101-110"
+    },
+    {
+      "id": 2,
+      "campus": "Hostel",
+      "block": "Hostel Block A",
+      "floor": "Ground Floor",
+      "room_area": "Common Room"
+    },
+    {
+      "id": 3,
+      "campus": "Hostel",
+      "block": "Hostel Block B",
+      "floor": "First Floor",
+      "room_area": "Room 201-210"
+    },
+    {
+      "id": 4,
+      "campus": "Hostel",
+      "block": "Hostel Block B",
+      "floor": "Ground Floor",
+      "room_area": "Washroom Block"
+    },
+    {
+      "id": 5,
+      "campus": "Main Campus",
+      "block": "Block A",
+      "floor": "First Floor",
+      "room_area": "Classroom 101"
+    },
+    {
+      "id": 6,
+      "campus": "Main Campus",
+      "block": "Block A",
+      "floor": "First Floor",
+      "room_area": "Classroom 102"
+    },
+    {
+      "id": 7,
+      "campus": "Main Campus",
+      "block": "Block A",
+      "floor": "First Floor",
+      "room_area": "Washroom"
+    },
+    {
+      "id": 8,
       "campus": "Main Campus",
       "block": "Block A",
       "floor": "Ground Floor",
       "room_area": "Lab 1"
     },
     {
-      "id": 2,
+      "id": 9,
       "campus": "Main Campus",
-      "block": "Block B",
-      "floor": "1st Floor",
-      "room_area": "Corridor"
-    }
-  ],
-  "employees": [
-    {
-      "id": 1,
-      "name": "Vikas Singh",
-      "phone": "9876543210",
-      "designation": "Technician",
-      "department_id": 1,
-      "is_active": 1
+      "block": "Block A",
+      "floor": "Ground Floor",
+      "room_area": "Lab 2"
     },
     {
-      "id": 2,
-      "name": "Mohit Patil",
-      "phone": "9876543211",
-      "designation": "Sr. Technician",
-      "department_id": 1,
-      "is_active": 1
+      "id": 10,
+      "campus": "Main Campus",
+      "block": "Block A",
+      "floor": "Ground Floor",
+      "room_area": "Corridor"
+    },
+    {
+      "id": 11,
+      "campus": "Main Campus",
+      "block": "Block B",
+      "floor": "First Floor",
+      "room_area": "Classroom 201"
+    },
+    {
+      "id": 12,
+      "campus": "Main Campus",
+      "block": "Block B",
+      "floor": "First Floor",
+      "room_area": "Classroom 202"
+    },
+    {
+      "id": 13,
+      "campus": "Main Campus",
+      "block": "Block B",
+      "floor": "Ground Floor",
+      "room_area": "Lab 3"
+    },
+    {
+      "id": 14,
+      "campus": "Main Campus",
+      "block": "Block B",
+      "floor": "Ground Floor",
+      "room_area": "Lab 4"
+    },
+    {
+      "id": 15,
+      "campus": "Main Campus",
+      "block": "Block B",
+      "floor": "Ground Floor",
+      "room_area": "Corridor"
+    },
+    {
+      "id": 16,
+      "campus": "Main Campus",
+      "block": "Block B",
+      "floor": "Second Floor",
+      "room_area": "Computer Lab"
+    },
+    {
+      "id": 17,
+      "campus": "Main Campus",
+      "block": "Block C",
+      "floor": "First Floor",
+      "room_area": "Staff Room"
+    },
+    {
+      "id": 18,
+      "campus": "Main Campus",
+      "block": "Block C",
+      "floor": "First Floor",
+      "room_area": "Library"
+    },
+    {
+      "id": 19,
+      "campus": "Main Campus",
+      "block": "Block C",
+      "floor": "Ground Floor",
+      "room_area": "Cafeteria"
+    },
+    {
+      "id": 20,
+      "campus": "Main Campus",
+      "block": "Block C",
+      "floor": "Ground Floor",
+      "room_area": "Reception"
+    },
+    {
+      "id": 21,
+      "campus": "Main Campus",
+      "block": "Common Area",
+      "floor": "Ground Floor",
+      "room_area": "Parking Lot"
+    },
+    {
+      "id": 22,
+      "campus": "Main Campus",
+      "block": "Common Area",
+      "floor": "Ground Floor",
+      "room_area": "Main Gate"
     }
   ],
+  "employees": [],
   "complaints": [
     {
-      "id": 1,
-      "title": "Wi-Fi not working in Lab 1",
-      "description": "The router seems to be off.",
-      "category": "it",
+      "title": "Fan not working",
+      "category": "Electrical",
       "location_id": 1,
-      "urgency": "High",
-      "status": "Pending",
+      "location_desc": "Hostel Block A, Room 101-110",
+      "urgency": "Medium",
+      "description": "asdfghjkl;",
+      "user_id": 4,
+      "user_name": "satyam",
+      "status": "Closed",
       "upvote_count": 0,
-      "submitted_by": 2,
-      "department_id": 1,
-      "created_at": "2026-08-20T10:00:00Z"
+      "created_at": "2026-08-20T12:14:24.307Z",
+      "id": 1,
+      "assigned_to_id": 6,
+      "assigned_to_name": "Anil Kumar",
+      "deadline": "2026-08-23",
+      "reopen_reason": null
     }
   ]
 }

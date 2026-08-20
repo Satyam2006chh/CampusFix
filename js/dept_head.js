@@ -8,22 +8,52 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = 'login.html';
     return;
   }
-  loadStats();
-  loadComplaints();
-  loadEmployees();
+  
+  // First load the department info for this head, then load data
+  initDeptHead();
 });
+
+let myDept = null;
+
+async function initDeptHead() {
+  try {
+    myDept = await apiFetch(`/departments/${currentUser.department_id}`);
+    loadStats();
+    loadComplaints();
+    loadEmployees();
+  } catch (err) {
+    console.error("Failed to init dept head", err);
+  }
+}
 
 // ─── LOAD STATS ──────────────────────────────────────────────
 async function loadStats() {
+  if (!myDept) return;
   try {
-    const stats = await apiFetch('/depthead/stats');
-    document.getElementById('statTotal').textContent     = stats.total      || 0;
-    document.getElementById('statPending').textContent   = stats.pending    || 0;
-    document.getElementById('statInProgress').textContent = stats.in_progress || 0;
-    document.getElementById('statClosed').textContent    = stats.closed     || 0;
-    document.getElementById('statReopened').textContent  = stats.reopened   || 0;
+    const allComplaints = await apiFetch('/complaints');
+    const myComplaints = allComplaints.filter(c => 
+      c.category && myDept.category_tag && 
+      c.category.toLowerCase() === myDept.category_tag.toLowerCase()
+    );
+
+    let total = myComplaints.length;
+    let pending = 0, in_progress = 0, closed = 0, reopened = 0, overdue = 0;
+    
+    myComplaints.forEach(c => {
+      if (c.status === 'Pending') pending++;
+      else if (c.status === 'In Progress') in_progress++;
+      else if (c.status === 'Closed' || c.status === 'Resolved' || c.status === 'Waiting Confirmation') closed++;
+      else if (c.status === 'Reopened') reopened++;
+      else if (c.status === 'Overdue') overdue++;
+    });
+
+    document.getElementById('statTotal').textContent      = total;
+    document.getElementById('statPending').textContent    = pending;
+    document.getElementById('statInProgress').textContent = in_progress;
+    document.getElementById('statClosed').textContent     = closed;
+    document.getElementById('statReopened').textContent   = reopened;
     const overdueEl = document.getElementById('statOverdue');
-    if (overdueEl) overdueEl.textContent = stats.overdue || 0;
+    if (overdueEl) overdueEl.textContent = overdue;
   } catch (err) { console.error(err); }
 }
 
@@ -31,13 +61,23 @@ async function loadStats() {
 let complaintsData = [];
 
 async function loadComplaints() {
+  if (!myDept) return;
   try {
-    const statusFilt = document.getElementById('filterStatus').value;
-    const dateFilt   = document.getElementById('filterDate').value;
-    let url = '/depthead/complaints?';
-    if (statusFilt) url += `status=${encodeURIComponent(statusFilt)}&`;
-    if (dateFilt)   url += `date=${encodeURIComponent(dateFilt)}`;
-    complaintsData = await apiFetch(url);
+    const allComplaints = await apiFetch('/complaints');
+    let filtered = allComplaints.filter(c => 
+      c.category && myDept.category_tag && 
+      c.category.toLowerCase() === myDept.category_tag.toLowerCase()
+    );
+
+    const statusFilt = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : '';
+    if (statusFilt) {
+      filtered = filtered.filter(c => c.status === statusFilt);
+    }
+
+    // Sort newest first
+    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    
+    complaintsData = filtered;
     renderActionRequired();
     renderAllComplaints();
   } catch (err) { console.error(err); }
@@ -45,22 +85,26 @@ async function loadComplaints() {
 
 function renderActionRequired() {
   const tbody = document.getElementById('actionRequiredBody');
+  if(!tbody) return;
   tbody.innerHTML = '';
   const actionReq = complaintsData
     .filter(c => c.status === 'Pending' || c.status === 'Reopened' || c.status === 'Overdue')
     .slice(0, 5);
+  
   if (actionReq.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px;">No pending actions.</td></tr>';
     return;
   }
+  
   actionReq.forEach(c => {
     const rowStyle = c.status === 'Overdue' ? ' style="background:var(--danger-bg);"' : '';
+    const locText = c.location_desc || `Loc ID: ${c.location_id}`;
     tbody.innerHTML += `
       <tr${rowStyle}>
-        <td>#CF-${c.complaint_id}</td>
+        <td>#CF-${c.id}</td>
         <td>
           <strong>${c.title}</strong>
-          <small>${c.block}, ${c.room_area}</small>
+          <small>${locText}</small>
         </td>
         <td><span class="urgency-${(c.urgency||'').toLowerCase()}">${c.urgency}</span></td>
         <td>${getStatusBadge(c.status)}${getDeadlineBadge(c.deadline, c.status)}</td>
@@ -71,20 +115,22 @@ function renderActionRequired() {
 
 function renderAllComplaints() {
   const tbody = document.getElementById('allComplaintsBody');
+  if(!tbody) return;
   tbody.innerHTML = '';
   if (complaintsData.length === 0) {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px;">No complaints found.</td></tr>';
     return;
   }
+  
   complaintsData.forEach(c => {
     const isOverdue = c.status === 'Overdue';
     const rowStyle  = isOverdue ? ' style="background:var(--danger-bg);"' : '';
 
     let actionHtml = '<span style="color:var(--text-muted);font-size:0.8rem;">—</span>';
     if (c.status === 'Pending' || c.status === 'Reopened') {
-      actionHtml = `<button class="action-btn" onclick="openAssignModal(${c.complaint_id})">Assign</button>`;
+      actionHtml = `<button class="action-btn" onclick="openAssignModal(${c.id})">Assign</button>`;
     } else if (c.status === 'In Progress' || c.status === 'Overdue') {
-      actionHtml = `<button class="action-btn" onclick="markResolved(${c.complaint_id})"
+      actionHtml = `<button class="action-btn" onclick="markResolved(${c.id})"
         style="color:var(--success); border-color:rgba(16,185,129,0.3);">Mark Resolved</button>`;
     } else if (c.status === 'Waiting Confirmation') {
       actionHtml = `<span style="font-size:0.78rem;color:var(--text-muted);">Awaiting Student</span>`;
@@ -99,13 +145,15 @@ function renderAllComplaints() {
            </svg>${c.upvote_count}</span>`
       : '';
 
+    const locText = c.location_desc || `Loc ID: ${c.location_id}`;
+    
     tbody.innerHTML += `
       <tr${rowStyle}>
-        <td>#CF-${c.complaint_id}</td>
+        <td>#CF-${c.id}</td>
         <td>
           <strong>${c.title}</strong>${upvoteBadge}
-          <small>${c.block}, ${c.room_area}</small>
-          <small>By: ${c.student_name}</small>
+          <small>${locText}</small>
+          <small>By: ${c.user_name || 'Student'}</small>
         </td>
         <td><span class="urgency-${(c.urgency||'').toLowerCase()}">${c.urgency}</span></td>
         <td>
@@ -142,13 +190,15 @@ function getDeadlineBadge(deadline, status) {
 
 // ─── MARK RESOLVED ───────────────────────────────────────────
 async function markResolved(compId) {
-  // FIX: use 3-arg signature (title, message, callback)
   showCustomConfirm(
     'Mark as Resolved',
     'Mark this complaint as resolved? The student will be asked to confirm the fix.',
     async () => {
       try {
-        await apiFetch(`/depthead/complaints/${compId}/resolve`, { method: 'POST' });
+        await apiFetch(`/complaints/${compId}`, { 
+          method: 'PATCH',
+          body: JSON.stringify({ status: 'Waiting Confirmation' })
+        });
         loadStats();
         loadComplaints();
         loadEmployees();
@@ -165,8 +215,10 @@ let assignCompId = null;
 let allEmployees = [];
 
 async function loadEmployees() {
+  if (!myDept) return;
   try {
-    allEmployees = await apiFetch('/depthead/employees');
+    const users = await apiFetch(`/users?role=employee&department_id=${myDept.id}`);
+    allEmployees = users;
     renderEmployees();
   } catch (err) { console.error(err); }
 }
@@ -175,52 +227,47 @@ function openAssignModal(compId) {
   assignCompId = compId;
   const select = document.getElementById('assignSelect');
   select.innerHTML = '';
-  const available = allEmployees.filter(e => e.availability === 'Available');
+  const available = allEmployees.filter(e => e.availability === 'Available' || !e.availability);
   const busy      = allEmployees.filter(e => e.availability === 'Busy');
   if (available.length === 0 && busy.length === 0) {
     select.innerHTML = '<option disabled>No employees added yet.</option>';
   }
 
-  // Group label for available
   if (available.length > 0) {
     const grpA = document.createElement('optgroup');
     grpA.label = '🟢 Available';
     available.forEach(e => {
-      const ow = e.overdue_count > 0 ? ` · ⚠️ ${e.overdue_count} overdue` : '';
       const opt = document.createElement('option');
-      opt.value = e.employee_id;
-      opt.textContent = `${e.name} — ${e.designation}${ow}`;
+      opt.value = e.id;
+      opt.textContent = `${e.name} — ${e.designation}`;
       opt.dataset.status = 'available';
+      opt.dataset.name = e.name;
       grpA.appendChild(opt);
     });
     select.appendChild(grpA);
   }
 
-  // Group label for busy
   if (busy.length > 0) {
     const grpB = document.createElement('optgroup');
     grpB.label = '🔴 Busy';
     busy.forEach(e => {
-      const ow = e.overdue_count > 0 ? ` · ⚠️ ${e.overdue_count} overdue` : '';
       const opt = document.createElement('option');
-      opt.value = e.employee_id;
-      opt.textContent = `${e.name} — ${e.designation}${ow}`;
+      opt.value = e.id;
+      opt.textContent = `${e.name} — ${e.designation}`;
       opt.dataset.status = 'busy';
+      opt.dataset.name = e.name;
       grpB.appendChild(opt);
     });
     select.appendChild(grpB);
   }
 
-  // Update dot indicator when selection changes
   updateAssignDot(select);
   select.onchange = () => updateAssignDot(select);
 
-  // Default deadline = today + 3 days
   setDeadlineDays(3);
   document.getElementById('assignModal').classList.remove('hidden');
 }
 
-// Shows a colored dot next to the select based on selected option's status
 function updateAssignDot(select) {
   const dot = document.getElementById('assignStatusDot');
   if (!dot) return;
@@ -238,7 +285,6 @@ function updateAssignDot(select) {
   }
 }
 
-// ─── DEADLINE QUICK-SET HELPER ───────────────────────────────
 function setDeadlineDays(days) {
   const d = new Date();
   d.setDate(d.getDate() + days);
@@ -253,15 +299,33 @@ function closeAssignModal() {
 }
 
 async function submitAssignment() {
-  const empId    = document.getElementById('assignSelect').value;
+  const selectEl = document.getElementById('assignSelect');
+  const empId    = selectEl.value;
+  if (!empId) return;
+  
+  const selectedOpt = selectEl.options[selectEl.selectedIndex];
+  const empName = selectedOpt ? selectedOpt.dataset.name : 'Unknown';
+
   const deadlineEl = document.getElementById('assignDeadline');
   const deadline = deadlineEl ? (deadlineEl.value || null) : null;
-  if (!empId) return;
+  
   try {
-    await apiFetch(`/depthead/complaints/${assignCompId}/assign`, {
-      method: 'POST',
-      body: JSON.stringify({ employee_id: empId, deadline: deadline })
+    await apiFetch(`/complaints/${assignCompId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ 
+        assigned_to_id: parseInt(empId),
+        assigned_to_name: empName,
+        deadline: deadline,
+        status: 'In Progress'
+      })
     });
+    
+    // Also mark employee as busy
+    await apiFetch(`/users/${empId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ availability: 'Busy' })
+    });
+    
     closeAssignModal();
     loadStats();
     loadComplaints();
@@ -275,35 +339,29 @@ async function submitAssignment() {
 // ─── EMPLOYEES GRID ──────────────────────────────────────────
 function renderEmployees() {
   const grid = document.getElementById('employeesGrid');
+  if(!grid) return;
   grid.innerHTML = '';
   if (allEmployees.length === 0) {
     grid.innerHTML = '<div style="text-align:center;width:100%;color:var(--text-muted);padding:40px;">No employees added yet.</div>';
     return;
   }
   allEmployees.forEach(e => {
-    const initials   = e.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
-    const isAvail    = e.availability === 'Available';
-    const hasOverdue = (e.overdue_count || 0) > 0;
-    const cardStyle  = hasOverdue ? 'border-color:var(--warning);box-shadow:0 0 0 1px var(--warning),var(--shadow-xs);' : '';
-
-    const overdueTag = hasOverdue
-      ? `<span class="employee-overdue-tag">⚠️ ${e.overdue_count} overdue task${e.overdue_count !== 1 ? 's' : ''}</span>`
-      : '';
-
+    const initials   = (e.name||"Emp").split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    const isAvail    = e.availability === 'Available' || !e.availability;
+    
     grid.innerHTML += `
-      <div class="employee-card" style="${cardStyle}">
+      <div class="employee-card">
         <div class="employee-card-top">
           <div class="employee-avatar">${initials}</div>
           <div>
             <div class="employee-name">${e.name}</div>
             <div class="employee-desig">${e.designation}</div>
-            ${overdueTag}
           </div>
-          <span class="employee-status ${isAvail ? 'available' : 'busy'}">${e.availability}</span>
+          <span class="employee-status ${isAvail ? 'available' : 'busy'}">${isAvail ? 'Available' : 'Busy'}</span>
         </div>
         <div class="employee-card-footer">
           <button class="action-btn" onclick='openEditEmpModal(${JSON.stringify(e).replace(/'/g,"&apos;")})'>Edit</button>
-          <button class="action-btn danger" onclick="removeEmployee(${e.employee_id})">Remove</button>
+          <button class="action-btn danger" onclick="removeEmployee(${e.id})">Remove</button>
         </div>
       </div>`;
   });
@@ -313,8 +371,9 @@ function openEmpModal() {
   document.getElementById('empForm').reset();
   clearAllErrors(document.getElementById('empForm'));
   document.getElementById('empModal').classList.remove('hidden');
-  // Inject strength meter once (idempotent)
-  injectPasswordMeter('empPassword', 'emp-pw-meter');
+  if (typeof injectPasswordMeter === 'function') {
+    injectPasswordMeter('empPassword', 'emp-pw-meter');
+  }
 }
 function closeEmpModal() {
   document.getElementById('empModal').classList.add('hidden');
@@ -325,7 +384,6 @@ async function submitEmployee(e) {
   e.preventDefault();
   clearAllErrors(document.getElementById('empForm'));
 
-  // ── Validation ──────────────────────────────────────────
   let ok = true;
   ok = validateRequired('empName',  'Full name')    && ok;
   ok = validateEmail('empEmail')                    && ok;
@@ -333,17 +391,20 @@ async function submitEmployee(e) {
   ok = validateRequired('empDesig', 'Designation')  && ok;
   ok = validatePhone('empPhone')                    && ok;
   if (!ok) return;
-  // ────────────────────────────────────────────────────────
 
   const data = {
     name: document.getElementById('empName').value,
     email: document.getElementById('empEmail').value,
     password: document.getElementById('empPassword').value,
     designation: document.getElementById('empDesig').value,
-    phone: document.getElementById('empPhone').value
+    phone: document.getElementById('empPhone').value,
+    role: 'employee',
+    department_id: myDept.id,
+    availability: 'Available',
+    is_active: 1
   };
   try {
-    await apiFetch('/depthead/employees', { method: 'POST', body: JSON.stringify(data) });
+    await apiFetch('/users', { method: 'POST', body: JSON.stringify(data) });
     closeEmpModal();
     loadEmployees();
     showCustomAlert('Added', 'Employee created successfully.');
@@ -353,7 +414,7 @@ async function submitEmployee(e) {
 }
 
 function openEditEmpModal(e) {
-  document.getElementById('editEmpId').value    = e.employee_id;
+  document.getElementById('editEmpId').value    = e.id;
   document.getElementById('editEmpName').value  = e.name;
   document.getElementById('editEmpDesig').value = e.designation;
   document.getElementById('editEmpPhone').value = e.phone || '';
@@ -368,13 +429,11 @@ async function submitEditEmployee(event) {
   event.preventDefault();
   clearAllErrors(document.getElementById('editEmpForm'));
 
-  // ── Validation ──────────────────────────────────────────
   let ok = true;
   ok = validateRequired('editEmpName',  'Full name')   && ok;
   ok = validateRequired('editEmpDesig', 'Designation') && ok;
   ok = validatePhone('editEmpPhone')                   && ok;
   if (!ok) return;
-  // ────────────────────────────────────────────────────────
 
   const id   = document.getElementById('editEmpId').value;
   const data = {
@@ -383,7 +442,7 @@ async function submitEditEmployee(event) {
     phone: document.getElementById('editEmpPhone').value
   };
   try {
-    await apiFetch(`/depthead/employees/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+    await apiFetch(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) });
     closeEditEmpModal();
     loadEmployees();
     showCustomAlert('Updated', 'Employee details saved.');
@@ -398,7 +457,7 @@ async function removeEmployee(id) {
     'Are you sure you want to remove this employee? This action cannot be undone.',
     async () => {
       try {
-        await apiFetch(`/depthead/employees/${id}`, { method: 'DELETE' });
+        await apiFetch(`/users/${id}`, { method: 'DELETE' });
         loadEmployees();
         showCustomAlert('Removed', 'Employee removed successfully.');
       } catch (err) {

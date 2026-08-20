@@ -16,12 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // ─── LOCATIONS ───────────────────────────────────────────────
 async function loadLocations() {
   try {
-    const locations = await apiFetch('/student/locations');
+    const locations = await apiFetch('/locations');
     const select = document.getElementById('cLocation');
     select.innerHTML = '<option value="" disabled selected>Select specific location</option>';
     locations.forEach(loc => {
       const opt = document.createElement('option');
-      opt.value = loc.location_id;
+      opt.value = loc.id;
       opt.textContent = `${loc.campus} — ${loc.block}, ${loc.floor} (${loc.room_area})`;
       select.appendChild(opt);
     });
@@ -31,11 +31,20 @@ async function loadLocations() {
 // ─── STATS ───────────────────────────────────────────────────
 async function loadStats() {
   try {
-    const stats = await apiFetch('/student/stats');
-    document.getElementById('statTotal').textContent      = stats.total      || 0;
-    document.getElementById('statPending').textContent    = stats.pending    || 0;
-    document.getElementById('statInProgress').textContent = stats.in_progress || 0;
-    document.getElementById('statResolved').textContent   = stats.resolved   || 0;
+    const complaints = await apiFetch('/complaints');
+    const myComplaints = complaints.filter(c => c.user_id === currentUser.id);
+    
+    let pending = 0, in_progress = 0, resolved = 0;
+    myComplaints.forEach(c => {
+      if (c.status === 'Pending') pending++;
+      else if (c.status === 'In Progress') in_progress++;
+      else if (c.status === 'Resolved' || c.status === 'Waiting Confirmation' || c.status === 'Closed') resolved++;
+    });
+
+    document.getElementById('statTotal').textContent      = myComplaints.length;
+    document.getElementById('statPending').textContent    = pending;
+    document.getElementById('statInProgress').textContent = in_progress;
+    document.getElementById('statResolved').textContent   = resolved;
   } catch (err) { console.error('Failed to load stats', err); }
 }
 
@@ -44,7 +53,10 @@ let myComplaints = [];
 
 async function loadComplaints() {
   try {
-    myComplaints = await apiFetch('/student/complaints');
+    const allComplaints = await apiFetch('/complaints');
+    myComplaints = allComplaints.filter(c => c.user_id === currentUser.id);
+    myComplaints.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    
     renderRecentComplaints();
     renderAllComplaints();
   } catch (err) { console.error('Failed to load complaints', err); }
@@ -61,7 +73,7 @@ function renderRecentComplaints() {
   recent.forEach(c => {
     tbody.innerHTML += `
       <tr>
-        <td>#CF-${c.complaint_id}</td>
+        <td>#CF-${c.id}</td>
         <td style="font-weight:500;color:var(--text-primary);">${c.title}</td>
         <td>${c.category}</td>
         <td>${getStatusBadge(c.status)}</td>
@@ -85,13 +97,11 @@ function renderAllComplaints() {
   myComplaints.forEach(c => {
     const isUpvoted = c.source === 'upvoted';
 
-    // Only show "Verify Fix" on complaints the student submitted themselves
     let actionHtml = '<span style="color:var(--text-muted);font-size:0.8rem;">—</span>';
     if (!isUpvoted && c.status === 'Waiting Confirmation') {
-      actionHtml = `<button class="action-btn" onclick="openConfirmModal(${c.complaint_id})">Verify Fix</button>`;
+      actionHtml = `<button class="action-btn" onclick="openConfirmModal(${c.id})">Verify Fix</button>`;
     }
 
-    // Upvote count badge — visible inside the complaint row
     const upvoteBadge = c.upvote_count > 0
       ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.72rem;
            background:var(--accent-light);color:var(--accent);
@@ -101,14 +111,12 @@ function renderAllComplaints() {
            </svg>${c.upvote_count} upvote${c.upvote_count !== 1 ? 's' : ''}</span>`
       : '';
 
-    // Source tag (upvoted vs submitted)
     const sourceTag = isUpvoted
       ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.68rem;
            background:var(--warning-bg);color:var(--warning);
            padding:2px 7px;border-radius:20px;margin-left:6px;font-weight:600;">Upvoted</span>`
       : '';
 
-    // Assigned to info
     const assignedInfo = c.assigned_to_name
       ? `<small style="display:flex;align-items:center;gap:4px;margin-top:3px;">
            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -118,12 +126,14 @@ function renderAllComplaints() {
          </small>`
       : '';
 
+    const locText = c.location_desc || `Location ID: ${c.location_id}`;
+
     tbody.innerHTML += `
       <tr ${isUpvoted ? 'style="background:rgba(245,158,11,0.03);"' : ''}>
-        <td>#CF-${c.complaint_id}</td>
+        <td>#CF-${c.id}</td>
         <td>
           <strong>${c.title}</strong>${sourceTag}${upvoteBadge}
-          <small>${c.block}, ${c.room_area}</small>
+          <small>${locText}</small>
           ${assignedInfo}
         </td>
         <td>${c.category}</td>
@@ -147,31 +157,45 @@ async function submitComplaint(e) {
   successEl.classList.add('hidden');
   clearAllErrors(document.getElementById('complaintForm'));
 
-  // ── Client-side validation ──────────────────────────────
   let ok = true;
   ok = validateRequired('cTitle',    'Complaint title') && ok;
   ok = validateSelect('cCategory',   'category')        && ok;
   ok = validateSelect('cLocation',   'location')        && ok;
   ok = validateRequired('cDesc',     'Description')     && ok;
   if (!ok) return;
-  // ────────────────────────────────────────────────────────
 
   btn.disabled = true;
   btn.textContent = 'Submitting...';
 
+  let locDesc = '';
+  try {
+    const locId = document.getElementById('cLocation').value;
+    const loc = await apiFetch(`/locations/${locId}`);
+    locDesc = `${loc.block}, ${loc.room_area}`;
+  } catch(e) {}
+
   const data = {
     title:       document.getElementById('cTitle').value,
     category:    document.getElementById('cCategory').value,
-    location_id: document.getElementById('cLocation').value,
+    location_id: parseInt(document.getElementById('cLocation').value),
+    location_desc: locDesc,
     urgency:     document.getElementById('cUrgency').value,
-    description: document.getElementById('cDesc').value
+    description: document.getElementById('cDesc').value,
+    user_id:     currentUser.id,
+    user_name:   currentUser.name,
+    status:      'Pending',
+    upvote_count: 0,
+    created_at:  new Date().toISOString()
   };
 
   try {
-    const res = await apiFetch('/student/complaints', { method: 'POST', body: JSON.stringify(data) });
-    if (res.duplicate) {
-      showDuplicateModal(res.existing_complaint);
+    const existing = await apiFetch(`/complaints?location_id=${data.location_id}&category=${encodeURIComponent(data.category)}`);
+    const duplicate = existing.find(c => c.status !== 'Closed' && c.status !== 'Resolved');
+
+    if (duplicate) {
+      showDuplicateModal(duplicate);
     } else {
+      await apiFetch('/complaints', { method: 'POST', body: JSON.stringify(data) });
       successEl.classList.remove('hidden');
       document.getElementById('complaintForm').reset();
       loadStats();
@@ -192,7 +216,7 @@ async function submitComplaint(e) {
 
 // ─── DUPLICATE HANDLING ──────────────────────────────────────
 function showDuplicateModal(complaint) {
-  currentDuplicateId = complaint.complaint_id;
+  currentDuplicateId = complaint.id;
   const details = document.getElementById('duplicateDetails');
   details.innerHTML = `
     <div style="display:flex;flex-direction:column;gap:6px;">
@@ -220,12 +244,24 @@ function closeDuplicateModal() {
 document.getElementById('btnUpvoteInstead').addEventListener('click', async () => {
   if (!currentDuplicateId) return;
   try {
-    await apiFetch(`/student/complaints/${currentDuplicateId}/upvote`, { method: 'POST' });
+    const comp = await apiFetch(`/complaints/${currentDuplicateId}`);
+    await apiFetch(`/complaints/${currentDuplicateId}`, { 
+      method: 'PATCH', 
+      body: JSON.stringify({ upvote_count: (comp.upvote_count || 0) + 1 }) 
+    });
+    
+    const upvotedData = { ...comp };
+    delete upvotedData.id;
+    upvotedData.original_complaint_id = comp.id;
+    upvotedData.user_id = currentUser.id;
+    upvotedData.source = 'upvoted';
+    
+    await apiFetch('/complaints', { method: 'POST', body: JSON.stringify(upvotedData) });
+
     closeDuplicateModal();
     document.getElementById('complaintForm').reset();
-    // FIX: use custom modal alert instead of browser alert()
     showCustomAlert('Upvoted', 'Your upvote has been counted on the existing complaint. You can track it under My Complaints.');
-    loadComplaints();   // reload so upvoted complaint appears in list
+    loadComplaints();
     loadStats();
     switchTab('my-complaints');
   } catch (err) {
@@ -263,15 +299,17 @@ async function submitConfirmation(isConfirmed) {
   const reason = document.getElementById('confirmReason').value;
 
   if (!isConfirmed && !reason.trim()) {
-    // FIX: use custom modal alert instead of browser alert()
     showCustomAlert('Required', 'Please provide a reason for reopening the complaint.');
     return;
   }
 
   try {
-    await apiFetch(`/student/complaints/${confirmComplaintId}/confirm`, {
-      method: 'POST',
-      body: JSON.stringify({ confirmed: isConfirmed, reason })
+    await apiFetch(`/complaints/${confirmComplaintId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ 
+        status: isConfirmed ? 'Closed' : 'Reopened', 
+        reopen_reason: isConfirmed ? null : reason 
+      })
     });
     closeConfirmModal();
     loadStats();

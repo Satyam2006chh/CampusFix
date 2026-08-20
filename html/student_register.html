@@ -187,23 +187,32 @@
       btnText.textContent = 'Creating Account...';
       btn.disabled = true;
       try {
-        const res = await fetch('http://127.0.0.1:5000/api/auth/register', {
+        const res = await fetch('http://localhost:3000/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, roll_no, email, phone, password })
+          body: JSON.stringify({
+            name, 
+            roll_no, 
+            email, 
+            phone, 
+            password,
+            role: 'student',
+            is_active: 1
+          })
         });
-        const data = await res.json();
+        const user = await res.json();
+        
         if (res.ok) {
-          sessionStorage.setItem('cf_token', data.token);
-          sessionStorage.setItem('cf_user', JSON.stringify(data.user));
+          sessionStorage.setItem('cf_token', 'fake-jwt-token-for-json-server');
+          sessionStorage.setItem('cf_user', JSON.stringify(user));
           sessionStorage.setItem('cf_role', 'student');
           window.location.href = 'student_dashboard.html';
         } else {
-          errorEl.textContent = data.message || 'Registration failed.';
+          errorEl.textContent = 'Registration failed.';
           errorEl.classList.remove('hidden');
         }
       } catch (err) {
-        errorEl.textContent = 'Cannot connect to the server.';
+        errorEl.textContent = 'Cannot connect to the JSON server. Make sure it is running on port 3000.';
         errorEl.classList.remove('hidden');
       } finally {
         btnText.textContent = 'Create Account →';
