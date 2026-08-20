@@ -884,3 +884,28 @@ select option {
   padding: 2px 8px;
   border-radius: var(--radius-full);
 }
+
+/* ─── SHARED VALIDATION STYLES (mirrored from auth.css) ─────── */
+.cf-input-error {
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.1) !important;
+}
+.cf-field-error {
+  display: none;
+  font-size: 0.74rem;
+  color: var(--danger);
+  font-weight: 500;
+  margin-top: 4px;
+  padding-left: 2px;
+}
+.cf-pw-meter    { margin-top: 8px; }
+.cf-pw-bar-track{ height:4px; background:var(--border); border-radius:99px; overflow:hidden; margin-bottom:8px; }
+.cf-pw-bar      { height:100%; width:0%; border-radius:99px; transition:width .3s,background .3s; }
+.cf-bar-weak    { background:#ef4444; }
+.cf-bar-fair    { background:#f59e0b; }
+.cf-bar-good    { background:#3b82f6; }
+.cf-bar-strong  { background:#10b981; }
+.cf-pw-rules    { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:3px; }
+.cf-rule        { font-size:0.73rem; color:var(--text-muted); display:flex; align-items:center; gap:6px; transition:color .2s; }
+.cf-rule-pass   { color:#10b981; }
+.cf-rule-icon   { font-size:0.7rem; font-weight:700; width:14px; text-align:center; }

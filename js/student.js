@@ -145,6 +145,17 @@ async function submitComplaint(e) {
 
   errorEl.classList.add('hidden');
   successEl.classList.add('hidden');
+  clearAllErrors(document.getElementById('complaintForm'));
+
+  // ── Client-side validation ──────────────────────────────
+  let ok = true;
+  ok = validateRequired('cTitle',    'Complaint title') && ok;
+  ok = validateSelect('cCategory',   'category')        && ok;
+  ok = validateSelect('cLocation',   'location')        && ok;
+  ok = validateRequired('cDesc',     'Description')     && ok;
+  if (!ok) return;
+  // ────────────────────────────────────────────────────────
+
   btn.disabled = true;
   btn.textContent = 'Submitting...';
 

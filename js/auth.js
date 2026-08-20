@@ -82,10 +82,19 @@ async function handleLogin(e) {
   const errorEl  = document.getElementById('loginError');
   const btnText  = document.getElementById('loginBtnText');
 
+  errorEl.classList.add('hidden');
+  clearAllErrors(document.getElementById('loginForm'));
+
+  // ── Client-side validation (login: required + email format only) ──
+  let ok = true;
+  ok = validateEmail('loginEmail')                      && ok;
+  ok = validateRequired('loginPassword', 'Password')    && ok;
+  if (!ok) return;
+  // ─────────────────────────────────────────────────────────────────
+
   // Loading state
   btnText.textContent = 'Signing in...';
   document.getElementById('loginSubmitBtn').disabled = true;
-  errorEl.classList.add('hidden');
 
   try {
     const response = await fetch('http://127.0.0.1:5000/api/auth/login', {

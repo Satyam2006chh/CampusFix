@@ -143,11 +143,23 @@ async function toggleUserStatus(userId, activate) {
 
 function closeModals() { document.querySelectorAll(".modal").forEach(m=>m.classList.add("hidden")); }
 function openAddDeptModal() { document.getElementById("addDeptModal").classList.remove("hidden"); }
-function openAddHeadModal() { document.getElementById("addHeadModal").classList.remove("hidden"); }
+function openAddHeadModal() {
+  document.getElementById("addHeadModal").classList.remove("hidden");
+  injectPasswordMeter('hPass', 'head-pw-meter');
+}
 function openLocModal()     { document.getElementById("addLocModal").classList.remove("hidden"); }
 
 async function submitDept(e) {
   e.preventDefault();
+  clearAllErrors(e.target);
+
+  // ── Validation ──────────────────────────────────────────
+  let ok = true;
+  ok = validateRequired('dName', 'Department name') && ok;
+  ok = validateRequired('dTag',  'Category tag')    && ok;
+  if (!ok) return;
+  // ────────────────────────────────────────────────────────
+
   try {
     await apiFetch("/admin/departments", {method:"POST", body:JSON.stringify({name:document.getElementById("dName").value, category_tag:document.getElementById("dTag").value, description:document.getElementById("dDesc").value})});
     closeModals(); e.target.reset(); loadDepartments(); showCustomAlert("Success","Department added!");
@@ -156,6 +168,18 @@ async function submitDept(e) {
 
 async function submitHead(e) {
   e.preventDefault();
+  clearAllErrors(e.target);
+
+  // ── Validation ──────────────────────────────────────────
+  let ok = true;
+  ok = validateSelect('hDept',    'department')   && ok;
+  ok = validateRequired('hName',  'Name')         && ok;
+  ok = validateEmail('hEmail')                    && ok;
+  ok = validateStrongPassword('hPass')            && ok;
+  ok = validatePhone('hPhone')                    && ok;
+  if (!ok) return;
+  // ────────────────────────────────────────────────────────
+
   try {
     await apiFetch("/admin/dept-heads", {method:"POST", body:JSON.stringify({department_id:document.getElementById("hDept").value, name:document.getElementById("hName").value, email:document.getElementById("hEmail").value, password:document.getElementById("hPass").value, phone:document.getElementById("hPhone").value})});
     closeModals(); e.target.reset(); loadDepartments(); loadUsers(); showCustomAlert("Success","Department Head assigned!");
@@ -164,6 +188,17 @@ async function submitHead(e) {
 
 async function submitLoc(e) {
   e.preventDefault();
+  clearAllErrors(e.target);
+
+  // ── Validation ──────────────────────────────────────────
+  let ok = true;
+  ok = validateRequired('lCampus', 'Campus')    && ok;
+  ok = validateRequired('lBlock',  'Block')     && ok;
+  ok = validateRequired('lFloor',  'Floor')     && ok;
+  ok = validateRequired('lRoom',   'Room/Area') && ok;
+  if (!ok) return;
+  // ────────────────────────────────────────────────────────
+
   try {
     await apiFetch("/admin/locations", {method:"POST", body:JSON.stringify({campus:document.getElementById("lCampus").value, block:document.getElementById("lBlock").value, floor:document.getElementById("lFloor").value, room_area:document.getElementById("lRoom").value})});
     closeModals(); e.target.reset(); loadLocations(); showCustomAlert("Success","Location added!");
