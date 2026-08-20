@@ -4,7 +4,7 @@
 //  Handles: Session check, tabs, common helpers
 // ============================================================
 
-const BASE_URL = 'http://127.0.0.1:5000/api';
+const BASE_URL = 'http://localhost:3000';
 
 // ─── SESSION MANAGEMENT ──────────────────────────────────────
 const token = sessionStorage.getItem('cf_token');

@@ -97,29 +97,32 @@ async function handleLogin(e) {
   document.getElementById('loginSubmitBtn').disabled = true;
 
   try {
-    const response = await fetch('http://127.0.0.1:5000/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password, role: selectedRole })
-    });
+    const response = await fetch(`http://localhost:3000/users?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&role=${encodeURIComponent(selectedRole)}`);
 
-    const data = await response.json();
+    const users = await response.json();
 
-    if (response.ok && data.token) {
+    if (response.ok && users.length > 0) {
+      const user = users[0];
+      if (user.is_active === 0) {
+        errorEl.textContent = 'Account disabled by Admin.';
+        errorEl.classList.remove('hidden');
+        return;
+      }
+      
       // Save session
-      sessionStorage.setItem('cf_token', data.token);
-      sessionStorage.setItem('cf_user',  JSON.stringify(data.user));
-      sessionStorage.setItem('cf_role',  data.user.role);
+      sessionStorage.setItem('cf_token', 'fake-jwt-token-for-json-server');
+      sessionStorage.setItem('cf_user',  JSON.stringify(user));
+      sessionStorage.setItem('cf_role',  user.role);
 
       // Redirect to the correct dashboard
-      const redirect = ROLE_CONFIG[data.user.role].redirect;
+      const redirect = ROLE_CONFIG[user.role].redirect;
       window.location.href = redirect;
     } else {
-      errorEl.textContent = data.message || 'Invalid email or password.';
+      errorEl.textContent = 'Invalid email or password.';
       errorEl.classList.remove('hidden');
     }
   } catch (err) {
-    errorEl.textContent = 'Cannot connect to the server. Please make sure the backend is running.';
+    errorEl.textContent = 'Cannot connect to the JSON server. Make sure it is running on port 3000.';
     errorEl.classList.remove('hidden');
   } finally {
     btnText.textContent = 'Sign In';

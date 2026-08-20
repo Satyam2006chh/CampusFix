@@ -1,0 +1,93 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Super Admin",
+      "email": "admin@campusfix.com",
+      "password": "password123",
+      "role": "admin",
+      "is_active": 1
+    },
+    {
+      "id": 2,
+      "name": "Saksham Sharma",
+      "email": "saksham@student.com",
+      "password": "password123",
+      "role": "student",
+      "roll_no": "2026CS101",
+      "is_active": 1
+    },
+    {
+      "id": 3,
+      "name": "Raj IT Head",
+      "email": "ithead@campusfix.com",
+      "password": "password123",
+      "role": "dept_head",
+      "department_id": 1,
+      "is_active": 1
+    }
+  ],
+  "departments": [
+    {
+      "id": 1,
+      "name": "IT & Networking",
+      "description": "Handles computers, wifi, and projectors.",
+      "category_tag": "it"
+    },
+    {
+      "id": 2,
+      "name": "Electrical",
+      "description": "Handles fans, lights, switches.",
+      "category_tag": "electrical"
+    }
+  ],
+  "locations": [
+    {
+      "id": 1,
+      "campus": "Main Campus",
+      "block": "Block A",
+      "floor": "Ground Floor",
+      "room_area": "Lab 1"
+    },
+    {
+      "id": 2,
+      "campus": "Main Campus",
+      "block": "Block B",
+      "floor": "1st Floor",
+      "room_area": "Corridor"
+    }
+  ],
+  "employees": [
+    {
+      "id": 1,
+      "name": "Vikas Singh",
+      "phone": "9876543210",
+      "designation": "Technician",
+      "department_id": 1,
+      "is_active": 1
+    },
+    {
+      "id": 2,
+      "name": "Mohit Patil",
+      "phone": "9876543211",
+      "designation": "Sr. Technician",
+      "department_id": 1,
+      "is_active": 1
+    }
+  ],
+  "complaints": [
+    {
+      "id": 1,
+      "title": "Wi-Fi not working in Lab 1",
+      "description": "The router seems to be off.",
+      "category": "it",
+      "location_id": 1,
+      "urgency": "High",
+      "status": "Pending",
+      "upvote_count": 0,
+      "submitted_by": 2,
+      "department_id": 1,
+      "created_at": "2026-08-20T10:00:00Z"
+    }
+  ]
+}
