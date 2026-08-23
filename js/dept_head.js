@@ -143,9 +143,9 @@ function renderAllComplaints() {
 
     let actionHtml = '<span style="color:var(--text-muted);font-size:0.8rem;">—</span>';
     if (c.status === 'Pending' || c.status === 'Reopened') {
-      actionHtml = `<button class="action-btn" onclick="openAssignModal(${c.id})">Assign</button>`;
+      actionHtml = `<button class="action-btn" onclick="openAssignModal('${c.id}')">Assign</button>`;
     } else if (c.status === 'In Progress' || c.status === 'Overdue') {
-      actionHtml = `<button class="action-btn" onclick="markResolved(${c.id})"
+      actionHtml = `<button class="action-btn" onclick="markResolved('${c.id}')"
         style="color:var(--success); border-color:rgba(16,185,129,0.3);">Mark Resolved</button>`;
     } else if (c.status === 'Waiting Confirmation') {
       actionHtml = `<span style="font-size:0.78rem;color:var(--text-muted);">Awaiting Student</span>`;

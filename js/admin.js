@@ -15,6 +15,15 @@ async function loadStats() {
     // Filter out upvoted shadow copies — count only original complaints
     complaints = complaints.filter(c => c.source !== 'upvoted');
 
+    const overviewFiltDept = document.getElementById("overviewFiltDept")?.value;
+    if (overviewFiltDept) {
+      const depts = await apiFetch("/departments");
+      const dept = depts.find(d => String(d.id) === String(overviewFiltDept));
+      if (dept) {
+        complaints = complaints.filter(c => c.category && c.category.toLowerCase() === dept.category_tag.toLowerCase());
+      }
+    }
+
     let total = complaints.length;
     let pending = 0, in_progress = 0, resolved = 0;
     let by_dept  = {};
@@ -142,8 +151,10 @@ async function loadDepartments() {
     const grid = document.getElementById("deptsGrid");
     const filtDept = document.getElementById("filtDept");
     const hDept = document.getElementById("hDept");
+    const overviewFiltDept = document.getElementById("overviewFiltDept");
     
     if(filtDept) filtDept.innerHTML = '<option value="">All Departments</option>';
+    if(overviewFiltDept) overviewFiltDept.innerHTML = '<option value="">All Departments</option>';
     if(hDept) hDept.innerHTML = '<option value="" disabled selected>Select Dept</option>';
     if(!grid) return;
     
@@ -180,6 +191,7 @@ async function loadDepartments() {
         </div>`;
       
       if(filtDept) filtDept.innerHTML += `<option value="${d.id}">${d.name}</option>`;
+      if(overviewFiltDept) overviewFiltDept.innerHTML += `<option value="${d.id}">${d.name}</option>`;
       if (!head && hDept) hDept.innerHTML += `<option value="${d.id}">${d.name}</option>`;
     });
   } catch (err) { console.error(err); }
@@ -225,8 +237,8 @@ async function loadUsers() {
       
       if (u.role !== "admin") {
         actionBtn = isActive
-          ? `<button onclick="toggleUserStatus(${u.id},false)" style="flex:1;padding:9px;font-size:.8rem;background:rgba(255,92,122,.08);border:1px solid rgba(255,92,122,.2);color:var(--red);border-radius:8px;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Deactivate</button>`
-          : `<button onclick="toggleUserStatus(${u.id},true)" style="flex:1;padding:9px;font-size:.8rem;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);color:var(--green);border-radius:8px;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Activate</button>`;
+          ? `<button onclick="toggleUserStatus('${u.id}',false)" style="flex:1;padding:9px;font-size:.8rem;background:rgba(255,92,122,.08);border:1px solid rgba(255,92,122,.2);color:var(--red);border-radius:8px;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>Deactivate</button>`
+          : `<button onclick="toggleUserStatus('${u.id}',true)" style="flex:1;padding:9px;font-size:.8rem;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.2);color:var(--green);border-radius:8px;cursor:pointer;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>Activate</button>`;
       }
       grid.innerHTML += `
         <div style="background:var(--bg-card);border:1px solid var(--border-light);border-radius:16px;padding:28px 22px;display:flex;flex-direction:column;align-items:center;text-align:center;box-shadow:0 8px 24px rgba(0,0,0,.15);position:relative;transition:transform .2s ease;">

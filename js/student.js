@@ -110,7 +110,7 @@ function renderAllComplaints() {
 
     let actionHtml = '<span style="color:var(--text-muted);font-size:0.8rem;">—</span>';
     if (!isUpvoted && c.status === 'Waiting Confirmation') {
-      actionHtml = `<button class="action-btn" onclick="openConfirmModal(${c.id})">Verify Fix</button>`;
+      actionHtml = `<button class="action-btn" onclick="openConfirmModal('${c.id}')">Verify Fix</button>`;
     }
 
     const upvoteBadge = c.upvote_count > 0

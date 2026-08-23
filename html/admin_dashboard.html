@@ -89,6 +89,11 @@
 
       <!-- ── TAB: OVERVIEW ── -->
       <section id="tab-overview" class="tab-pane active">
+        <div class="filter-row" style="margin-bottom:16px; justify-content:flex-end;">
+          <select id="overviewFiltDept" onchange="loadStats()">
+            <option value="">All Departments</option>
+          </select>
+        </div>
         <div class="stats-grid">
           <div class="stat-card">
             <div class="sc-left">

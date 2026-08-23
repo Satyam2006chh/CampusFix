@@ -146,7 +146,7 @@
       "phone": "9898989898",
       "role": "employee",
       "department_id": "3",
-      "availability": "Available",
+      "availability": "Busy",
       "is_active": 1,
       "id": "vB6YT0bpJGU"
     },
@@ -423,10 +423,14 @@
       "description": "Please help its very urgent\n",
       "user_id": "4",
       "user_name": "satyam",
-      "status": "Pending",
+      "status": "Closed",
       "upvote_count": 2,
       "created_at": "2026-08-21T21:55:08.301Z",
-      "id": "0qm9y1aw9MI"
+      "id": "0qm9y1aw9MI",
+      "assigned_to_id": "vB6YT0bpJGU",
+      "assigned_to_name": "Devender Kumar",
+      "deadline": "2026-08-26",
+      "reopen_reason": null
     },
     {
       "title": "fan not working in lab1",
@@ -459,6 +463,20 @@
       "original_complaint_id": "0qm9y1aw9MI",
       "source": "upvoted",
       "id": "cphAP7cWqjQ"
+    },
+    {
+      "title": "Sample complaint",
+      "category": "Electrical",
+      "location_id": 14,
+      "location_desc": "Block B, Lab 4",
+      "urgency": "Medium",
+      "description": "jkjfefe\n",
+      "user_id": "4",
+      "user_name": "satyam",
+      "status": "Pending",
+      "upvote_count": 0,
+      "created_at": "2026-08-23T09:38:00.489Z",
+      "id": "v5i_h7zQrCA"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

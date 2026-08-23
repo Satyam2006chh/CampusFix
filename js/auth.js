@@ -9,21 +9,21 @@ let selectedRole = '';
 
 const ROLE_CONFIG = {
   admin: {
-    label:    '👑 Admin',
+    label:    'Admin',
     title:    'Admin Portal',
     subtitle: 'Sign in to manage the entire campus',
     redirect: 'admin_dashboard.html',
     showSignup: false
   },
   dept_head: {
-    label:    '👨‍💼 Department Head',
+    label:    'Department Head',
     title:    'Department Head Portal',
     subtitle: 'Sign in to manage your department',
     redirect: 'dept_head_dashboard.html',
     showSignup: false
   },
   student: {
-    label:    '👨‍🎓 Student',
+    label:    'Student',
     title:    'Student Portal',
     subtitle: 'Sign in to report and track campus issues',
     redirect: 'student_dashboard.html',
