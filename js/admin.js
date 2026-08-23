@@ -10,26 +10,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function loadStats() {
   try {
-    const complaints = await apiFetch("/complaints");
+    let complaints = await apiFetch("/complaints");
+
+    // Filter out upvoted shadow copies — count only original complaints
+    complaints = complaints.filter(c => c.source !== 'upvoted');
+
     let total = complaints.length;
     let pending = 0, in_progress = 0, resolved = 0;
-    
-    let by_dept = {};
+    let by_dept  = {};
     let by_block = {};
 
     complaints.forEach(c => {
-      if (c.status === 'Pending') pending++;
+      if (c.status === 'Pending')   pending++;
       else if (c.status === 'In Progress') in_progress++;
       else if (c.status === 'Resolved' || c.status === 'Waiting Confirmation' || c.status === 'Closed') resolved++;
-      
+
       const deptName = c.category || 'Unassigned';
       by_dept[deptName] = (by_dept[deptName] || 0) + 1;
 
-      // c.location_desc looks like "Block A, Lab 1", we want just the block ideally
       let block = 'Unknown';
-      if(c.location_desc) {
-         block = c.location_desc.split(',')[0].trim();
-      }
+      if (c.location_desc) block = c.location_desc.split(',')[0].trim();
       by_block[block] = (by_block[block] || 0) + 1;
     });
 
@@ -37,62 +37,97 @@ async function loadStats() {
     document.getElementById("aStatPending").textContent    = pending;
     document.getElementById("aStatInProgress").textContent = in_progress;
     document.getElementById("aStatResolved").textContent   = resolved;
-    
-    const dBody = document.getElementById("deptStatsBody"); 
-    if(dBody) {
+
+    const dBody = document.getElementById("deptStatsBody");
+    if (dBody) {
       dBody.innerHTML = "";
-      Object.keys(by_dept).forEach(dName => { 
-        dBody.innerHTML += `<tr><td>${dName}</td><td>${by_dept[dName]}</td></tr>`; 
-      });
+      Object.entries(by_dept)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([name, count]) => {
+          dBody.innerHTML += `<tr>
+            <td style="color:var(--text-primary);font-weight:500;">${name}</td>
+            <td style="font-weight:700;color:var(--accent);">${count}</td>
+          </tr>`;
+        });
     }
 
-    const bBody = document.getElementById("blockStatsBody"); 
-    if(bBody) {
+    const bBody = document.getElementById("blockStatsBody");
+    if (bBody) {
       bBody.innerHTML = "";
-      Object.keys(by_block).forEach(bName => { 
-        bBody.innerHTML += `<tr><td>${bName}</td><td>${by_block[bName]}</td></tr>`; 
-      });
+      Object.entries(by_block)
+        .sort((a, b) => b[1] - a[1])
+        .forEach(([name, count]) => {
+          bBody.innerHTML += `<tr>
+            <td style="color:var(--text-primary);font-weight:500;">${name}</td>
+            <td style="font-weight:700;color:var(--accent);">${count}</td>
+          </tr>`;
+        });
     }
   } catch (err) { console.error(err); }
 }
 
 async function loadAllComplaints() {
   try {
-    const filtDept = document.getElementById("filtDept").value;
+    const filtDept   = document.getElementById("filtDept").value;
     const filtStatus = document.getElementById("filtStatus").value;
-    
+
     let complaints = await apiFetch('/complaints');
-    
+
+    // ── DEDUP: remove upvoted shadow copies, keep originals only ──
+    // Source = 'upvoted' entries are copies created when a student
+    // upvotes — they must NOT appear as separate rows in admin view.
+    complaints = complaints.filter(c => c.source !== 'upvoted');
+
     if (filtStatus) {
       complaints = complaints.filter(c => c.status === filtStatus);
     }
     if (filtDept) {
-      // filtDept is the department ID. We need the department name or category to match.
       const depts = await apiFetch('/departments');
-      const dept = depts.find(d => d.id == filtDept);
-      if(dept) {
-        complaints = complaints.filter(c => c.category && c.category.toLowerCase() === dept.category_tag.toLowerCase());
+      const dept  = depts.find(d => d.id == filtDept);
+      if (dept) {
+        complaints = complaints.filter(c =>
+          c.category && c.category.toLowerCase() === dept.category_tag.toLowerCase()
+        );
       }
     }
 
-    // Sort newest first
-    complaints.sort((a,b) => new Date(b.created_at) - new Date(a.created_at));
+    complaints.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    const tbody = document.getElementById("globalComplaintsBody"); 
-    if(!tbody) return;
+    const tbody = document.getElementById("globalComplaintsBody");
+    if (!tbody) return;
     tbody.innerHTML = "";
-    if (!complaints.length) { tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px;">No complaints found.</td></tr>'; return; }
-    
+
+    if (!complaints.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px;">No complaints found.</td></tr>';
+      return;
+    }
+
     complaints.forEach(c => {
       const locText = c.location_desc || `Loc ID: ${c.location_id}`;
-      tbody.innerHTML += `<tr>
-        <td style="font-weight:600;color:var(--purple-light);">#CF-${c.id}</td>
-        <td>
-          <div style="font-weight:600;color:var(--text-primary);margin-bottom:2px;">${c.title}</div>
-          <div style="font-size:0.75rem;color:var(--text-muted);">${locText}</div>
-        </td>
-        <td>${c.category||"Unassigned"}</td><td>${getStatusBadge(c.status)}</td>
-        <td style="color:var(--text-secondary);">${formatDate(c.created_at)}</td></tr>`;
+
+      // Upvote badge — shows when other students upvoted the same issue
+      const upvoteBadge = (c.upvote_count > 0)
+        ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.72rem;
+             background:var(--accent-light);color:var(--accent);
+             padding:2px 8px;border-radius:20px;margin-left:6px;font-weight:600;">
+             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+               <polyline points="18 15 12 9 6 15"/>
+             </svg>${c.upvote_count} upvote${c.upvote_count !== 1 ? 's' : ''}</span>`
+        : '';
+
+      tbody.innerHTML += `
+        <tr>
+          <td style="font-weight:600;color:var(--accent);">#CF-${c.id}</td>
+          <td>
+            <div style="font-weight:600;color:var(--text-primary);margin-bottom:2px;">
+              ${c.title}${upvoteBadge}
+            </div>
+            <div style="font-size:0.75rem;color:var(--text-muted);">${locText}</div>
+          </td>
+          <td style="color:var(--text-secondary);">${c.category || 'Unassigned'}</td>
+          <td>${getStatusBadge(c.status)}</td>
+          <td style="color:var(--text-secondary);">${formatDate(c.created_at)}</td>
+        </tr>`;
     });
   } catch (err) { console.error(err); }
 }

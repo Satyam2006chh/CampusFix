@@ -9,7 +9,6 @@
 
 /* ─── CSS VARIABLES ──────────────────────────────────────────── */
 :root {
-  /* Light mode (default) */
   --bg-page:        #f0f2fb;
   --bg-surface:     #ffffff;
   --bg-surface-2:   #eef0fb;
@@ -63,6 +62,49 @@
   --transition: 0.2s ease;
 }
 
+/* ─── RESET & BASE ───────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font);
+  background: var(--bg-page);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  /* Josefin Sans fix: reset aggressive letter-spacing */
+  letter-spacing: 0.01em;
+  font-weight: 400;
+}
+
+/* Josefin Sans sharpness control —
+   The font has very wide letter-spacing by default.
+   These overrides bring it to a comfortable reading weight. */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.01em;
+  font-weight: 600;
+}
+p, span, li, td, th, label, input, select, textarea, button {
+  letter-spacing: 0.01em;
+}
+/* Restore specific tight headings */
+.hero-title       { letter-spacing: -0.02em; font-weight: 700; }
+.section-title    { letter-spacing: -0.015em; font-weight: 700; }
+.logo-text        { letter-spacing: 0.01em; font-weight: 700; }
+.topbar-title     { letter-spacing: 0em; font-weight: 600; }
+.modal-title      { letter-spacing: 0em; font-weight: 700; }
+.sc-value         { letter-spacing: -0.02em; font-weight: 700; }
+
 /* ─── DARK MODE ──────────────────────────────────────────────── */
 [data-theme="dark"] {
   --bg-page:        #0f0f18;
@@ -100,33 +142,6 @@
   --shadow-lg:  0 10px 15px rgba(0,0,0,0.4), 0 4px 6px rgba(0,0,0,0.3);
   --shadow-xl:  0 20px 25px rgba(0,0,0,0.5), 0 10px 10px rgba(0,0,0,0.4);
 }
-
-/* ─── RESET & BASE ───────────────────────────────────────────── */
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html {
-  scroll-behavior: smooth;
-  font-size: 16px;
-}
-
-body {
-  font-family: var(--font);
-  background: var(--bg-page);
-  color: var(--text-primary);
-  line-height: 1.6;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a { text-decoration: none; color: inherit; }
-ul { list-style: none; }
-img { max-width: 100%; display: block; }
-button { font-family: var(--font); }
 
 /* ─── SCROLLBAR ──────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }

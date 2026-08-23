@@ -11,6 +11,9 @@
   overflow: hidden;
   background: var(--bg-page);
   font-family: var(--font);
+  letter-spacing: 0.01em;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
 }
 
 /* ─── SIDEBAR ────────────────────────────────────────────────── */
@@ -489,20 +492,35 @@
   background: var(--bg-surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 8px 12px;
+  padding: 8px 36px 8px 12px;
   color: var(--text-primary);
   font-family: var(--font);
   font-size: 0.85rem;
   cursor: pointer;
   outline: none;
-  transition: border-color var(--transition);
-  /* Ensure text is always visible */
+  transition: border-color var(--transition), box-shadow var(--transition);
   -webkit-appearance: none;
   appearance: none;
+  /* Chevron arrow SVG — dark mode safe (uses currentColor encoded) */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  background-size: 14px 14px;
+  min-width: 140px;
+}
+.filter-row select:hover,
+.filter-row input[type="date"]:hover {
+  border-color: var(--accent);
 }
 .filter-row select:focus,
 .filter-row input[type="date"]:focus {
   border-color: var(--border-focus);
+  box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+}
+/* Date input — don't add the arrow on it */
+.filter-row input[type="date"] {
+  background-image: none;
+  padding: 8px 12px;
 }
 
 /* ─── FORM CARD ──────────────────────────────────────────────── */
@@ -853,25 +871,55 @@ select option {
 
 /* Status badge for Overdue */
 .status-overdue {
-  background: var(--warning-bg);
-  color: var(--warning);
+  background: rgba(239,68,68,0.12);
+  color: var(--danger);
 }
-.status-overdue::before { background: var(--warning); }
+.status-overdue::before { background: var(--danger); }
 
-/* Inline deadline countdown badges shown under the status badge */
+/* Inline deadline countdown badges — CSS-only, no emojis */
 .deadline-badge {
-  display: inline-block;
-  margin-top: 4px;
-  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 5px;
+  font-size: 0.69rem;
   font-weight: 600;
   padding: 2px 8px;
   border-radius: var(--radius-full);
   white-space: nowrap;
+  letter-spacing: 0.01em;
 }
-.deadline-badge.overdue   { background: var(--danger-bg);  color: var(--danger); }
-.deadline-badge.due-today { background: var(--warning-bg); color: var(--warning); }
-.deadline-badge.soon      { background: var(--warning-bg); color: var(--warning); }
-.deadline-badge.normal    { background: var(--bg-surface-2); color: var(--text-muted); }
+/* Small dot indicator before text */
+.deadline-badge::before {
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.deadline-badge.overdue {
+  background: rgba(239,68,68,0.12);
+  color: var(--danger);
+}
+.deadline-badge.overdue::before   { background: var(--danger); }
+
+.deadline-badge.due-today {
+  background: rgba(245,158,11,0.12);
+  color: var(--warning);
+}
+.deadline-badge.due-today::before { background: var(--warning); }
+
+.deadline-badge.soon {
+  background: rgba(245,158,11,0.08);
+  color: var(--warning);
+}
+.deadline-badge.soon::before      { background: var(--warning); }
+
+.deadline-badge.normal {
+  background: var(--bg-surface-2);
+  color: var(--text-muted);
+}
+.deadline-badge.normal::before    { background: var(--text-muted); }
 
 /* Overdue task counter on employee cards */
 .employee-overdue-tag {
@@ -880,7 +928,7 @@ select option {
   font-size: 0.7rem;
   font-weight: 600;
   color: var(--warning);
-  background: var(--warning-bg);
+  background: rgba(245,158,11,0.1);
   padding: 2px 8px;
   border-radius: var(--radius-full);
 }

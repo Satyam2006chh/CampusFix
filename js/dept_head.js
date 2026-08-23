@@ -17,12 +17,24 @@ let myDept = null;
 
 async function initDeptHead() {
   try {
-    myDept = await apiFetch(`/departments/${currentUser.department_id}`);
+    // currentUser.department_id may be number or string — both work in the URL
+    const deptId = currentUser.department_id;
+    if (!deptId) {
+      console.error('No department_id on currentUser:', currentUser);
+      showCustomAlert('Error', 'Your account has no department assigned. Please contact admin.');
+      return;
+    }
+    myDept = await apiFetch(`/departments/${deptId}`);
+    if (!myDept) {
+      showCustomAlert('Error', 'Could not load department data.');
+      return;
+    }
     loadStats();
     loadComplaints();
     loadEmployees();
   } catch (err) {
-    console.error("Failed to init dept head", err);
+    console.error('Failed to init dept head', err);
+    showCustomAlert('Error', 'Failed to load dashboard data. Is the server running?');
   }
 }
 
@@ -65,20 +77,21 @@ async function loadComplaints() {
   if (!myDept) return;
   try {
     const allComplaints = await apiFetch('/complaints');
-    let filtered = allComplaints.filter(c => 
-      c.category && myDept.category_tag && 
-      c.category.toLowerCase() === myDept.category_tag.toLowerCase() &&
-      c.source !== 'upvoted'
+    let filtered = allComplaints.filter(c =>
+      c.source !== 'upvoted' &&
+      c.category &&
+      myDept.category_tag &&
+      c.category.toLowerCase() === myDept.category_tag.toLowerCase()
     );
 
-    const statusFilt = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : '';
+    const statusFilt = document.getElementById('filterStatus')
+      ? document.getElementById('filterStatus').value
+      : '';
     if (statusFilt) {
       filtered = filtered.filter(c => c.status === statusFilt);
     }
 
-    // Sort newest first
     filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    
     complaintsData = filtered;
     renderActionRequired();
     renderAllComplaints();
@@ -180,13 +193,13 @@ function getDeadlineBadge(deadline, status) {
 
   if (status === 'Overdue' || diff < 0) {
     const n = Math.abs(diff);
-    return `<span class="deadline-badge overdue">🔴 ${n} day${n !== 1 ? 's' : ''} overdue</span>`;
+    return `<span class="deadline-badge overdue">${n} day${n !== 1 ? 's' : ''} overdue</span>`;
   } else if (diff === 0) {
-    return `<span class="deadline-badge due-today">⚠️ Due today</span>`;
+    return `<span class="deadline-badge due-today">Due today</span>`;
   } else if (diff <= 2) {
-    return `<span class="deadline-badge soon">⏳ ${diff} day${diff !== 1 ? 's' : ''} left</span>`;
+    return `<span class="deadline-badge soon">${diff} day${diff !== 1 ? 's' : ''} left</span>`;
   } else {
-    return `<span class="deadline-badge normal">📅 ${diff} days left</span>`;
+    return `<span class="deadline-badge normal">${diff} days left</span>`;
   }
 }
 
@@ -219,31 +232,38 @@ let allEmployees = [];
 async function loadEmployees() {
   if (!myDept) return;
   try {
-    const users = await apiFetch(`/users?role=employee&department_id=${myDept.id}`);
-    allEmployees = users;
+    // Fetch ALL users — filter fully client-side to avoid json-server
+    // type coercion issues (department_id stored as number OR string)
+    const allUsers = await apiFetch('/users');
+    allEmployees = allUsers.filter(u =>
+      u.role === 'employee' &&
+      String(u.department_id) === String(myDept.id)
+    );
     renderEmployees();
-  } catch (err) { console.error(err); }
+  } catch (err) { console.error('loadEmployees error:', err); }
 }
 
 function openAssignModal(compId) {
   assignCompId = compId;
   const select = document.getElementById('assignSelect');
   select.innerHTML = '';
+
   const available = allEmployees.filter(e => e.availability === 'Available' || !e.availability);
   const busy      = allEmployees.filter(e => e.availability === 'Busy');
+
   if (available.length === 0 && busy.length === 0) {
-    select.innerHTML = '<option disabled>No employees added yet.</option>';
+    select.innerHTML = '<option value="" disabled>No employees in this department yet.</option>';
   }
 
   if (available.length > 0) {
     const grpA = document.createElement('optgroup');
-    grpA.label = '🟢 Available';
+    grpA.label = 'Available';
     available.forEach(e => {
       const opt = document.createElement('option');
-      opt.value = e.id;
-      opt.textContent = `${e.name} — ${e.designation}`;
+      opt.value = String(e.id);              // always string
+      opt.textContent = `${e.name} — ${e.designation || 'Staff'}`;
+      opt.dataset.name   = e.name;
       opt.dataset.status = 'available';
-      opt.dataset.name = e.name;
       grpA.appendChild(opt);
     });
     select.appendChild(grpA);
@@ -251,13 +271,13 @@ function openAssignModal(compId) {
 
   if (busy.length > 0) {
     const grpB = document.createElement('optgroup');
-    grpB.label = '🔴 Busy';
+    grpB.label = 'Busy';
     busy.forEach(e => {
       const opt = document.createElement('option');
-      opt.value = e.id;
-      opt.textContent = `${e.name} — ${e.designation}`;
+      opt.value = String(e.id);
+      opt.textContent = `${e.name} — ${e.designation || 'Staff'}`;
+      opt.dataset.name   = e.name;
       opt.dataset.status = 'busy';
-      opt.dataset.name = e.name;
       grpB.appendChild(opt);
     });
     select.appendChild(grpB);
@@ -265,7 +285,6 @@ function openAssignModal(compId) {
 
   updateAssignDot(select);
   select.onchange = () => updateAssignDot(select);
-
   setDeadlineDays(3);
   document.getElementById('assignModal').classList.remove('hidden');
 }
@@ -303,38 +322,48 @@ function closeAssignModal() {
 async function submitAssignment() {
   const selectEl = document.getElementById('assignSelect');
   const empId    = selectEl.value;
-  if (!empId) return;
-  
+
+  if (!empId) {
+    showCustomAlert('Select Employee', 'Please select an employee before assigning.');
+    return;
+  }
+
+  // Get employee name — from dataset, fallback to looking up allEmployees
   const selectedOpt = selectEl.options[selectEl.selectedIndex];
-  const empName = selectedOpt ? selectedOpt.dataset.name : 'Unknown';
+  let empName = selectedOpt ? selectedOpt.dataset.name : '';
+  if (!empName) {
+    const found = allEmployees.find(e => String(e.id) === String(empId));
+    empName = found ? found.name : 'Unknown';
+  }
 
   const deadlineEl = document.getElementById('assignDeadline');
-  const deadline = deadlineEl ? (deadlineEl.value || null) : null;
-  
+  const deadline   = deadlineEl && deadlineEl.value ? deadlineEl.value : null;
+
   try {
+    // Update the complaint
     await apiFetch(`/complaints/${assignCompId}`, {
       method: 'PATCH',
-      body: JSON.stringify({ 
-        assigned_to_id: parseInt(empId),
+      body: JSON.stringify({
+        assigned_to_id:   empId,
         assigned_to_name: empName,
-        deadline: deadline,
-        status: 'In Progress'
+        deadline:         deadline,
+        status:           'In Progress'
       })
     });
-    
-    // Also mark employee as busy
+
+    // Mark employee as Busy
     await apiFetch(`/users/${empId}`, {
       method: 'PATCH',
       body: JSON.stringify({ availability: 'Busy' })
     });
-    
+
     closeAssignModal();
     loadStats();
     loadComplaints();
     loadEmployees();
-    showCustomAlert('Assigned', 'Task assigned to employee successfully.');
+    showCustomAlert('Assigned', `Assigned to ${empName}${deadline ? ' — deadline: ' + deadline : ''}.`);
   } catch (err) {
-    showCustomAlert('Error', err.message);
+    showCustomAlert('Error', err.message || 'Assignment failed. Please try again.');
   }
 }
 
@@ -372,10 +401,10 @@ function renderEmployees() {
 function openEmpModal() {
   document.getElementById('empForm').reset();
   clearAllErrors(document.getElementById('empForm'));
+  // Remove any leftover password meter from a previous open
+  const oldMeter = document.getElementById('emp-pw-meter');
+  if (oldMeter) oldMeter.remove();
   document.getElementById('empModal').classList.remove('hidden');
-  if (typeof injectPasswordMeter === 'function') {
-    injectPasswordMeter('empPassword', 'emp-pw-meter');
-  }
 }
 function closeEmpModal() {
   document.getElementById('empModal').classList.add('hidden');
@@ -386,32 +415,47 @@ async function submitEmployee(e) {
   e.preventDefault();
   clearAllErrors(document.getElementById('empForm'));
 
+  // Simple validation — no strong password requirement for employee accounts
+  // (they can change password after first login)
   let ok = true;
-  ok = validateRequired('empName',  'Full name')    && ok;
-  ok = validateEmail('empEmail')                    && ok;
-  ok = validateStrongPassword('empPassword')        && ok;
-  ok = validateRequired('empDesig', 'Designation')  && ok;
-  ok = validatePhone('empPhone')                    && ok;
+  ok = validateRequired('empName',  'Full name')   && ok;
+  ok = validateEmail('empEmail')                   && ok;
+  ok = validateRequired('empDesig', 'Designation') && ok;
+  ok = validatePhone('empPhone')                   && ok;
+
+  // Basic password: just needs to exist and be >= 6 chars
+  const pwVal = (document.getElementById('empPassword')?.value || '').trim();
+  if (!pwVal) {
+    showFieldError('empPassword', 'Password is required.');
+    ok = false;
+  } else if (pwVal.length < 6) {
+    showFieldError('empPassword', 'Password must be at least 6 characters.');
+    ok = false;
+  } else {
+    clearFieldError('empPassword');
+  }
+
   if (!ok) return;
 
   const data = {
-    name: document.getElementById('empName').value,
-    email: document.getElementById('empEmail').value,
-    password: document.getElementById('empPassword').value,
-    designation: document.getElementById('empDesig').value,
-    phone: document.getElementById('empPhone').value,
-    role: 'employee',
+    name:          document.getElementById('empName').value.trim(),
+    email:         document.getElementById('empEmail').value.trim().toLowerCase(),
+    password:      document.getElementById('empPassword').value,
+    designation:   document.getElementById('empDesig').value.trim(),
+    phone:         document.getElementById('empPhone').value.trim(),
+    role:          'employee',
     department_id: myDept.id,
-    availability: 'Available',
-    is_active: 1
+    availability:  'Available',
+    is_active:     1
   };
+
   try {
     await apiFetch('/users', { method: 'POST', body: JSON.stringify(data) });
     closeEmpModal();
     loadEmployees();
-    showCustomAlert('Added', 'Employee created successfully.');
+    showCustomAlert('Employee Added', `${data.name} has been added to your department.`);
   } catch (err) {
-    showCustomAlert('Error', err.message);
+    showCustomAlert('Error', err.message || 'Could not create employee. Please try again.');
   }
 }
 

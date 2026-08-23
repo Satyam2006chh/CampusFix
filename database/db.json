@@ -61,18 +61,6 @@
       "is_active": 1
     },
     {
-      "id": "7",
-      "name": "Deepak Sharma",
-      "email": "deepak@campusfix.com",
-      "password": "Employee@123",
-      "role": "employee",
-      "department_id": 3,
-      "designation": "Electrical Technician",
-      "phone": "9876503333",
-      "availability": "Busy",
-      "is_active": 1
-    },
-    {
       "id": "8",
       "name": "Mohan Lal",
       "email": "mohan@campusfix.com",
@@ -139,6 +127,64 @@
       "availability": "Available",
       "is_active": 1,
       "id": "p-I7g6Xnb3k"
+    },
+    {
+      "department_id": 4,
+      "name": "Vijay Kumar",
+      "email": "vijay@gmail.com",
+      "password": "Vijay@123",
+      "phone": "7878787878",
+      "role": "dept_head",
+      "is_active": 1,
+      "id": "ZOIzMoJGNX4"
+    },
+    {
+      "name": "Devender Kumar",
+      "email": "devender@gmail.com",
+      "password": "Devender@123",
+      "designation": "Junior Helper",
+      "phone": "9898989898",
+      "role": "employee",
+      "department_id": "3",
+      "availability": "Available",
+      "is_active": 1,
+      "id": "vB6YT0bpJGU"
+    },
+    {
+      "name": "Devender Singh",
+      "email": "devender@gmail.com",
+      "password": "Devender@123",
+      "designation": "Junior Helper",
+      "phone": "8989898989",
+      "role": "employee",
+      "department_id": "3",
+      "availability": "Available",
+      "is_active": 1,
+      "id": "yD6dlA8yqiM"
+    },
+    {
+      "name": "Raju mistri",
+      "email": "raju@gmail.com",
+      "password": "Raju@123",
+      "designation": "Dehadi",
+      "phone": "7878787878",
+      "role": "employee",
+      "department_id": "3",
+      "availability": "Available",
+      "is_active": 1,
+      "id": "HqE-Vz22bhI"
+    },
+    {
+      "name": "Bhuvan Sharma",
+      "email": "bhuvan@gmail.com",
+      "password": "bhuvan@2123",
+      "designation": "Super Senior",
+      "phone": "7878787878",
+      "role": "employee",
+      "department_id": "3",
+      "availability": "Available",
+      "is_active": 1,
+      "id": "HUdi1cmB6p4"
     }
   ],
   "departments": [
@@ -339,6 +385,13 @@
       "block": "Common Area",
       "floor": "Ground Floor",
       "room_area": "Main Gate"
+    },
+    {
+      "campus": "Hostel",
+      "block": "P-Block",
+      "floor": "3",
+      "room_area": "Mayback",
+      "id": "t6TwCKpeEuU"
     }
   ],
   "employees": [],
