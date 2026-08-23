@@ -33,7 +33,8 @@ async function loadStats() {
     const allComplaints = await apiFetch('/complaints');
     const myComplaints = allComplaints.filter(c => 
       c.category && myDept.category_tag && 
-      c.category.toLowerCase() === myDept.category_tag.toLowerCase()
+      c.category.toLowerCase() === myDept.category_tag.toLowerCase() &&
+      c.source !== 'upvoted'
     );
 
     let total = myComplaints.length;
@@ -66,7 +67,8 @@ async function loadComplaints() {
     const allComplaints = await apiFetch('/complaints');
     let filtered = allComplaints.filter(c => 
       c.category && myDept.category_tag && 
-      c.category.toLowerCase() === myDept.category_tag.toLowerCase()
+      c.category.toLowerCase() === myDept.category_tag.toLowerCase() &&
+      c.source !== 'upvoted'
     );
 
     const statusFilt = document.getElementById('filterStatus') ? document.getElementById('filterStatus').value : '';

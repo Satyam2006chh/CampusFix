@@ -32,7 +32,7 @@ async function loadLocations() {
 async function loadStats() {
   try {
     const complaints = await apiFetch('/complaints');
-    const myComplaints = complaints.filter(c => c.user_id === currentUser.id);
+    const myComplaints = complaints.filter(c => String(c.user_id) === String(currentUser.id));
     
     let pending = 0, in_progress = 0, resolved = 0;
     myComplaints.forEach(c => {
@@ -54,7 +54,18 @@ let myComplaints = [];
 async function loadComplaints() {
   try {
     const allComplaints = await apiFetch('/complaints');
-    myComplaints = allComplaints.filter(c => c.user_id === currentUser.id);
+    const myRawComplaints = allComplaints.filter(c => String(c.user_id) === String(currentUser.id));
+    
+    myComplaints = myRawComplaints.map(c => {
+      if (c.source === 'upvoted' && c.original_complaint_id) {
+        const orig = allComplaints.find(oc => String(oc.id) === String(c.original_complaint_id));
+        if (orig) {
+          return { ...orig, _is_upvoted_copy: true, created_at: c.created_at };
+        }
+      }
+      return c;
+    });
+
     myComplaints.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     
     renderRecentComplaints();
@@ -95,7 +106,7 @@ function renderAllComplaints() {
   }
 
   myComplaints.forEach(c => {
-    const isUpvoted = c.source === 'upvoted';
+    const isUpvoted = c._is_upvoted_copy || c.source === 'upvoted';
 
     let actionHtml = '<span style="color:var(--text-muted);font-size:0.8rem;">—</span>';
     if (!isUpvoted && c.status === 'Waiting Confirmation') {
