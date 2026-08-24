@@ -97,7 +97,7 @@ async function handleLogin(e) {
   document.getElementById('loginSubmitBtn').disabled = true;
 
   try {
-    const response = await fetch(`http://localhost:3000/users?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&role=${encodeURIComponent(selectedRole)}`);
+    const response = await fetch(`/users?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}&role=${encodeURIComponent(selectedRole)}`);
 
     const users = await response.json();
 
