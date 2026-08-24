@@ -186,7 +186,10 @@ async function loadDepartments() {
           </div>
           <div style="display:flex;justify-content:space-between;align-items:center;margin-top:auto;">
             <div style="font-size:.78rem;color:var(--text-muted);"><span style="color:var(--text-secondary);font-weight:600;">${totalComplaints}</span> issue${totalComplaints!==1?"s":""}</div>
-            ${!head?`<button onclick="openAddHeadModal()" style="background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.3);color:var(--purple-light);padding:6px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;">+ Assign Head</button>`:""}
+            ${!head
+              ? `<button onclick="openAddHeadModal()" style="background:rgba(108,99,255,.12);border:1px solid rgba(108,99,255,.3);color:var(--purple-light);padding:6px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;">+ Assign Head</button>`
+              : `<button onclick='openEditHeadModal(${JSON.stringify(head).replace(/'/g,"&apos;")})' style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:var(--text-secondary);padding:6px 14px;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;">Edit Head</button>`
+            }
           </div>
         </div>`;
       
@@ -354,4 +357,54 @@ async function submitLoc(e) {
     });
     closeModals(); e.target.reset(); loadLocations(); showCustomAlert("Success","Location added!");
   } catch (err) { showCustomAlert("Error", err.message||"Failed."); }
+}
+
+function openEditHeadModal(headObj) {
+  document.getElementById("editHeadId").value = headObj.id;
+  document.getElementById("editHeadName").value = headObj.name || "";
+  document.getElementById("editHeadEmail").value = headObj.email || "";
+  document.getElementById("editHeadPhone").value = headObj.phone || "";
+  document.getElementById("editHeadPass").value = ""; 
+  document.getElementById("editHeadModal").classList.remove("hidden");
+}
+
+async function submitEditHead(e) {
+  e.preventDefault();
+  clearAllErrors(e.target);
+  let ok = true;
+  ok = validateRequired('editHeadName', 'Name') && ok;
+  ok = validateEmail('editHeadEmail') && ok;
+  ok = validatePhone('editHeadPhone') && ok;
+  
+  const pw = document.getElementById("editHeadPass").value;
+  if (pw && pw.length < 6) {
+    showFieldError('editHeadPass', 'Password must be at least 6 characters.');
+    ok = false;
+  }
+  
+  if (!ok) return;
+
+  const id = document.getElementById("editHeadId").value;
+  const payload = {
+    name: document.getElementById("editHeadName").value,
+    email: document.getElementById("editHeadEmail").value,
+    phone: document.getElementById("editHeadPhone").value
+  };
+  if (pw) {
+    payload.password = pw;
+  }
+
+  try {
+    await apiFetch(`/users/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(payload)
+    });
+    closeModals(); 
+    e.target.reset(); 
+    loadDepartments(); 
+    loadUsers(); 
+    showCustomAlert("Success", "Department Head updated!");
+  } catch (err) {
+    showCustomAlert("Error", err.message || "Failed.");
+  }
 }
