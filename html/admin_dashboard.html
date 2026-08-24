@@ -297,6 +297,48 @@
     </div>
   </div>
 
+  <!-- ── MODAL: EDIT HEAD ── -->
+  <div id="editHeadModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Edit Department Head</h3>
+          <p class="modal-subtitle">Update details for the department head.</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeModals()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form onsubmit="submitEditHead(event)">
+        <input type="hidden" id="editHeadId" />
+        <div class="form-row" style="margin-bottom:14px;">
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" id="editHeadName" required />
+          </div>
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="editHeadEmail" required />
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div class="form-group">
+            <label>Phone</label>
+            <input type="text" id="editHeadPhone" />
+          </div>
+          <div class="form-group">
+            <label>New Password (Optional)</label>
+            <input type="password" id="editHeadPass" minlength="6" placeholder="Leave blank to keep current" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" onclick="closeModals()">Cancel</button>
+          <button type="submit" class="btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ── MODAL: ADD LOCATION ── -->
   <div id="addLocModal" class="modal hidden">
     <div class="modal-content">
