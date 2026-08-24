@@ -191,6 +191,13 @@ function getDeadlineBadge(deadline, status) {
   const diffMs = dDay - today;
   const diff   = Math.round(diffMs / (1000 * 60 * 60 * 24));
 
+  if (status === 'Closed' || status === 'Resolved') {
+    if (diff < 0) {
+      return `<span class="deadline-badge overdue">Deadline crossed</span>`;
+    }
+    return '';
+  }
+
   if (status === 'Overdue' || diff < 0) {
     const n = Math.abs(diff);
     return `<span class="deadline-badge overdue">${n} day${n !== 1 ? 's' : ''} overdue</span>`;
@@ -380,6 +387,33 @@ function renderEmployees() {
     const initials   = (e.name||"Emp").split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     const isAvail    = e.availability === 'Available' || !e.availability;
     
+    let deadlineCrossedCount = 0;
+    const empComplaints = complaintsData.filter(c => String(c.assigned_to_id) === String(e.id));
+    empComplaints.forEach(c => {
+      if (c.deadline) {
+        const today  = new Date();
+        today.setHours(0, 0, 0, 0);
+        const dDay   = new Date(c.deadline + 'T00:00:00');
+        const diffMs = dDay - today;
+        const diff   = Math.round(diffMs / (1000 * 60 * 60 * 24));
+        
+        if (c.status === 'Closed' || c.status === 'Resolved') {
+          if (diff < 0) deadlineCrossedCount++;
+        } else {
+          if (diff < 0 || c.status === 'Overdue') deadlineCrossedCount++;
+        }
+      }
+    });
+
+    const deadlineBadgeHtml = deadlineCrossedCount > 0 
+      ? `<div style="color:var(--danger); font-size:0.75rem; margin-top:5px; font-weight:600; display:flex; align-items:center; gap:4px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          Deadline crossed = ${deadlineCrossedCount}
+         </div>`
+      : '';
+    
     grid.innerHTML += `
       <div class="employee-card">
         <div class="employee-card-top">
@@ -387,6 +421,7 @@ function renderEmployees() {
           <div>
             <div class="employee-name">${e.name}</div>
             <div class="employee-desig">${e.designation}</div>
+            ${deadlineBadgeHtml}
           </div>
           <span class="employee-status ${isAvail ? 'available' : 'busy'}">${isAvail ? 'Available' : 'Busy'}</span>
         </div>
