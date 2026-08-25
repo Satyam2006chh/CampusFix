@@ -1,7 +1,4 @@
-// ============================================================
-//  CampusFix — Student Dashboard Logic
-//  File: js/student.js
-// ============================================================
+
 
 document.addEventListener('DOMContentLoaded', () => {
   if (currentUser.role !== 'student') {
@@ -13,7 +10,6 @@ document.addEventListener('DOMContentLoaded', () => {
   loadComplaints();
 });
 
-// ─── LOCATIONS ───────────────────────────────────────────────
 async function loadLocations() {
   try {
     const locations = await apiFetch('/locations');
@@ -28,7 +24,7 @@ async function loadLocations() {
   } catch (err) { console.error('Failed to load locations', err); }
 }
 
-// ─── STATS ───────────────────────────────────────────────────
+
 async function loadStats() {
   try {
     const complaints = await apiFetch('/complaints');
@@ -48,7 +44,7 @@ async function loadStats() {
   } catch (err) { console.error('Failed to load stats', err); }
 }
 
-// ─── COMPLAINTS ───────────────────────────────────────────────
+
 let myComplaints = [];
 
 async function loadComplaints() {
@@ -155,7 +151,7 @@ function renderAllComplaints() {
   });
 }
 
-// ─── SUBMIT COMPLAINT ────────────────────────────────────────
+
 let currentDuplicateId = null;
 
 async function submitComplaint(e) {
@@ -225,7 +221,7 @@ async function submitComplaint(e) {
   }
 }
 
-// ─── DUPLICATE HANDLING ──────────────────────────────────────
+
 function showDuplicateModal(complaint) {
   currentDuplicateId = complaint.id;
   const details = document.getElementById('duplicateDetails');
@@ -280,7 +276,7 @@ document.getElementById('btnUpvoteInstead').addEventListener('click', async () =
   }
 });
 
-// ─── RESOLUTION CONFIRMATION ─────────────────────────────────
+
 let confirmComplaintId = null;
 
 function openConfirmModal(id) {
