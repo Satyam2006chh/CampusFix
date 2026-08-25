@@ -1,12 +1,8 @@
-// ============================================================
-//  CampusFix — Shared Dashboard JS
-//  File: js/dashboard.js
-//  Handles: Session check, tabs, common helpers
-// ============================================================
+
 
 const BASE_URL = '';
 
-// ─── SESSION MANAGEMENT ──────────────────────────────────────
+
 const token = sessionStorage.getItem('cf_token');
 const userStr = sessionStorage.getItem('cf_user');
 let currentUser = null;
@@ -16,7 +12,7 @@ if (!token || !userStr) {
 } else {
   currentUser = JSON.parse(userStr);
   
-  // Set UI User details if elements exist
+ 
   const nameDisplay = document.getElementById('userNameDisplay');
   const avatarDisplay = document.getElementById('userAvatar');
   if (nameDisplay) nameDisplay.textContent = currentUser.name;
@@ -24,7 +20,7 @@ if (!token || !userStr) {
 }
 
 function logout() {
-  // Optional backend logout call
+
   fetch(`${BASE_URL}/auth/logout`, {
     method: 'POST',
     headers: { 'Authorization': `Bearer ${token}` }
@@ -34,7 +30,7 @@ function logout() {
   window.location.href = 'login.html';
 }
 
-// ─── API HELPER ──────────────────────────────────────────────
+
 async function apiFetch(endpoint, options = {}) {
   const headers = {
     'Content-Type': 'application/json',
@@ -62,7 +58,6 @@ async function apiFetch(endpoint, options = {}) {
   return data;
 }
 
-// ─── TAB NAVIGATION ──────────────────────────────────────────
 const navItems = document.querySelectorAll('.nav-item');
 const tabPanes = document.querySelectorAll('.tab-pane');
 
@@ -75,16 +70,16 @@ navItems.forEach(item => {
 });
 
 function switchTab(tabId) {
-  // Update nav active state
+  
   navItems.forEach(i => i.classList.remove('active'));
   const activeNav = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
   if (activeNav) activeNav.classList.add('active');
   
-  // Show correct pane
+  
   tabPanes.forEach(pane => pane.classList.remove('active'));
   document.getElementById(`tab-${tabId}`).classList.add('active');
   
-  // Update Title
+
   const titles = {
     'overview': 'Dashboard Overview',
     'new-complaint': 'Report an Issue',
@@ -98,7 +93,7 @@ function switchTab(tabId) {
   }
 }
 
-// ─── HELPERS ─────────────────────────────────────────────────
+
 function formatDate(dateStr) {
   if (!dateStr) return '-';
   const d = new Date(dateStr);
@@ -118,7 +113,7 @@ function getStatusBadge(status) {
   return `<span class="status-badge ${cls}">${status}</span>`;
 }
 
-// ─── CUSTOM MODALS (Overrides alert & confirm) ───────────────
+
 function createGlobalModals() {
   if (document.getElementById('globalAlertModal')) return;
   const modalHTML = `
@@ -153,22 +148,22 @@ function createGlobalModals() {
 }
 document.addEventListener('DOMContentLoaded', createGlobalModals);
 
-// showCustomAlert(title, msg) OR showCustomAlert(msg)
+
 window.showCustomAlert = function(titleOrMsg, msg) {
   const message = msg !== undefined ? msg : titleOrMsg;
   document.getElementById('globalAlertMsg').textContent = message;
   document.getElementById('globalAlertModal').classList.remove('hidden');
 };
 
-// showCustomConfirm(title, msg, callback) OR showCustomConfirm(msg, callback)
+
 window.showCustomConfirm = function(titleOrMsg, msgOrCallback, callbackArg) {
   let message, callback;
   if (typeof msgOrCallback === 'function') {
-    // Called as showCustomConfirm(msg, callback)
+
     message  = titleOrMsg;
     callback = msgOrCallback;
   } else {
-    // Called as showCustomConfirm(title, msg, callback)
+
     message  = msgOrCallback;
     callback = callbackArg;
   }
@@ -176,6 +171,6 @@ window.showCustomConfirm = function(titleOrMsg, msgOrCallback, callbackArg) {
   document.getElementById('globalConfirmModal').classList.remove('hidden');
   window._confirmCb = function(result) {
     document.getElementById('globalConfirmModal').classList.add('hidden');
-    if (result) callback();   // only fire callback when user clicks "Yes"
+    if (result) callback();  
   };
 };
