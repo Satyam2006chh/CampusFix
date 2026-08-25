@@ -1,10 +1,3 @@
-// ============================================================
-//  CampusFix — Auth JS
-//  File: js/auth.js
-//  Handles: Login portal selection, login form, session
-// ============================================================
-
-// Current selected role
 let selectedRole = '';
 
 const ROLE_CONFIG = {
@@ -31,7 +24,6 @@ const ROLE_CONFIG = {
   }
 };
 
-// ─── SHOW LOGIN FORM ─────────────────────────────────────────
 function showLogin(role) {
   selectedRole = role;
   const cfg = ROLE_CONFIG[role];
@@ -40,27 +32,23 @@ function showLogin(role) {
   document.getElementById('loginTitle').textContent = cfg.title;
   document.getElementById('loginSubtitle').textContent = cfg.subtitle;
 
-  // Show/hide sign up link for students only
   const signupLink = document.getElementById('signupLink');
   signupLink.classList.toggle('hidden', !cfg.showSignup);
 
   document.getElementById('portalSelect').classList.add('hidden');
   document.getElementById('loginPanel').classList.remove('hidden');
 
-  // Clear previous inputs/errors
   document.getElementById('loginEmail').value = '';
   document.getElementById('loginPassword').value = '';
   document.getElementById('loginError').classList.add('hidden');
 }
 
-// ─── BACK TO PORTAL SELECTION ────────────────────────────────
 function showPortalSelect() {
   document.getElementById('portalSelect').classList.remove('hidden');
   document.getElementById('loginPanel').classList.add('hidden');
   selectedRole = '';
 }
 
-// ─── TOGGLE PASSWORD VISIBILITY ──────────────────────────────
 function togglePassword() {
   const input = document.getElementById('loginPassword');
   const btn   = document.getElementById('eyeBtn');
@@ -73,7 +61,6 @@ function togglePassword() {
   }
 }
 
-// ─── HANDLE LOGIN FORM SUBMIT ─────────────────────────────────
 async function handleLogin(e) {
   e.preventDefault();
 
@@ -85,14 +72,10 @@ async function handleLogin(e) {
   errorEl.classList.add('hidden');
   clearAllErrors(document.getElementById('loginForm'));
 
-  // ── Client-side validation (login: required + email format only) ──
   let ok = true;
   ok = validateEmail('loginEmail')                      && ok;
   ok = validateRequired('loginPassword', 'Password')    && ok;
-  if (!ok) return;
-  // ─────────────────────────────────────────────────────────────────
 
-  // Loading state
   btnText.textContent = 'Signing in...';
   document.getElementById('loginSubmitBtn').disabled = true;
 
@@ -114,7 +97,6 @@ async function handleLogin(e) {
       sessionStorage.setItem('cf_user',  JSON.stringify(user));
       sessionStorage.setItem('cf_role',  user.role);
 
-      // Redirect to the correct dashboard
       const redirect = ROLE_CONFIG[user.role].redirect;
       window.location.href = redirect;
     } else {
@@ -130,7 +112,6 @@ async function handleLogin(e) {
   }
 }
 
-// ─── GUARD: If already logged in, redirect ───────────────────
 (function checkSession() {
   const token = sessionStorage.getItem('cf_token');
   const role  = sessionStorage.getItem('cf_role');
