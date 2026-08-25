@@ -1,8 +1,3 @@
-// ============================================================
-//  CampusFix — Dept Head Dashboard Logic
-//  File: js/dept_head.js
-// ============================================================
-
 document.addEventListener('DOMContentLoaded', () => {
   if (currentUser.role !== 'dept_head') {
     window.location.href = 'login.html';
@@ -17,7 +12,7 @@ let myDept = null;
 
 async function initDeptHead() {
   try {
-    // currentUser.department_id may be number or string — both work in the URL
+    
     const deptId = currentUser.department_id;
     if (!deptId) {
       console.error('No department_id on currentUser:', currentUser);
@@ -38,7 +33,6 @@ async function initDeptHead() {
   }
 }
 
-// ─── LOAD STATS ──────────────────────────────────────────────
 async function loadStats() {
   if (!myDept) return;
   try {
@@ -70,7 +64,6 @@ async function loadStats() {
   } catch (err) { console.error(err); }
 }
 
-// ─── LOAD COMPLAINTS ─────────────────────────────────────────
 let complaintsData = [];
 
 async function loadComplaints() {
