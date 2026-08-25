@@ -1,13 +1,4 @@
-// ============================================================
-//  CampusFix — Shared Validation Utilities
-//  File: js/validation.js
-//  NOTE: Login does NOT use strong-password rules.
-//        Strong password applies ONLY to new registrations
-//        and new password creation (register, add employee,
-//        assign dept head). Existing users are unaffected.
-// ============================================================
 
-// ─── STRONG PASSWORD RULES ───────────────────────────────────
 const PW_RULES = [
   { re: /.{8,}/,   id: 'rule-length',    text: 'At least 8 characters'          },
   { re: /[A-Z]/,   id: 'rule-upper',     text: 'At least 1 uppercase letter'    },
@@ -16,10 +7,7 @@ const PW_RULES = [
   { re: /[^A-Za-z0-9]/, id: 'rule-special', text: 'At least 1 special character (@#$%! etc.)' },
 ];
 
-/**
- * Check if a password meets all strength requirements.
- * Returns { valid: boolean, missing: string[] }
- */
+
 function checkPasswordStrength(password) {
   const missing = PW_RULES
     .filter(r => !r.re.test(password))
@@ -27,21 +15,15 @@ function checkPasswordStrength(password) {
   return { valid: missing.length === 0, missing };
 }
 
-// ─── INLINE FIELD ERROR HELPERS ──────────────────────────────
 
-/**
- * Show an error message below a field.
- * Creates a <span> sibling with class cf-field-error if not present.
- */
 function showFieldError(fieldId, message) {
   const field = document.getElementById(fieldId);
   if (!field) return;
   field.classList.add('cf-input-error');
 
-  // Find or create error span
+  
   let errSpan = field.parentElement.querySelector('.cf-field-error');
   if (!errSpan) {
-    // Handle password-wrapper: go one level up
     const wrapper = field.closest('.password-wrapper') || field.closest('.cf-input-wrap');
     const parent  = wrapper ? wrapper.parentElement : field.parentElement;
     errSpan = parent.querySelector('.cf-field-error');
@@ -59,9 +41,7 @@ function showFieldError(fieldId, message) {
   errSpan.style.display = 'block';
 }
 
-/**
- * Clear error state from a field.
- */
+
 function clearFieldError(fieldId) {
   const field = document.getElementById(fieldId);
   if (!field) return;
@@ -72,16 +52,14 @@ function clearFieldError(fieldId) {
   if (errSpan) errSpan.style.display = 'none';
 }
 
-/**
- * Clear all field errors inside a container element.
- */
+
 function clearAllErrors(containerEl) {
   if (!containerEl) return;
   containerEl.querySelectorAll('.cf-input-error').forEach(el => el.classList.remove('cf-input-error'));
   containerEl.querySelectorAll('.cf-field-error').forEach(el => { el.style.display = 'none'; });
 }
 
-// ─── INDIVIDUAL FIELD VALIDATORS ─────────────────────────────
+
 
 function validateRequired(fieldId, label) {
   const val = (document.getElementById(fieldId)?.value || '').trim();
@@ -99,10 +77,7 @@ function validateEmail(fieldId) {
   return true;
 }
 
-/**
- * Validate strong password for NEW user creation.
- * Do NOT call this on the login form.
- */
+
 function validateStrongPassword(fieldId) {
   const val = document.getElementById(fieldId)?.value || '';
   if (!val) { showFieldError(fieldId, 'Password is required.'); return false; }
@@ -139,14 +114,7 @@ function validateSelect(fieldId, label) {
   return true;
 }
 
-// ─── PASSWORD STRENGTH METER ─────────────────────────────────
 
-/**
- * Inject a password strength meter + rules list below a field.
- * Call once after DOM is ready for registration / new-password fields.
- * @param {string} fieldId   — id of the <input type="password">
- * @param {string} meterId   — unique id for the meter container
- */
 function injectPasswordMeter(fieldId, meterId) {
   const field = document.getElementById(fieldId);
   if (!field || document.getElementById(meterId)) return;
