@@ -1,8 +1,3 @@
-// ============================================================
-//  CampusFix - Admin Dashboard Logic
-//  File: js/admin.js
-// ============================================================
-
 document.addEventListener("DOMContentLoaded", () => {
   if (currentUser.role !== "admin") { window.location.href = "login.html"; return; }
   loadStats(); loadAllComplaints(); loadDepartments(); loadLocations(); loadUsers();
@@ -12,7 +7,6 @@ async function loadStats() {
   try {
     let complaints = await apiFetch("/complaints");
 
-    // Filter out upvoted shadow copies — count only original complaints
     complaints = complaints.filter(c => c.source !== 'upvoted');
 
     const overviewFiltDept = document.getElementById("overviewFiltDept")?.value;
@@ -82,9 +76,6 @@ async function loadAllComplaints() {
 
     let complaints = await apiFetch('/complaints');
 
-    // ── DEDUP: remove upvoted shadow copies, keep originals only ──
-    // Source = 'upvoted' entries are copies created when a student
-    // upvotes — they must NOT appear as separate rows in admin view.
     complaints = complaints.filter(c => c.source !== 'upvoted');
 
     if (filtStatus) {
@@ -114,7 +105,6 @@ async function loadAllComplaints() {
     complaints.forEach(c => {
       const locText = c.location_desc || `Loc ID: ${c.location_id}`;
 
-      // Upvote badge — shows when other students upvoted the same issue
       const upvoteBadge = (c.upvote_count > 0)
         ? `<span style="display:inline-flex;align-items:center;gap:3px;font-size:0.72rem;
              background:var(--accent-light);color:var(--accent);
@@ -225,7 +215,6 @@ async function loadUsers() {
     if (!users.length) { grid.innerHTML = '<p style="color:var(--text-muted);padding:24px;text-align:center;">No users found.</p>'; return; }
     
     users.forEach(u => {
-      // Find dept name if dept head or employee
       let deptName = "";
       if (u.department_id) {
          const d = depts.find(x => x.id == u.department_id);
