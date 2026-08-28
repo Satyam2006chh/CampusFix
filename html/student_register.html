@@ -173,7 +173,7 @@
       ok = validateStrongPassword('regPassword')       && ok;
       ok = validatePasswordMatch('regPassword', 'regConfirmPassword') && ok;
 
-      if (!ok) return; // stop — inline errors already shown
+      if (!ok) return; // stop — inline errors already show
       // ────────────────────────────────────────────────────────
 
       const name     = document.getElementById('regName').value.trim();
