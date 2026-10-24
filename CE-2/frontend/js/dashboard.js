@@ -98,6 +98,12 @@ function switchTab(tabId) {
   if (titleEl && titles[tabId]) {
     titleEl.textContent = titles[tabId];
   }
+
+  // Auto-load tab data when switching
+  if (tabId === 'my-complaints' && typeof loadMyTasks === 'function') loadMyTasks();
+  if (tabId === 'attendance'    && typeof loadAttendance === 'function') loadAttendance();
+  if (tabId === 'leave'         && typeof loadLeaves === 'function') loadLeaves();
+  if (tabId === 'payslips'      && typeof loadPayslips === 'function') loadPayslips();
 }
 
 

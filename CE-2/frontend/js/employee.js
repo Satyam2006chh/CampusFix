@@ -92,10 +92,10 @@ async function loadRecentTasks() {
     const complaints = await apiFetch('/complaints');
     const myTasks = complaints
       .filter(c => String(c.assigned_to_id) === String(currentUser.id))
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .sort((a, b) => new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt))
       .slice(0, 5);
 
-    renderTaskRows('recentTasksBody', myTasks, 5);
+    renderTaskRows('recentTasksBody', myTasks, 5, false);
   } catch (err) { console.error('loadRecentTasks', err); }
 }
 
@@ -103,19 +103,20 @@ async function loadRecentTasks() {
 async function loadMyTasks() {
   try {
     const complaints = await apiFetch('/complaints');
-    const statusFilt = document.getElementById('taskFilterStatus').value;
+    const statusFilt = document.getElementById('taskFilterStatus')?.value || '';
 
-    let myTasks = complaints
-      .filter(c => String(c.assigned_to_id) === String(currentUser.id));
+    let myTasks = complaints.filter(c =>
+      String(c.assigned_to_id) === String(currentUser.id)
+    );
 
     if (statusFilt) myTasks = myTasks.filter(c => c.status === statusFilt);
-    myTasks.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    myTasks.sort((a, b) => new Date(b.created_at || b.createdAt) - new Date(a.created_at || a.createdAt));
 
-    renderTaskRows('allTasksBody', myTasks, Infinity);
+    renderTaskRows('allTasksBody', myTasks, Infinity, true);
   } catch (err) { console.error('loadMyTasks', err); }
 }
 
-function renderTaskRows(tbodyId, tasks, limit) {
+function renderTaskRows(tbodyId, tasks, limit, showActions = false) {
   const tbody = document.getElementById(tbodyId);
   if (!tbody) return;
   tbody.innerHTML = '';
@@ -123,16 +124,36 @@ function renderTaskRows(tbodyId, tasks, limit) {
   const items = tasks.slice(0, limit);
 
   if (items.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:28px;">No tasks found.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="${showActions ? 6 : 5}" style="text-align:center;color:var(--text-muted);padding:28px;">No tasks found.</td></tr>`;
     return;
   }
 
   items.forEach(c => {
     const locText = c.location_desc || `Loc #${c.location_id}`;
     const dlBadge = getDeadlineBadge(c.deadline, c.status);
+
+    let actionHtml = '';
+    if (showActions) {
+      if (c.status === 'In Progress' || c.status === 'Overdue') {
+        actionHtml = `<button class="action-btn" style="color:var(--success);border-color:rgba(16,185,129,0.3);"
+          onclick="employeeMarkResolved('${c.id}')">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg>
+          Mark Resolved
+        </button>`;
+      } else if (c.status === 'Waiting Confirmation') {
+        actionHtml = `<span style="font-size:0.78rem;color:var(--text-muted);">Awaiting student</span>`;
+      } else if (c.status === 'Closed') {
+        actionHtml = `<span style="font-size:0.78rem;color:var(--success);">✓ Closed</span>`;
+      } else if (c.status === 'Reopened') {
+        actionHtml = `<span style="font-size:0.78rem;color:var(--danger);">Reopened — work again</span>`;
+      } else {
+        actionHtml = `<span style="color:var(--text-muted);font-size:0.78rem;">—</span>`;
+      }
+    }
+
     tbody.innerHTML += `
       <tr>
-        <td style="font-weight:600;color:var(--accent);">#CF-${c.id}</td>
+        <td style="font-weight:600;color:var(--accent);font-size:0.8rem;">#CF-${c.id}</td>
         <td>
           <strong>${c.title}</strong>
           <small>${locText}</small>
@@ -140,8 +161,31 @@ function renderTaskRows(tbodyId, tasks, limit) {
         <td><span class="urgency-${(c.urgency || '').toLowerCase()}">${c.urgency || 'Medium'}</span></td>
         <td>${getStatusBadge(c.status)}</td>
         <td>${formatDate(c.deadline) || '—'}${dlBadge}</td>
+        ${showActions ? `<td>${actionHtml}</td>` : ''}
       </tr>`;
   });
+}
+
+// ── Employee marks a complaint as resolved ───────────────────
+async function employeeMarkResolved(complaintId) {
+  showCustomConfirm(
+    'Mark as Resolved',
+    'Mark this complaint as resolved? The student will be asked to confirm the fix.',
+    async () => {
+      try {
+        await apiFetch(`/complaints/${complaintId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ status: 'Waiting Confirmation' }),
+        });
+        showCustomAlert('Done ✓', 'Complaint marked as resolved. The student will now confirm.');
+        loadMyTasks();
+        loadOverviewStats();
+        loadRecentTasks();
+      } catch (err) {
+        showCustomAlert('Error', err.message || 'Failed to update complaint.');
+      }
+    }
+  );
 }
 
 // ── ATTENDANCE ───────────────────────────────────────────────
