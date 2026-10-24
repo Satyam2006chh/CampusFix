@@ -200,10 +200,12 @@ function populatePayslipEmpSelect() {
   });
 }
 
-// Live net salary preview
-['psBasic','psAllow','psDeduct'].forEach(id => {
-  const el = document.getElementById(id);
-  if (el) el.addEventListener('input', updateNetPreview);
+// Live net salary preview — register after DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  ['psBasic','psAllow','psDeduct'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateNetPreview);
+  });
 });
 function updateNetPreview() {
   const basic  = parseFloat(document.getElementById('psBasic')?.value  || 0);

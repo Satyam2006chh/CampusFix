@@ -43,22 +43,22 @@
   color: #fff;
   letter-spacing: -0.02em;
 }
-.sidebar-brand .logo-text span { color: #a5b4fc; }
+.sidebar-brand .logo-text span { color: #c084fc; }
 
 /* Sidebar user greeting block */
 .sidebar-user-block {
   padding: 16px 20px;
   margin: 0 12px 8px;
-  background: rgba(255,255,255,0.05);
+  background: rgba(192, 132, 252, 0.06);
   border: 1px solid var(--sidebar-border);
   border-radius: var(--radius-lg);
 }
 .sidebar-user-block .user-greeting {
   font-size: 0.7rem;
-  color: #a5b4fc;
-  font-weight: 500;
+  color: #c084fc;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.08em;
   margin-bottom: 4px;
 }
 .sidebar-user-block .user-name-big {
@@ -73,7 +73,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  color: #6366f1;
+  color: #c084fc;
   padding: 14px 20px 6px;
 }
 
@@ -107,7 +107,7 @@
   background: var(--accent);
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.4);
+  box-shadow: 0 2px 10px rgba(192, 132, 252, 0.35);
 }
 .nav-icon {
   width: 18px;
@@ -163,7 +163,7 @@
 }
 .user-role {
   font-size: 0.68rem;
-  color: #818cf8;
+  color: #b07ef0;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 500;
@@ -336,18 +336,18 @@
   justify-content: center;
   flex-shrink: 0;
 }
-.sc-icon-box.blue   { background: #eff6ff; color: #3b82f6; }
+.sc-icon-box.blue   { background: #f3eeff; color: #522377; }
 .sc-icon-box.green  { background: #ecfdf5; color: #10b981; }
 .sc-icon-box.yellow { background: #fffbeb; color: #f59e0b; }
-.sc-icon-box.purple { background: #f5f3ff; color: #7c3aed; }
+.sc-icon-box.purple { background: #f3eeff; color: #36195b; }
 .sc-icon-box.red    { background: #fef2f2; color: #ef4444; }
-.sc-icon-box.indigo { background: #eef2ff; color: #4f46e5; }
-[data-theme="dark"] .sc-icon-box.blue   { background: rgba(59,130,246,0.1); color: #60a5fa; }
+.sc-icon-box.indigo { background: #ede9f5; color: #522377; }
+[data-theme="dark"] .sc-icon-box.blue   { background: rgba(192,132,252,0.1); color: #c084fc; }
 [data-theme="dark"] .sc-icon-box.green  { background: rgba(16,185,129,0.1); color: #34d399; }
 [data-theme="dark"] .sc-icon-box.yellow { background: rgba(245,158,11,0.1); color: #fbbf24; }
-[data-theme="dark"] .sc-icon-box.purple { background: rgba(124,58,237,0.1); color: #a78bfa; }
+[data-theme="dark"] .sc-icon-box.purple { background: rgba(82,35,119,0.15); color: #c084fc; }
 [data-theme="dark"] .sc-icon-box.red    { background: rgba(239,68,68,0.1); color: #f87171; }
-[data-theme="dark"] .sc-icon-box.indigo { background: rgba(79,70,229,0.12); color: #818cf8; }
+[data-theme="dark"] .sc-icon-box.indigo { background: rgba(82,35,119,0.12); color: #c084fc; }
 
 /* Backwards-compatible sc-icon used in existing HTML */
 .sc-icon { color: var(--text-muted); }
@@ -515,7 +515,7 @@
 .filter-row select:focus,
 .filter-row input[type="date"]:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+  box-shadow: 0 0 0 3px rgba(82,35,119,0.12);
 }
 /* Date input — don't add the arrow on it */
 .filter-row input[type="date"] {
@@ -583,7 +583,7 @@
 .form-group select:focus,
 .form-group textarea:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+  box-shadow: 0 0 0 3px rgba(82,35,119,0.12);
   background: var(--bg-surface);
 }
 select option {
