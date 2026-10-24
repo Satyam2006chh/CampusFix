@@ -232,15 +232,17 @@ let allEmployees = [];
 async function loadEmployees() {
   if (!myDept) return;
   try {
-    // Fetch ALL users — filter client-side to avoid type coercion issues.
-    // department_id can be stored as number OR string in JSON DB, and
-    // myDept.id / myDept._id can both appear depending on the proxy path.
     const allUsers = await apiFetch('/users');
     const deptId = String(myDept.id || myDept._id || '');
-    allEmployees = allUsers.filter(u =>
-      u.role === 'employee' &&
-      String(u.department_id) === deptId
-    );
+
+    allEmployees = allUsers.filter(u => {
+      if (u.role !== 'employee') return false;
+      // department_id may be a populated object OR a raw id string/number
+      const rawDeptId = u.department_id && typeof u.department_id === 'object'
+        ? String(u.department_id.id || u.department_id._id || '')
+        : String(u.department_id || '');
+      return rawDeptId === deptId;
+    });
     renderEmployees();
   } catch (err) { console.error('loadEmployees error:', err); }
 }
