@@ -1,14 +1,11 @@
-# Ignore the flowchart directory and documentation
-flowchart/
+# Node modules (backend)
+CE-2/backend/node_modules/
+CE-2/backend/.env
 
-# Node modules (for json-server)
-node_modules/
+# Logs
+*.log
 npm-debug.log*
 
-# Environment variables
-.env
-.env.local
-
-# OS generated files
+# OS files
 .DS_Store
 Thumbs.db
