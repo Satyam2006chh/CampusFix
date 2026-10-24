@@ -18,6 +18,9 @@ app.use('/api/users',       require('./routes/userRoutes'));
 app.use('/api/departments', require('./routes/departmentRoutes'));
 app.use('/api/locations',   require('./routes/locationRoutes'));
 app.use('/api/complaints',  require('./routes/complaintRoutes'));
+app.use('/api/attendance',  require('./routes/attendanceRoutes'));
+app.use('/api/leaves',      require('./routes/leaveRoutes'));
+app.use('/api/payslips',    require('./routes/payslipRoutes'));
 
 // ─── Health check ────────────────────────────────────────────
 app.get('/', (req, res) => {
