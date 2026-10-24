@@ -38,6 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // ── Load everything needed for the overview ──────────────────
 async function loadDashboard() {
   await Promise.all([loadOverviewStats(), loadRecentTasks(), loadAttendance(), loadLeaves(), loadPayslips()]);
+  // If already clocked in today but not yet clocked out, resume background monitoring
+  if (todayAttRecord && todayAttRecord.clock_in && !todayAttRecord.clock_out) {
+    startBackgroundLocationCheck();
+  }
 }
 
 // ── OVERVIEW STATS ───────────────────────────────────────────
@@ -198,8 +202,18 @@ async function loadAttendance() {
           ? 'status-pending'
           : r.status === 'Late_2'
             ? 'status-reopened'
-            : 'status-reopened';
-      const displayStatus = r.status === 'Late_1' ? 'Slightly Late' : r.status === 'Late_2' ? 'Late' : (r.status || 'Present');
+            : r.status === 'Early Departure'
+              ? 'status-reopened'
+              : 'status-reopened';
+      const displayStatus = r.status === 'Late_1' ? 'Slightly Late'
+        : r.status === 'Late_2' ? 'Late'
+        : (r.status || 'Present');
+
+      // Extra info row for early departure
+      const earlyNote = r.status === 'Early Departure' && r.off_campus_count
+        ? `<small style="color:var(--danger);display:block;margin-top:3px;">Off-campus ${r.off_campus_count}x at: ${r.off_campus_times}</small>`
+        : '';
+
       tbody.innerHTML += `
         <tr>
           <td>${r.date}</td>
@@ -207,7 +221,10 @@ async function loadAttendance() {
           <td>${r.clock_out || '—'}</td>
           <td>${r.working_hours ? r.working_hours.toFixed(1) + ' hrs' : '—'}</td>
           <td>${r.day_type || 'Regular'}</td>
-          <td><span class="status-badge ${statusColor}">${displayStatus}</span></td>
+          <td>
+            <span class="status-badge ${statusColor}">${displayStatus}</span>
+            ${earlyNote}
+          </td>
         </tr>`;
     });
   } catch (err) { console.error('loadAttendance', err); }
@@ -241,15 +258,15 @@ function updateClockBtn() {
 /* ─── CHITKARA UNIVERSITY GEOFENCE ──────────────────────────────
    Chitkara University Rajpura, Patiala
    Lat: 30.5094°N  Lng: 76.6566°E
-   Radius: 500 metres (tight enough to block home, generous for campus)
+   Radius: 500 metres
 ──────────────────────────────────────────────────────────────── */
 const CAMPUS_LAT    = 30.5094;
 const CAMPUS_LNG    = 76.6566;
 const CAMPUS_RADIUS = 500; // metres
 
-// Haversine formula — returns distance in metres between two coords
+// Haversine formula — returns distance in metres
 function getDistanceMetres(lat1, lng1, lat2, lng2) {
-  const R = 6371000; // Earth radius metres
+  const R = 6371000;
   const toRad = d => (d * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
   const dLng = toRad(lng2 - lng1);
@@ -259,11 +276,10 @@ function getDistanceMetres(lat1, lng1, lat2, lng2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-// Returns a Promise resolving to { lat, lng } or rejects with a message
 function getCurrentPosition() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject('Your browser does not support geolocation. Clock-in requires location access.');
+      reject('Your browser does not support geolocation.');
       return;
     }
     navigator.geolocation.getCurrentPosition(
@@ -284,15 +300,14 @@ function isOnCampus(lat, lng) {
 }
 
 /* ─── TIME CATEGORIES ────────────────────────────────────────
-   Before 09:00  → On Time        (status: Present)
-   09:00–09:30   → Slightly Late  (status: Late_1)   — minor deduction
-   After 09:30   → Late           (status: Late_2)   — standard late mark
-   (We still store is_late flag; status drives salary logic)
+   Before 09:00  → Present   (On Time)
+   09:00–09:30   → Late_1    (Slightly Late)
+   After 09:30   → Late_2    (Late)
 ──────────────────────────────────────────────────────────────── */
 function getTimeCategory(timeStr) {
-  if (timeStr < '09:00') return { status: 'Present',    label: 'On Time',       isLate: false };
-  if (timeStr <= '09:30') return { status: 'Late_1',    label: 'Slightly Late', isLate: true  };
-  return                         { status: 'Late_2',    label: 'Late',          isLate: true  };
+  if (timeStr < '09:00') return { status: 'Present', label: 'On Time',       isLate: false };
+  if (timeStr <= '09:30') return { status: 'Late_1',  label: 'Slightly Late', isLate: true  };
+  return                         { status: 'Late_2',  label: 'Late',          isLate: true  };
 }
 
 function showClockSpinner(show) {
@@ -300,19 +315,134 @@ function showClockSpinner(show) {
   if (!btn) return;
   btn.disabled = show;
   btn.style.opacity = show ? '0.7' : '1';
-  document.getElementById('clockBtnLabel').textContent = show ? 'Getting location…' : (todayAttRecord ? 'Clock Out' : 'Clock In');
+  document.getElementById('clockBtnLabel').textContent = show
+    ? 'Getting location…'
+    : (todayAttRecord && !todayAttRecord.clock_out ? 'Clock Out' : 'Clock In');
 }
 
+/* ─── BACKGROUND LOCATION MONITORING ────────────────────────────
+   While clocked in, check location every 30 minutes silently.
+   If outside campus → record violation with timestamp.
+   At clock-out, calculate on-campus % to determine final status.
+──────────────────────────────────────────────────────────────── */
+const BG_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
+let bgLocationInterval = null;
+
+// In-memory violation log: [{ time: "HH:MM", distance: N }]
+// Also persisted to sessionStorage so it survives tab refreshes
+function getViolations() {
+  try { return JSON.parse(sessionStorage.getItem('cf_loc_violations') || '[]'); }
+  catch { return []; }
+}
+function addViolation(entry) {
+  const v = getViolations();
+  v.push(entry);
+  sessionStorage.setItem('cf_loc_violations', JSON.stringify(v));
+}
+function clearViolations() {
+  sessionStorage.removeItem('cf_loc_violations');
+}
+
+function startBackgroundLocationCheck() {
+  stopBackgroundLocationCheck(); // clear any existing
+  clearViolations();             // fresh start each clock-in
+
+  bgLocationInterval = setInterval(async () => {
+    // Only run if still clocked in and not yet clocked out
+    if (!todayAttRecord || todayAttRecord.clock_out) {
+      stopBackgroundLocationCheck();
+      return;
+    }
+
+    let coords;
+    try { coords = await getCurrentPosition(); }
+    catch { return; } // silent — geolocation briefly unavailable, try next cycle
+
+    const { onCampus, distance } = isOnCampus(coords.lat, coords.lng);
+    if (!onCampus) {
+      const now = new Date();
+      const timeStr = now.toTimeString().slice(0, 5);
+      addViolation({ time: timeStr, distance });
+
+      // Show a subtle warning notification on the page if it's still open
+      showLocationWarningBanner(distance);
+    } else {
+      hideLocationWarningBanner();
+    }
+  }, BG_CHECK_INTERVAL_MS);
+}
+
+function stopBackgroundLocationCheck() {
+  if (bgLocationInterval) {
+    clearInterval(bgLocationInterval);
+    bgLocationInterval = null;
+  }
+}
+
+function showLocationWarningBanner(distance) {
+  let banner = document.getElementById('locationWarningBanner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'locationWarningBanner';
+    banner.style.cssText = `
+      position:fixed; bottom:80px; right:24px; z-index:9999;
+      background:var(--danger-bg); border:1px solid var(--danger);
+      color:var(--danger); padding:12px 18px; border-radius:var(--radius);
+      font-size:0.84rem; font-weight:600; max-width:320px;
+      box-shadow:var(--shadow-lg); animation:fadeUp 0.3s ease;
+    `;
+    document.body.appendChild(banner);
+  }
+  banner.innerHTML = `
+    ⚠️ Location check failed — you appear to be <strong>${distance}m away</strong> from campus.
+    <br/><small style="font-weight:400;opacity:0.85;">This absence has been recorded. Your attendance may be adjusted.</small>
+  `;
+  banner.style.display = 'block';
+}
+
+function hideLocationWarningBanner() {
+  const b = document.getElementById('locationWarningBanner');
+  if (b) b.style.display = 'none';
+}
+
+/* ─── Calculate effective on-campus hours at clock-out ──────────
+   Logic:
+   - Total shift = clock_out_minutes - clock_in_minutes
+   - Each violation = employee was off-campus at that check point.
+     We penalize the 30-min window around each violation.
+   - If (off-campus windows / total shift) > 20% → Early Departure
+──────────────────────────────────────────────────────────────── */
+function calcEffectiveHours(clockInStr, clockOutStr) {
+  const toMins = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+  const totalMins   = toMins(clockOutStr) - toMins(clockInStr);
+  const violations  = getViolations();
+
+  if (violations.length === 0) return { effectiveHours: totalMins / 60, earlyDeparture: false, violations: 0 };
+
+  // Each violation represents a 30-min window off campus (the check interval)
+  const offMins   = violations.length * BG_CHECK_INTERVAL_MS / 60000;
+  const onMins    = Math.max(0, totalMins - offMins);
+  const onPercent = totalMins > 0 ? (onMins / totalMins) * 100 : 100;
+
+  return {
+    effectiveHours: parseFloat((onMins / 60).toFixed(2)),
+    earlyDeparture: onPercent < 80,   // less than 80% on campus = flagged
+    onPercent:      Math.round(onPercent),
+    violations:     violations.length,
+    violationTimes: violations.map(v => v.time).join(', '),
+  };
+}
+
+/* ─── MAIN CLOCK ACTION ─────────────────────────────────────── */
 async function handleClockAction() {
-  // If already done for today, do nothing
-  if (todayAttRecord && todayAttRecord.clock_out) return;
+  if (todayAttRecord && todayAttRecord.clock_out) return; // already done
 
   const now     = new Date();
   const today   = now.toISOString().split('T')[0];
-  const timeStr = now.toTimeString().slice(0, 5); // "HH:MM"
+  const timeStr = now.toTimeString().slice(0, 5);
 
-  // ── Step 1: Get location (required for both clock-in AND clock-out) ──
   showClockSpinner(true);
+
   let coords;
   try {
     coords = await getCurrentPosition();
@@ -324,13 +454,13 @@ async function handleClockAction() {
 
   const { onCampus, distance } = isOnCampus(coords.lat, coords.lng);
 
-  // ── CLOCK IN ──────────────────────────────────────────────
+  /* ── CLOCK IN ───────────────────────────────────────────── */
   if (!todayAttRecord) {
     if (!onCampus) {
       showClockSpinner(false);
       showCustomAlert(
-        'Not on Campus',
-        `You are ${distance}m away from Chitkara University campus.\n\nClock-in is only allowed when you are physically present on campus. Your location has been checked.`
+        '📍 Not on Campus',
+        `You are ${distance}m away from Chitkara University.\n\nClock-in is only allowed when physically on campus. Your location has been recorded.`
       );
       return;
     }
@@ -356,50 +486,78 @@ async function handleClockAction() {
       todayAttRecord = record;
       updateClockBtn();
 
+      // Start background location monitoring
+      startBackgroundLocationCheck();
+
       let msg = `You clocked in at ${timeStr}.`;
-      if (status === 'Present')  msg += '\n✅ On time — full attendance marked.';
-      if (status === 'Late_1')   msg += '\n🟡 Slightly late (9:00–9:30). Minor deduction may apply.';
-      if (status === 'Late_2')   msg += '\n🔴 Late arrival (after 9:30). Marked as Late.';
+      if (status === 'Present') msg += '\n✅ On time.';
+      if (status === 'Late_1')  msg += '\n🟡 Slightly late (9:00–9:30). Minor deduction may apply.';
+      if (status === 'Late_2')  msg += '\n🔴 Late arrival (after 9:30). Marked as Late.';
+      msg += '\n\nYour location will be checked periodically while you\'re clocked in.';
 
       showCustomAlert(`Clocked In — ${label}`, msg);
       loadAttendance();
     } catch (err) {
       showClockSpinner(false);
-      showCustomAlert('Error', err.message || 'Clock-in failed. You may have already clocked in today.');
+      showCustomAlert('Error', err.message || 'Clock-in failed. Already clocked in today?');
     }
 
-  // ── CLOCK OUT ─────────────────────────────────────────────
+  /* ── CLOCK OUT ──────────────────────────────────────────── */
   } else if (!todayAttRecord.clock_out) {
     if (!onCampus) {
       showClockSpinner(false);
       showCustomAlert(
-        'Not on Campus',
-        `You are ${distance}m away from campus.\n\nClock-out requires you to be on campus. If you left early, please contact your department head.`
+        '📍 Not on Campus',
+        `You are ${distance}m away from campus.\n\nClock-out requires you to be on campus. If you left early, contact your department head.`
       );
       return;
     }
 
-    const [inH, inM]  = todayAttRecord.clock_in.split(':').map(Number);
+    // Stop background checks
+    stopBackgroundLocationCheck();
+    hideLocationWarningBanner();
+
+    // Calculate effective hours accounting for any off-campus violations
+    const { effectiveHours, earlyDeparture, onPercent, violations, violationTimes } =
+      calcEffectiveHours(todayAttRecord.clock_in, timeStr);
+
+    const [inH, inM]   = todayAttRecord.clock_in.split(':').map(Number);
     const [outH, outM] = timeStr.split(':').map(Number);
-    const workedHrs = Math.max(0, ((outH * 60 + outM) - (inH * 60 + inM)) / 60);
+    const rawHours = Math.max(0, ((outH * 60 + outM) - (inH * 60 + inM)) / 60);
+
+    // Final status: if Early Departure detected, override to that
+    const finalStatus = earlyDeparture
+      ? 'Early Departure'
+      : (todayAttRecord.status || 'Present');
 
     try {
       const updated = await apiFetch(`/attendance/${todayAttRecord.id}`, {
         method: 'PATCH',
         body: JSON.stringify({
-          clock_out:      timeStr,
-          clock_out_lat:  coords.lat,
-          clock_out_lng:  coords.lng,
-          working_hours:  parseFloat(workedHrs.toFixed(2)),
+          clock_out:        timeStr,
+          clock_out_lat:    coords.lat,
+          clock_out_lng:    coords.lng,
+          working_hours:    parseFloat(effectiveHours.toFixed(2)),
+          status:           finalStatus,
+          off_campus_count: violations,
+          off_campus_times: violationTimes || '',
         }),
       });
 
       todayAttRecord = { ...todayAttRecord, ...updated };
       updateClockBtn();
-      showCustomAlert(
-        'Clocked Out ✓',
-        `Clocked out at ${timeStr}.\nTotal hours worked: ${workedHrs.toFixed(1)} hrs.\n\nSee you tomorrow!`
-      );
+
+      // Build message
+      let msg = `Clocked out at ${timeStr}.\n`;
+      if (earlyDeparture) {
+        msg += `\n⚠️ Early Departure detected.\nYou were found off-campus ${violations} time(s) during your shift.\nOn-campus time: ${onPercent}% (below 80% threshold).\nEffective hours recorded: ${effectiveHours.toFixed(1)} hrs (of ${rawHours.toFixed(1)} total).\n\nYour department head has been notified.`;
+      } else {
+        msg += `Total hours worked: ${rawHours.toFixed(1)} hrs. `;
+        if (violations > 0) msg += `\n(${violations} off-campus check(s) detected but within acceptable range — ${onPercent}% on campus.)`;
+        msg += '\n\nSee you tomorrow!';
+      }
+
+      showCustomAlert(earlyDeparture ? '⚠️ Early Departure Recorded' : 'Clocked Out ✓', msg);
       loadAttendance();
     } catch (err) {
       showClockSpinner(false);

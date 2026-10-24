@@ -76,11 +76,16 @@ async function loadDeptAttendance() {
       const statusClass = r.status === 'Present'
         ? 'status-closed'
         : (r.status === 'Late_1' || r.status === 'Late') ? 'status-pending'
-        : r.status === 'Late_2' ? 'status-reopened'
+        : (r.status === 'Late_2' || r.status === 'Early Departure') ? 'status-reopened'
         : 'status-reopened';
       const displayStatus = r.status === 'Late_1' ? 'Slightly Late'
         : r.status === 'Late_2' ? 'Late'
         : (r.status || 'Present');
+
+      const earlyNote = r.status === 'Early Departure' && r.off_campus_count
+        ? `<small style="color:var(--danger);display:block;margin-top:2px;">Left campus ${r.off_campus_count}x (${r.off_campus_times})</small>`
+        : '';
+
       tbody.innerHTML += `
         <tr>
           <td style="font-weight:600;color:var(--text-primary);">${empName}</td>
@@ -88,7 +93,10 @@ async function loadDeptAttendance() {
           <td>${r.clock_in || '—'}</td>
           <td>${r.clock_out || '—'}</td>
           <td>${r.working_hours ? r.working_hours.toFixed(1) + ' hrs' : '—'}</td>
-          <td><span class="status-badge ${statusClass}">${displayStatus}</span></td>
+          <td>
+            <span class="status-badge ${statusClass}">${displayStatus}</span>
+            ${earlyNote}
+          </td>
         </tr>`;
     });
   } catch (err) { console.error('loadDeptAttendance', err); }
