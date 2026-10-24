@@ -85,7 +85,14 @@ function switchTab(tabId) {
     'new-complaint': 'Report an Issue',
     'my-complaints': 'My Complaints',
     'dept-complaints': 'Department Complaints',
-    'employees': 'Manage Staff'
+    'employees': 'Manage Staff',
+    'dh-attendance': 'Employee Attendance',
+    'dh-leaves': 'Leave Requests',
+    'dh-payslips': 'Payslips',
+    'attendance': 'Attendance',
+    'leave': 'Leave Management',
+    'payslips': 'Payslips',
+    'my-complaints': 'My Tasks',
   };
   const titleEl = document.getElementById('pageTitle');
   if (titleEl && titles[tabId]) {
