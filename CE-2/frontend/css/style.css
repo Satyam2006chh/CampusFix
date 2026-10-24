@@ -1,10 +1,10 @@
 /* ============================================================
    CampusFix — Global Styles
    Theme: Obsidian × Electric Indigo — sharp, professional
-   Font: Inter (crisp) + Plus Jakarta Sans (display)
+   Font: Outfit (geometric, clean)
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600&display=swap');
 
 /* ─── CSS VARIABLES — LIGHT MODE ────────────────────────────── */
 :root {
@@ -65,10 +65,10 @@
   --radius-full: 9999px;
 
   /* Sharp Inter stack */
-  --font:         'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  --font-accent:  'Plus Jakarta Sans', sans-serif;
-  --font-body:    'Inter', sans-serif;
+  --font:         'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Outfit', 'Plus Jakarta Sans', sans-serif;
+  --font-accent:  'Outfit', sans-serif;
+  --font-body:    'Outfit', sans-serif;
   --font-mono:    'JetBrains Mono', 'Fira Code', monospace;
   --transition:   0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -1355,3 +1355,4 @@ select option {
   .about-cards { grid-template-columns: 1fr; }
   .hero-title { font-size: 2.1rem; }
 }
+

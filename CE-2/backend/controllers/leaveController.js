@@ -33,7 +33,8 @@ const createLeave = async (req, res) => {
 // PATCH /api/leaves/:id  — dept head approves/rejects
 const updateLeave = async (req, res) => {
   try {
-    const leave = await Leave.findByIdAndUpdate(req.params.id, req.body, { new: true }).lean();
+    const result = await Leave.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const leave = result && typeof result.lean === 'function' ? await result.lean() : result;
     if (!leave) return res.status(404).json({ message: 'Leave not found' });
     res.json(norm(leave));
   } catch (err) { res.status(500).json({ message: err.message }); }

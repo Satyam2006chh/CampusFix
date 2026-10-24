@@ -78,13 +78,18 @@ const updateUser = async (req, res) => {
       updates.password = await bcrypt.hash(password, salt);
     }
 
-    const user = await User.findByIdAndUpdate(req.params.id, updates, {
+    const result = await User.findByIdAndUpdate(req.params.id, updates, {
       new: true,
       runValidators: true,
-    }).lean();
+    });
+
+    // JSON DB returns plain object; Mongoose returns a doc — handle both
+    const user = result && typeof result.lean === 'function'
+      ? await result.lean()
+      : result;
 
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json({ ...user, id: user._id });
+    res.json({ ...user, id: user._id || user.id });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

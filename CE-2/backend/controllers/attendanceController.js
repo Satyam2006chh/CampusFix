@@ -36,7 +36,8 @@ const createAttendance = async (req, res) => {
 // PATCH /api/attendance/:id  — clock out / update
 const updateAttendance = async (req, res) => {
   try {
-    const record = await Attendance.findByIdAndUpdate(req.params.id, req.body, { new: true }).lean();
+    const result = await Attendance.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const record = result && typeof result.lean === 'function' ? await result.lean() : result;
     if (!record) return res.status(404).json({ message: 'Record not found' });
     res.json(norm(record));
   } catch (err) { res.status(500).json({ message: err.message }); }

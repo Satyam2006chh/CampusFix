@@ -138,10 +138,11 @@ function renderAllComplaints() {
     if (c.status === 'Pending' || c.status === 'Reopened') {
       actionHtml = `<button class="action-btn" onclick="openAssignModal('${c.id}')">Assign</button>`;
     } else if (c.status === 'In Progress' || c.status === 'Overdue') {
-      actionHtml = `<button class="action-btn" onclick="markResolved('${c.id}')"
-        style="color:var(--success); border-color:rgba(16,185,129,0.3);">Mark Resolved</button>`;
+      actionHtml = `<span style="font-size:0.78rem;color:var(--info);">🔧 Being fixed by ${c.assigned_to_name || 'staff'}</span>`;
     } else if (c.status === 'Waiting Confirmation') {
-      actionHtml = `<span style="font-size:0.78rem;color:var(--text-muted);">Awaiting Student</span>`;
+      actionHtml = `<span style="font-size:0.78rem;color:var(--warning);">⏳ Awaiting Student</span>`;
+    } else if (c.status === 'Closed') {
+      actionHtml = `<span style="font-size:0.78rem;color:var(--success);">✓ Closed</span>`;
     }
 
     const upvoteBadge = c.upvote_count > 0
