@@ -154,8 +154,8 @@ async function loadAttendance() {
     updateClockBtn();
 
     // Stats
-    const present  = sorted.filter(r => r.status === 'Present' || r.status === 'Late').length;
-    const late     = sorted.filter(r => r.status === 'Late' || r.is_late).length;
+    const present  = sorted.filter(r => r.status === 'Present' || r.status === 'Late' || r.status === 'Late_1' || r.status === 'Late_2').length;
+    const late     = sorted.filter(r => r.status === 'Late' || r.status === 'Late_1' || r.status === 'Late_2' || r.is_late).length;
     const withHrs  = sorted.filter(r => r.working_hours && r.working_hours > 0);
     const avgHrs   = withHrs.length ? (withHrs.reduce((s, r) => s + r.working_hours, 0) / withHrs.length).toFixed(1) : '0';
 
@@ -174,7 +174,11 @@ async function loadAttendance() {
         banner.style.color       = 'var(--success)';
         banner.innerHTML = `✓ Clocked in at ${todayAttRecord.clock_in} &nbsp;|&nbsp; Clocked out at ${todayAttRecord.clock_out} &nbsp;|&nbsp; ${todayAttRecord.working_hours ? todayAttRecord.working_hours.toFixed(1) + ' hrs worked' : ''}`;
       } else {
-        banner.innerHTML = `🟢 Clocked in today at ${todayAttRecord.clock_in} &nbsp;—&nbsp; Work in progress`;
+        const lateLabel = todayAttRecord.status === 'Late_1' ? ' (Slightly Late)' : todayAttRecord.status === 'Late_2' ? ' (Late)' : '';
+        banner.style.borderColor = todayAttRecord.is_late ? 'var(--warning)' : 'var(--success)';
+        banner.style.background  = todayAttRecord.is_late ? 'var(--warning-bg)' : 'var(--success-bg)';
+        banner.style.color       = todayAttRecord.is_late ? 'var(--warning)' : 'var(--success)';
+        banner.innerHTML = `🟢 Clocked in at ${todayAttRecord.clock_in}${lateLabel} &nbsp;—&nbsp; Work in progress. Click Clock Out when done.`;
       }
     } else {
       banner.style.display = 'none';
@@ -188,7 +192,14 @@ async function loadAttendance() {
       return;
     }
     sorted.forEach(r => {
-      const statusColor = r.status === 'Present' ? 'status-closed' : r.status === 'Late' ? 'status-pending' : 'status-reopened';
+      const statusColor = r.status === 'Present'
+        ? 'status-closed'
+        : (r.status === 'Late_1' || r.status === 'Late')
+          ? 'status-pending'
+          : r.status === 'Late_2'
+            ? 'status-reopened'
+            : 'status-reopened';
+      const displayStatus = r.status === 'Late_1' ? 'Slightly Late' : r.status === 'Late_2' ? 'Late' : (r.status || 'Present');
       tbody.innerHTML += `
         <tr>
           <td>${r.date}</td>
@@ -196,44 +207,135 @@ async function loadAttendance() {
           <td>${r.clock_out || '—'}</td>
           <td>${r.working_hours ? r.working_hours.toFixed(1) + ' hrs' : '—'}</td>
           <td>${r.day_type || 'Regular'}</td>
-          <td><span class="status-badge ${statusColor}">${r.status || 'Present'}</span></td>
+          <td><span class="status-badge ${statusColor}">${displayStatus}</span></td>
         </tr>`;
     });
   } catch (err) { console.error('loadAttendance', err); }
 }
 
+/* ─── CLOCK BUTTON STATE ─────────────────────────────────────── */
 function updateClockBtn() {
   const btn   = document.getElementById('clockBtn');
   const label = document.getElementById('clockBtnLabel');
   if (!btn) return;
 
+  btn.disabled = false;
+  btn.style.opacity = '1';
+  btn.style.cursor  = 'pointer';
+
   if (!todayAttRecord) {
-    // Not clocked in
-    label.textContent = 'Clock In';
+    label.textContent    = 'Clock In';
     btn.style.background = 'var(--accent)';
   } else if (!todayAttRecord.clock_out) {
-    // Clocked in, not clocked out
-    label.textContent = 'Clock Out';
+    label.textContent    = 'Clock Out';
     btn.style.background = 'var(--danger)';
   } else {
-    // Both done
-    label.textContent = 'Done for today ✓';
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
-    btn.style.cursor  = 'default';
+    label.textContent    = 'Done for today ✓';
+    btn.disabled         = true;
+    btn.style.opacity    = '0.55';
+    btn.style.cursor     = 'default';
+    btn.style.background = 'var(--text-muted)';
   }
 }
 
+/* ─── CHITKARA UNIVERSITY GEOFENCE ──────────────────────────────
+   Chitkara University Rajpura, Patiala
+   Lat: 30.5094°N  Lng: 76.6566°E
+   Radius: 500 metres (tight enough to block home, generous for campus)
+──────────────────────────────────────────────────────────────── */
+const CAMPUS_LAT    = 30.5094;
+const CAMPUS_LNG    = 76.6566;
+const CAMPUS_RADIUS = 500; // metres
+
+// Haversine formula — returns distance in metres between two coords
+function getDistanceMetres(lat1, lng1, lat2, lng2) {
+  const R = 6371000; // Earth radius metres
+  const toRad = d => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// Returns a Promise resolving to { lat, lng } or rejects with a message
+function getCurrentPosition() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject('Your browser does not support geolocation. Clock-in requires location access.');
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      err => {
+        if (err.code === 1) reject('Location permission denied. Please allow location access and try again.');
+        else if (err.code === 2) reject('Location unavailable. Make sure GPS/Wi-Fi is enabled.');
+        else reject('Location request timed out. Try again.');
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 }
+    );
+  });
+}
+
+function isOnCampus(lat, lng) {
+  const dist = getDistanceMetres(lat, lng, CAMPUS_LAT, CAMPUS_LNG);
+  return { onCampus: dist <= CAMPUS_RADIUS, distance: Math.round(dist) };
+}
+
+/* ─── TIME CATEGORIES ────────────────────────────────────────
+   Before 09:00  → On Time        (status: Present)
+   09:00–09:30   → Slightly Late  (status: Late_1)   — minor deduction
+   After 09:30   → Late           (status: Late_2)   — standard late mark
+   (We still store is_late flag; status drives salary logic)
+──────────────────────────────────────────────────────────────── */
+function getTimeCategory(timeStr) {
+  if (timeStr < '09:00') return { status: 'Present',    label: 'On Time',       isLate: false };
+  if (timeStr <= '09:30') return { status: 'Late_1',    label: 'Slightly Late', isLate: true  };
+  return                         { status: 'Late_2',    label: 'Late',          isLate: true  };
+}
+
+function showClockSpinner(show) {
+  const btn = document.getElementById('clockBtn');
+  if (!btn) return;
+  btn.disabled = show;
+  btn.style.opacity = show ? '0.7' : '1';
+  document.getElementById('clockBtnLabel').textContent = show ? 'Getting location…' : (todayAttRecord ? 'Clock Out' : 'Clock In');
+}
+
 async function handleClockAction() {
-  const now   = new Date();
-  const today = now.toISOString().split('T')[0];
+  // If already done for today, do nothing
+  if (todayAttRecord && todayAttRecord.clock_out) return;
+
+  const now     = new Date();
+  const today   = now.toISOString().split('T')[0];
   const timeStr = now.toTimeString().slice(0, 5); // "HH:MM"
 
+  // ── Step 1: Get location (required for both clock-in AND clock-out) ──
+  showClockSpinner(true);
+  let coords;
+  try {
+    coords = await getCurrentPosition();
+  } catch (geoErr) {
+    showClockSpinner(false);
+    showCustomAlert('Location Required', `${geoErr}\n\nAttendance cannot be marked without verifying your campus location.`);
+    return;
+  }
+
+  const { onCampus, distance } = isOnCampus(coords.lat, coords.lng);
+
+  // ── CLOCK IN ──────────────────────────────────────────────
   if (!todayAttRecord) {
-    // Clock In
-    const LATE_THRESHOLD = '09:30'; // after 09:30 = late
-    const isLate  = timeStr > LATE_THRESHOLD;
-    const status  = isLate ? 'Late' : 'Present';
+    if (!onCampus) {
+      showClockSpinner(false);
+      showCustomAlert(
+        'Not on Campus',
+        `You are ${distance}m away from Chitkara University campus.\n\nClock-in is only allowed when you are physically present on campus. Your location has been checked.`
+      );
+      return;
+    }
+
+    const { status, label, isLate } = getTimeCategory(timeStr);
 
     try {
       const record = await apiFetch('/attendance', {
@@ -242,41 +344,66 @@ async function handleClockAction() {
           employee_id:   currentUser.id,
           date:          today,
           clock_in:      timeStr,
+          clock_in_lat:  coords.lat,
+          clock_in_lng:  coords.lng,
           day_type:      'Regular',
           status,
           is_late:       isLate,
-          department_id: currentUser.department_id,
+          department_id: String(currentUser.department_id || ''),
         }),
       });
+
       todayAttRecord = record;
       updateClockBtn();
-      showCustomAlert('Clocked In', `You clocked in at ${timeStr}.${isLate ? ' Marked as late arrival.' : ''}`);
+
+      let msg = `You clocked in at ${timeStr}.`;
+      if (status === 'Present')  msg += '\n✅ On time — full attendance marked.';
+      if (status === 'Late_1')   msg += '\n🟡 Slightly late (9:00–9:30). Minor deduction may apply.';
+      if (status === 'Late_2')   msg += '\n🔴 Late arrival (after 9:30). Marked as Late.';
+
+      showCustomAlert(`Clocked In — ${label}`, msg);
       loadAttendance();
     } catch (err) {
-      showCustomAlert('Error', err.message || 'Clock-in failed. Already clocked in today?');
+      showClockSpinner(false);
+      showCustomAlert('Error', err.message || 'Clock-in failed. You may have already clocked in today.');
     }
 
+  // ── CLOCK OUT ─────────────────────────────────────────────
   } else if (!todayAttRecord.clock_out) {
-    // Clock Out
-    const clockInTime = todayAttRecord.clock_in;
-    const [inH, inM]  = clockInTime.split(':').map(Number);
+    if (!onCampus) {
+      showClockSpinner(false);
+      showCustomAlert(
+        'Not on Campus',
+        `You are ${distance}m away from campus.\n\nClock-out requires you to be on campus. If you left early, please contact your department head.`
+      );
+      return;
+    }
+
+    const [inH, inM]  = todayAttRecord.clock_in.split(':').map(Number);
     const [outH, outM] = timeStr.split(':').map(Number);
-    const workedHrs = ((outH * 60 + outM) - (inH * 60 + inM)) / 60;
+    const workedHrs = Math.max(0, ((outH * 60 + outM) - (inH * 60 + inM)) / 60);
 
     try {
       const updated = await apiFetch(`/attendance/${todayAttRecord.id}`, {
         method: 'PATCH',
         body: JSON.stringify({
-          clock_out:     timeStr,
-          working_hours: Math.max(0, parseFloat(workedHrs.toFixed(2))),
+          clock_out:      timeStr,
+          clock_out_lat:  coords.lat,
+          clock_out_lng:  coords.lng,
+          working_hours:  parseFloat(workedHrs.toFixed(2)),
         }),
       });
+
       todayAttRecord = { ...todayAttRecord, ...updated };
       updateClockBtn();
-      showCustomAlert('Clocked Out', `Clocked out at ${timeStr}. Worked ${workedHrs.toFixed(1)} hrs today.`);
+      showCustomAlert(
+        'Clocked Out ✓',
+        `Clocked out at ${timeStr}.\nTotal hours worked: ${workedHrs.toFixed(1)} hrs.\n\nSee you tomorrow!`
+      );
       loadAttendance();
     } catch (err) {
-      showCustomAlert('Error', err.message || 'Clock-out failed.');
+      showClockSpinner(false);
+      showCustomAlert('Error', err.message || 'Clock-out failed. Try again.');
     }
   }
 }
@@ -345,7 +472,7 @@ async function submitLeave(e) {
   const payload = {
     employee_id:   currentUser.id,
     employee_name: currentUser.name,
-    department_id: currentUser.department_id,
+    department_id: String(currentUser.department_id || ''),
     leave_type:    document.getElementById('leaveType').value,
     from_date:     from,
     to_date:       to,

@@ -73,7 +73,14 @@ async function loadDeptAttendance() {
     filtered.forEach(r => {
       const emp = (allEmployees || []).find(e => String(e.id) === String(r.employee_id));
       const empName = emp ? emp.name : `Emp #${r.employee_id}`;
-      const statusClass = r.status === 'Present' ? 'status-closed' : r.status === 'Late' ? 'status-pending' : 'status-reopened';
+      const statusClass = r.status === 'Present'
+        ? 'status-closed'
+        : (r.status === 'Late_1' || r.status === 'Late') ? 'status-pending'
+        : r.status === 'Late_2' ? 'status-reopened'
+        : 'status-reopened';
+      const displayStatus = r.status === 'Late_1' ? 'Slightly Late'
+        : r.status === 'Late_2' ? 'Late'
+        : (r.status || 'Present');
       tbody.innerHTML += `
         <tr>
           <td style="font-weight:600;color:var(--text-primary);">${empName}</td>
@@ -81,7 +88,7 @@ async function loadDeptAttendance() {
           <td>${r.clock_in || '—'}</td>
           <td>${r.clock_out || '—'}</td>
           <td>${r.working_hours ? r.working_hours.toFixed(1) + ' hrs' : '—'}</td>
-          <td><span class="status-badge ${statusClass}">${r.status || 'Present'}</span></td>
+          <td><span class="status-badge ${statusClass}">${displayStatus}</span></td>
         </tr>`;
     });
   } catch (err) { console.error('loadDeptAttendance', err); }
@@ -91,7 +98,8 @@ async function loadDeptAttendance() {
 async function loadDeptLeaves() {
   if (!myDept) return;
   try {
-    const leaves = await apiFetch(`/leaves?department_id=${myDept.id}`);
+    const deptId = String(myDept.id || myDept._id || '');
+    const leaves = await apiFetch(`/leaves?department_id=${deptId}`);
     const sorted = (leaves || []).sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
 
     const tbody = document.getElementById('dhLeaveBody');
@@ -153,7 +161,8 @@ async function reviewLeave(leaveId, decision) {
 async function loadDeptPayslips() {
   if (!myDept) return;
   try {
-    const slips = await apiFetch(`/payslips?department_id=${myDept.id}`);
+    const deptId = String(myDept.id || myDept._id || '');
+    const slips = await apiFetch(`/payslips?department_id=${deptId}`);
     const sorted = (slips || []).sort((a, b) => {
       if (b.year !== a.year) return b.year - a.year;
       return b.month - a.month;
@@ -256,7 +265,7 @@ async function submitPayslip(e) {
   const payload = {
     employee_id:   empId,
     employee_name: empName,
-    department_id: myDept.id,
+    department_id: String(myDept.id || myDept._id || ''),
     month, year,
     basic_salary:  basic,
     allowances:    allow,

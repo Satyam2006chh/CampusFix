@@ -232,12 +232,14 @@ let allEmployees = [];
 async function loadEmployees() {
   if (!myDept) return;
   try {
-    // Fetch ALL users — filter fully client-side to avoid json-server
-    // type coercion issues (department_id stored as number OR string)
+    // Fetch ALL users — filter client-side to avoid type coercion issues.
+    // department_id can be stored as number OR string in JSON DB, and
+    // myDept.id / myDept._id can both appear depending on the proxy path.
     const allUsers = await apiFetch('/users');
+    const deptId = String(myDept.id || myDept._id || '');
     allEmployees = allUsers.filter(u =>
       u.role === 'employee' &&
-      String(u.department_id) === String(myDept.id)
+      String(u.department_id) === deptId
     );
     renderEmployees();
   } catch (err) { console.error('loadEmployees error:', err); }
@@ -472,7 +474,7 @@ async function submitEmployee(e) {
     designation:   document.getElementById('empDesig').value.trim(),
     phone:         document.getElementById('empPhone').value.trim(),
     role:          'employee',
-    department_id: myDept.id,
+    department_id: String(myDept.id || myDept._id || ''),
     availability:  'Available',
     is_active:     1
   };
