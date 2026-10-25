@@ -1314,4 +1314,68 @@ select option {
   background: #161a29;
 }
 
+/* AI Chat Response Markdown & Spacing Typography */
+.ai-response-formatted {
+  font-size: 0.86rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+.ai-response-formatted p {
+  margin: 0 0 10px 0;
+  line-height: 1.6;
+}
+.ai-response-formatted p:last-child {
+  margin-bottom: 0;
+}
+.ai-response-formatted strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+.ai-response-formatted em {
+  color: #cbd5e1;
+  font-style: italic;
+}
+.ai-response-formatted ul,
+.ai-response-formatted ol {
+  margin: 6px 0 10px 0;
+  padding-left: 20px;
+}
+.ai-response-formatted li {
+  margin-bottom: 5px;
+  line-height: 1.55;
+  color: #cbd5e1;
+}
+.ai-response-formatted li:last-child {
+  margin-bottom: 0;
+}
+.ai-response-formatted ul li::marker {
+  color: #818cf8;
+}
+.ai-response-formatted ol li::marker {
+  color: #a78bfa;
+  font-weight: 600;
+}
+.ai-response-formatted h3,
+.ai-response-formatted h4,
+.ai-response-formatted h5 {
+  color: #f8fafc;
+  font-weight: 700;
+  margin: 12px 0 6px 0;
+  font-size: 0.92rem;
+}
+.ai-response-formatted h3:first-child,
+.ai-response-formatted h4:first-child {
+  margin-top: 0;
+}
+.ai-response-formatted code.ai-inline-code {
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.28);
+  color: #c7d2fe;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 0.82rem;
+  font-family: monospace;
+}
+
+
 

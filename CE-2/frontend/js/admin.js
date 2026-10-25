@@ -1478,6 +1478,107 @@ function askCopilotPredefined(text) {
 }
 window.askCopilotPredefined = askCopilotPredefined;
 
+function formatInlineMarkdown(str) {
+  if (!str) return '';
+  return str
+    .replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+    .replace(/(?<![*\w])\*([^*]+)\*(?![*\w])/g, '<em>$1</em>')
+    .replace(/(?<![_\w])_([^_]+)_(?![_\w])/g, '<em>$1</em>');
+}
+
+function formatAiResponse(rawText) {
+  if (!rawText) return '';
+
+  // 1. Sanitize HTML entities to prevent XSS vulnerabilities
+  let text = String(rawText)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+  // Normalize line breaks
+  text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').trim();
+
+  // 2. Process blocks separated by double line breaks
+  const rawBlocks = text.split(/\n{2,}/);
+  const formattedBlocks = [];
+
+  for (const block of rawBlocks) {
+    const trimmedBlock = block.trim();
+    if (!trimmedBlock) continue;
+    const lines = trimmedBlock.split('\n');
+
+    let inList = false;
+    let listType = null;
+    let pBuffer = [];
+    let blockHtml = '';
+
+    const flushPBuffer = () => {
+      if (pBuffer.length > 0) {
+        blockHtml += '<p>' + pBuffer.map(formatInlineMarkdown).join('<br>') + '</p>';
+        pBuffer = [];
+      }
+    };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const isUl = /^[-*•]\s+/.test(line);
+      const isOl = /^\d+\.\s+/.test(line);
+
+      if (isUl) {
+        flushPBuffer();
+        if (!inList || listType !== 'ul') {
+          if (inList) blockHtml += listType === 'ul' ? '</ul>' : '</ol>';
+          blockHtml += '<ul>';
+          inList = true;
+          listType = 'ul';
+        }
+        blockHtml += '<li>' + formatInlineMarkdown(line.replace(/^[-*•]\s+/, '')) + '</li>';
+      } else if (isOl) {
+        flushPBuffer();
+        if (!inList || listType !== 'ol') {
+          if (inList) blockHtml += listType === 'ul' ? '</ul>' : '</ol>';
+          blockHtml += '<ol>';
+          inList = true;
+          listType = 'ol';
+        }
+        blockHtml += '<li>' + formatInlineMarkdown(line.replace(/^\d+\.\s+/, '')) + '</li>';
+      } else if (/^#{1,4}\s+/.test(line) && lines.length === 1) {
+        flushPBuffer();
+        if (inList) {
+          blockHtml += listType === 'ul' ? '</ul>' : '</ol>';
+          inList = false;
+          listType = null;
+        }
+        const level = (line.match(/^#+/) || ['###'])[0].length;
+        const tag = level <= 2 ? 'h3' : 'h4';
+        blockHtml += `<${tag}>${formatInlineMarkdown(line.replace(/^#+\s*/, ''))}</${tag}>`;
+      } else {
+        if (inList) {
+          blockHtml += listType === 'ul' ? '</ul>' : '</ol>';
+          inList = false;
+          listType = null;
+        }
+        pBuffer.push(line);
+      }
+    }
+
+    flushPBuffer();
+    if (inList) {
+      blockHtml += listType === 'ul' ? '</ul>' : '</ol>';
+    }
+
+    if (blockHtml) formattedBlocks.push(blockHtml);
+  }
+
+  return formattedBlocks.join('');
+}
+
 async function submitAiCopilotQuery(e) {
   if (e) e.preventDefault();
   const input = document.getElementById('aiCopilotInput');
@@ -1513,7 +1614,7 @@ async function submitAiCopilotQuery(e) {
 
     if (!res || !res.success) throw new Error(res?.message || 'Failed to query copilot');
 
-    let contentHtml = `<p style="margin:0 0 8px 0; line-height:1.5;">${res.answer}</p>`;
+    let contentHtml = `<div class="ai-response-formatted">${formatAiResponse(res.answer)}</div>`;
 
     // Render supporting data table if relevant
     if (res.queryType === 'overdue' && res.supportingData?.tickets?.length > 0) {
