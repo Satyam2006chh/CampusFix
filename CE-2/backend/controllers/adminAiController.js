@@ -766,11 +766,15 @@ const auditAttendanceAnomalies = async (req, res) => {
 // @access  Admin only
 const auditPayrollAnomalies = async (req, res) => {
   try {
-    const slips = await Payslip.find()
+    let slips = await Payslip.find()
       .populate('employee_id', 'name email role')
       .populate('department_id', 'name')
       .sort({ createdAt: -1 })
       .lean();
+
+    if (req.query && req.query.role) {
+      slips = slips.filter(s => s.employee_id && s.employee_id.role === req.query.role);
+    }
 
     const seenCombos = new Set();
     const anomalies = [];

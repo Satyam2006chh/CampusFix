@@ -1377,5 +1377,73 @@ select option {
   font-family: monospace;
 }
 
+/* ─── Re-audit Vouchers Button Styling ────────────────────── */
+#btnReauditPayroll,
+.btn-reaudit-vouchers {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  background: rgba(99, 102, 241, 0.12);
+  color: #c7d2fe;
+  border: 1px solid rgba(99, 102, 241, 0.35);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  user-select: none;
+}
+
+#btnReauditPayroll:hover,
+.btn-reaudit-vouchers:hover {
+  background: rgba(99, 102, 241, 0.25);
+  border-color: rgba(129, 140, 248, 0.8);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+#btnReauditPayroll:active,
+.btn-reaudit-vouchers:active {
+  transform: scale(0.96) translateY(0);
+  background: rgba(99, 102, 241, 0.35);
+}
+
+#btnReauditPayroll.is-auditing,
+.btn-reaudit-vouchers.is-auditing {
+  opacity: 0.8;
+  cursor: wait;
+  pointer-events: none;
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(129, 140, 248, 0.6);
+  color: #e0e7ff;
+}
+
+#btnReauditPayroll.is-audited,
+.btn-reaudit-vouchers.is-audited {
+  background: rgba(16, 185, 129, 0.2);
+  border-color: rgba(52, 211, 153, 0.6);
+  color: #34d399;
+}
+
+.reaudit-spin-icon {
+  display: inline-block;
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.is-auditing .reaudit-spin-icon {
+  animation: reauditSpin 0.75s linear infinite;
+}
+
+@keyframes reauditSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 
 

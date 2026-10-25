@@ -1843,13 +1843,37 @@ async function loadAttendanceAnomaliesAdmin() {
 async function loadPayrollAnomaliesAdmin() {
   const container = document.getElementById('adminPayrollAnomalyList');
   const badge = document.getElementById('adminPayrollAnomalyBadge');
+  const btn = document.getElementById('btnReauditPayroll') || document.querySelector('.btn-reaudit-vouchers');
   if (!container) return;
 
+  // Immediate visual feedback on the button
+  if (btn) {
+    btn.classList.add('is-auditing');
+    btn.innerHTML = `<svg class="reaudit-spin-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Auditing...</span>`;
+  }
+  container.style.opacity = '0.6';
+
+  const resetBtn = (success = true) => {
+    if (!btn) return;
+    btn.classList.remove('is-auditing');
+    if (success) {
+      btn.classList.add('is-audited');
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <span>Audited</span>`;
+      setTimeout(() => {
+        btn.classList.remove('is-audited');
+        btn.innerHTML = `<svg class="reaudit-spin-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Re-audit Vouchers</span>`;
+      }, 1400);
+    } else {
+      btn.innerHTML = `<svg class="reaudit-spin-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Re-audit Vouchers</span>`;
+    }
+  };
+
   try {
-    const res = await apiFetch('/ai/admin/payroll-audit');
+    const res = await apiFetch('/ai/admin/payroll-audit?role=dept_head');
     if (!res || !res.success || !res.anomalies?.length) {
-      container.innerHTML = `<span style="color:var(--success);">✓ All ${res.totalVouchersAudited || 0} payroll vouchers match approved compensation baselines with zero duplicate entries. Projected quarterly disbursements: ₹${(res.projectedQuarterExpenditure || 0).toLocaleString()}.</span>`;
+      container.innerHTML = `<span style="color:var(--success);">✓ All ${res.totalVouchersAudited || 0} Head payroll voucher(s) match approved compensation baselines with zero duplicate entries. Projected quarterly disbursements: ₹${(res.projectedQuarterExpenditure || 0).toLocaleString()}.</span>`;
       if (badge) badge.style.display = 'none';
+      resetBtn(true);
       return;
     }
 
@@ -1873,8 +1897,12 @@ async function loadPayrollAnomaliesAdmin() {
         `).join('')}
       </div>
     `;
+    resetBtn(true);
   } catch (err) {
     container.innerHTML = '<span style="color:var(--text-muted);">Payroll integrity scan currently unavailable.</span>';
+    resetBtn(false);
+  } finally {
+    container.style.opacity = '1';
   }
 }
 
