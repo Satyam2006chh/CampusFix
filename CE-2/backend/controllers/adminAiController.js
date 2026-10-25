@@ -231,8 +231,8 @@ const askCopilot = async (req, res) => {
       });
 
       deterministicAnswer = overdueFiltered.length > 0
-        ? `There are currently ${overdueFiltered.length} overdue complaints across campus. The department with the highest overdue count is ${topDept} with ${topCount} ticket(s).`
-        : `There are currently no overdue complaints across any campus department.`;
+        ? `There are currently **${overdueFiltered.length} overdue complaint(s)** recorded across campus. Here is a breakdown of the departments currently affected.\n\n- **Total Overdue Complaints:** ${overdueFiltered.length}\n- **Highest Department:** ${topDept} (${topCount} ticket(s))\n- **Affected Departments:** ${Object.keys(byDept).length || 'None'}\n\nPlease review these high-priority tickets on the complaint dashboard to ensure timely resolution.`
+        : `Good news! **There are currently no overdue complaints** recorded across the campus for the selected period. This indicates that no complaints currently meet the system's overdue criteria.\n\n- **Total Overdue Complaints:** 0\n- **Affected Departments:** None\n- **Affected Locations:** None\n\nContinue monitoring the complaint dashboard to track any changes in resolution status.`;
 
       supportingData = {
         totalOverdue: overdueFiltered.length,
@@ -250,11 +250,12 @@ const askCopilot = async (req, res) => {
       const lateList = atts.filter(a => a.status === 'Late' || a.status === 'Late_1' || a.status === 'Late_2');
       const presentCount = atts.filter(a => a.clock_in).length;
 
-      deterministicAnswer = `${lateList.length} Department Head(s) arrived late today out of ${presentCount} clocked in (Total active heads: ${heads.length}).`;
+      deterministicAnswer = `Based on the available attendance records, **${lateList.length} department heads are marked as late today**. Here's the current attendance summary.\n\n- **Total Department Heads:** ${heads.length}\n- **Present Today:** ${presentCount}\n- **Late Today:** ${lateList.length}\n- **Attendance Records:** ${atts.length} recorded entry/entries for today${lateList.length > 0 ? '\n- **Late Arrivals:** ' + lateList.map(a => `${a.employee_id?.name || 'Head'} (${a.clock_in || 'Late'})`).join(', ') : ''}\n\n${lateList.length > 0 ? 'You may follow up with the respective department heads regarding their delayed clock-in.' : 'Since no late arrivals are recorded, there are currently no late-arrival cases to highlight. The number of present employees should be interpreted separately from the late-arrival count.'}`;
       supportingData = {
         totalHeads: heads.length,
         presentToday: presentCount,
         lateToday: lateList.length,
+        recordsFound: atts.length,
         lateHeads: lateList.map(a => ({
           name: a.employee_id?.name || 'Dept Head',
           clockIn: a.clock_in || 'N/A',
@@ -276,7 +277,7 @@ const askCopilot = async (req, res) => {
       const topBlock = sorted[0] ? sorted[0][0] : 'None';
       const topCount = sorted[0] ? sorted[0][1] : 0;
 
-      deterministicAnswer = `The campus block with the highest number of reported issues is ${topBlock} with ${topCount} complaints.`;
+      deterministicAnswer = `Based on campus complaint reports, **${topBlock} is currently the primary maintenance hotspot**. Here's an overview of the location distribution.\n\n- **Top Hotspot Location:** ${topBlock}\n- **Complaints Logged:** ${topCount} ticket(s)\n- **Active Campus Blocks:** ${Object.keys(blockCounts).length}\n\nScheduling proactive maintenance inspections in ${topBlock} can help resolve recurring issues before they escalate.`;
       supportingData = {
         topBlock,
         topCount,
@@ -286,7 +287,7 @@ const askCopilot = async (req, res) => {
     // 4. Resolution time
     else if (q.includes('resolution') || q.includes('time') || q.includes('hours') || q.includes('average')) {
       queryType = 'resolution';
-      deterministicAnswer = `The average complaint resolution time across all campus departments is approximately ${metrics.complaints.avgResolutionHours} hours (based on ${metrics.complaints.resolved} resolved tickets).`;
+      deterministicAnswer = `Across all campus departments, the **average complaint resolution time is currently ${metrics.complaints.avgResolutionHours} hours**. Here is the current resolution breakdown.\n\n- **Average Resolution Duration:** ${metrics.complaints.avgResolutionHours} hours\n- **Total Resolved Tickets:** ${metrics.complaints.resolved}\n- **Active Complaint Backlog:** ${metrics.complaints.pending + metrics.complaints.inProgress} tickets\n\nThis benchmark offers a healthy baseline for monitoring department responsiveness and meeting campus SLAs.`;
       supportingData = {
         avgResolutionHours: metrics.complaints.avgResolutionHours,
         totalResolved: metrics.complaints.resolved
@@ -302,7 +303,18 @@ const askCopilot = async (req, res) => {
 
       const headLeaves = pendingLeaves.filter(l => l.employee_id?.role === 'dept_head');
 
-      deterministicAnswer = `There are ${pendingLeaves.length} total pending leave requests across campus, of which ${headLeaves.length} require your direct review as Super Admin (from Department Heads).`;
+      const leaveDetails = pendingLeaves.map(l =>
+        `- **Employee:** ${l.employee_name || l.employee_id?.name || 'Staff'}\n` +
+        `- **Department:** ${l.department_id?.name || 'General'}\n` +
+        `- **Leave Type:** ${l.leave_type || 'Leave'}\n` +
+        `- **Leave Dates:** ${l.from_date || 'N/A'}–${l.to_date || 'N/A'}\n` +
+        `- **Current Status:** ${l.employee_id?.role === 'dept_head' ? 'Awaiting Super Admin review' : 'Awaiting Department Head review'}`
+      ).join('\n\n');
+
+      deterministicAnswer = `There is currently **${pendingLeaves.length} leave request awaiting approval** across the campus. Here's a quick overview of the request and its current status.\n\n` +
+        (leaveDetails || '- **Status:** None pending') +
+        `\n\n${headLeaves.length > 0 ? 'The request is currently pending at the Super Admin level, so the next step is to complete your administrative review.' : 'The request is currently pending at the Department Head level, so the next step is to complete the review through the existing approval workflow.'}`;
+
       supportingData = {
         totalPending: pendingLeaves.length,
         headPending: headLeaves.length,
@@ -318,32 +330,46 @@ const askCopilot = async (req, res) => {
     // 6. General campus statistics
     else {
       queryType = 'general_summary';
-      deterministicAnswer = `Campus Operations Summary: ${metrics.complaints.total} total tickets (${metrics.complaints.pending} pending, ${metrics.complaints.inProgress} in progress, ${metrics.complaints.resolved} resolved). ${metrics.attendance.presentHeads}/${metrics.attendance.totalHeads} Department Heads clocked in today with ${metrics.workforce.pendingLeavesCount} leave applications awaiting decision.`;
+      deterministicAnswer = `Here is a quick overview of today's **Campus Operations Summary**.\n\n- **Complaints Overview:** ${metrics.complaints.total} total (${metrics.complaints.pending} pending, ${metrics.complaints.inProgress} in progress, ${metrics.complaints.resolved} resolved)\n- **Department Head Attendance:** ${metrics.attendance.presentHeads}/${metrics.attendance.totalHeads} present (${metrics.attendance.lateHeads} marked late)\n- **Pending Leave Applications:** ${metrics.workforce.pendingLeavesCount} awaiting review\n\nOverall campus operations are steady, and you can delve into any department directly from the dashboard above.`;
       supportingData = metrics;
     }
 
     // Enhance response with Gemini AI natural synthesis
     let finalExplanation = deterministicAnswer;
     try {
-      const prompt = `You are the CampusFix AI Data Copilot for Chitkara University administration.
-The user asked: "${question}"
+      const prompt = `You are Ask CampusFix AI, a friendly, intelligent, and professional campus administrative assistant for Chitkara University administration.
+The administrator asked: "${question}"
 
-Here is the exact, verified data from the MongoDB database:
+Verified Database Data:
 ${deterministicAnswer}
 Supporting Context: ${JSON.stringify(supportingData)}
 
-Provide a direct, polished, executive response that:
-1. Answers the user's question clearly in 1-2 paragraphs.
-2. Cites the exact numbers and departments provided above.
-3. Suggests a helpful administrative insight or next step.
-Do not fabricate numbers or speculate outside the verified data.`;
+DESIRED PERSONALITY & RESPONSE STRUCTURE:
+1. Tone & Persona:
+   - Friendly, approachable, intelligent, and professional.
+   - Use natural, polite conversational English; sound helpful rather than robotic, blunt, or overly formal.
+   - Avoid one-line answers that lack context.
+   - Provide enough explanation to understand the situation in approximately 10–20 seconds without overwhelming the reader.
+
+2. Structure:
+   - Introduction: A short, friendly opening sentence answering the question directly with appropriate context (e.g., "There is currently **1 leave request awaiting approval** across the campus. Here's a quick overview of the request and its current status." or "Good news! **There are currently no overdue complaints** recorded across the campus for the selected period. This indicates that no complaints currently meet the system's overdue criteria.").
+   - Key Details: 3–5 clean, well-spaced bullet points with bold labels for names, numbers, statuses, departments, and dates:
+     - **Label:** Value
+   - Brief Conclusion / Next Step: 1–2 short, relevant sentences explaining what the result means or an appropriate next step based strictly on system data (e.g., "Continue monitoring the complaint dashboard to track any changes in resolution status.").
+
+3. Critical Rules:
+   - Stick strictly to the verified data above. Never invent numbers, dates, or assumptions.
+   - Never claim all complaints are resolved if the data only confirms that none are overdue.
+   - Never claim everyone arrived on time if attendance records do not confirm it; if attendance data is incomplete or 0 present, explain that limitation politely.
+   - Avoid long paragraphs, repetitive information, or unrelated suggestions.
+   - Keep existing Markdown bold (**text**) and bullet point formatting.`;
 
       const aiText = await generateAiContent(prompt, { maxTokens: 400 });
       if (aiText && aiText.trim().length > 10) {
         finalExplanation = aiText.trim();
       }
     } catch (e) {
-      // Deterministic answer already set
+      // Deterministic answer already formatted
     }
 
     res.json({
