@@ -99,6 +99,15 @@ const seed = async () => {
         department_id: waterDept._id,
         is_active: 1,
       },
+      {
+        name: 'Kamlesh',
+        email: 'kamlesh@gmail.com',
+        password: await bcrypt.hash('Kamlesh@123', 10),
+        role: 'dept_head',
+        department_id: waterDept._id,
+        phone: '8998988998',
+        is_active: 1,
+      },
       // Students
       {
         name: 'Satyam',
@@ -174,6 +183,7 @@ const seed = async () => {
     console.log('  Admin:     admin@campusfix.com  / admin@123');
     console.log('  Dept Head: ramesh@gmail.com     / password123  (Electrical)');
     console.log('  Dept Head: suresh@gmail.com     / password123  (Plumbing)');
+    console.log('  Dept Head: kamlesh@gmail.com    / Kamlesh@123  (Plumbing)');
     console.log('  Student:   satyam@gmail.com     / Satyam@123');
     console.log('  Employee:  vikram@campusfix.com / Employee@123 (Electrician)');
     console.log('  Employee:  krishna@gmail.com    / Krishna@123  (Plumber)');
