@@ -134,6 +134,17 @@ const seed = async () => {
       },
       // Employees – Plumbing
       {
+        name: 'krishna',
+        email: 'krishna@gmail.com',
+        password: await bcrypt.hash('Krishna@123', 10),
+        role: 'employee',
+        department_id: waterDept._id,
+        designation: 'Senior Plumber',
+        phone: '8989898989',
+        availability: 'Available',
+        is_active: 1,
+      },
+      {
         name: 'Mohan Lal',
         email: 'mohan@campusfix.com',
         password: await bcrypt.hash('Employee@123', 10),
@@ -165,6 +176,7 @@ const seed = async () => {
     console.log('  Dept Head: suresh@gmail.com     / password123  (Plumbing)');
     console.log('  Student:   satyam@gmail.com     / Satyam@123');
     console.log('  Employee:  vikram@campusfix.com / Employee@123 (Electrician)');
+    console.log('  Employee:  krishna@gmail.com    / Krishna@123  (Plumber)');
   } catch (err) {
     console.error('❌ Seed error:', err.message);
   } finally {
