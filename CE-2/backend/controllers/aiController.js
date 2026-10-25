@@ -4,8 +4,8 @@
 // ============================================================
 
 const GROQ_ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
-const PRIMARY_MODEL = 'openai/gpt-oss-120b';
-const FALLBACK_MODEL = 'qwen/qwen3.8-27b';
+const PRIMARY_MODEL = process.env.GROQ_PRIMARY_MODEL || 'openai/gpt-oss-120b';
+const FALLBACK_MODEL = process.env.GROQ_FALLBACK_MODEL || 'qwen/qwen3.8-27b';
 
 async function callGroqChat(messages, jsonFormat = false) {
   const apiKey = process.env.GROQ_API_KEY;
