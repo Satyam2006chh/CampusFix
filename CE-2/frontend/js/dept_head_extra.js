@@ -12,13 +12,17 @@ const _origSwitchTab = window.switchTab;
 window.switchTab = function(tabId) {
   if (typeof _origSwitchTab === 'function') _origSwitchTab(tabId);
   // Lazy-load tab data on first visit
-  if (tabId === 'dh-attendance') loadDeptAttendance();
-  if (tabId === 'dh-leaves')     loadDeptLeaves();
-  if (tabId === 'dh-payslips')   { loadDeptPayslips(); populatePayslipEmpSelect(); }
+  if (tabId === 'dh-my-attendance') loadHeadMyAttendance();
+  if (tabId === 'dh-attendance')    loadDeptAttendance();
+  if (tabId === 'dh-leaves')        loadDeptLeaves();
+  if (tabId === 'dh-payslips')      { loadDeptPayslips(); populatePayslipEmpSelect(); }
 };
 
 // ── Populate employee filter on DOMContentLoaded ────────────
 document.addEventListener('DOMContentLoaded', () => {
+  // Check head's own attendance on load
+  loadHeadMyAttendance();
+
   // Populate filter select once myDept is ready (poll briefly)
   const interval = setInterval(() => {
     if (typeof allEmployees !== 'undefined' && allEmployees.length > 0) {
@@ -35,6 +39,271 @@ function populateAttEmpFilter() {
   (allEmployees || []).forEach(e => {
     sel.innerHTML += `<option value="${e.id}">${e.name}</option>`;
   });
+}
+
+// ── DEPT HEAD OWN ATTENDANCE ──────────────────────────────
+const CAMPUS_LAT = 30.5094;
+const CAMPUS_LNG = 76.6566;
+const CAMPUS_RADIUS = 500; // 500 metres geofence radius
+let todayHeadRecord = null;
+
+function getHeadDistanceMetres(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const toRad = d => (d * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLng / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function getHeadCurrentPosition() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve({ lat: CAMPUS_LAT, lng: CAMPUS_LNG, simulated: true });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      err => {
+        console.warn('Geolocation fallback used:', err.message);
+        resolve({ lat: CAMPUS_LAT, lng: CAMPUS_LNG, simulated: true });
+      },
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+    );
+  });
+}
+
+function isHeadOnCampus(lat, lng) {
+  const dist = getHeadDistanceMetres(lat, lng, CAMPUS_LAT, CAMPUS_LNG);
+  return { onCampus: dist <= CAMPUS_RADIUS, distance: Math.round(dist) };
+}
+
+function getHeadTimeCategory(timeStr) {
+  if (timeStr < '09:00') return { status: 'Present', label: 'On Time', isLate: false };
+  if (timeStr <= '09:30') return { status: 'Late_1', label: 'Slightly Late', isLate: true };
+  return { status: 'Late_2', label: 'Late', isLate: true };
+}
+
+function updateHeadClockBtn() {
+  const btn = document.getElementById('dhHeadClockBtn');
+  const label = document.getElementById('dhHeadClockBtnLabel');
+  const banner = document.getElementById('dhHeadClockStatusBanner');
+  const timeSpan = document.getElementById('dhHeadClockInTimeText');
+
+  if (!btn || !label) return;
+
+  if (!todayHeadRecord) {
+    btn.disabled = false;
+    btn.className = 'btn-primary';
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    label.textContent = 'Clock In';
+    if (banner) banner.style.display = 'none';
+  } else if (!todayHeadRecord.clock_out) {
+    btn.disabled = false;
+    btn.className = 'btn-primary';
+    btn.style.opacity = '1';
+    btn.style.cursor = 'pointer';
+    btn.style.background = 'var(--danger, #ef4444)';
+    label.textContent = 'Clock Out';
+    if (banner) {
+      banner.style.display = 'block';
+      banner.style.borderColor = 'var(--success)';
+      banner.style.background = 'var(--success-bg)';
+      banner.style.color = 'var(--success)';
+      if (timeSpan) timeSpan.textContent = todayHeadRecord.clock_in;
+    }
+  } else {
+    btn.disabled = true;
+    btn.style.opacity = '0.65';
+    btn.style.cursor = 'not-allowed';
+    btn.style.background = 'var(--bg-tertiary)';
+    btn.style.color = 'var(--text-muted)';
+    label.textContent = 'Shift Completed';
+    if (banner) {
+      banner.style.display = 'block';
+      banner.style.borderColor = 'var(--accent)';
+      banner.style.background = 'rgba(99,102,241,0.08)';
+      banner.style.color = 'var(--accent)';
+      banner.innerHTML = `✓ You completed your shift today (${todayHeadRecord.clock_in} — ${todayHeadRecord.clock_out}, <strong>${todayHeadRecord.working_hours || 0} hrs</strong>).`;
+    }
+  }
+}
+
+async function loadHeadMyAttendance() {
+  if (!currentUser || !currentUser.id) return;
+  const tbody = document.getElementById('dhHeadMyAttendanceBody');
+  if (!tbody) return;
+
+  try {
+    const records = await apiFetch(`/attendance?employee_id=${currentUser.id}`);
+    const today = new Date().toISOString().split('T')[0];
+
+    // Find today's record
+    todayHeadRecord = (records || []).find(r => r.date === today) || null;
+    updateHeadClockBtn();
+
+    // Calculate monthly KPIs
+    const currentYearMonth = today.slice(0, 7);
+    const thisMonthRecords = (records || []).filter(r => r.date && r.date.startsWith(currentYearMonth));
+
+    let presentDays = thisMonthRecords.length;
+    let onTimeDays = thisMonthRecords.filter(r => r.status === 'Present').length;
+    let lateDays = thisMonthRecords.filter(r => r.status === 'Late_1' || r.status === 'Late_2' || r.status === 'Late').length;
+    let totalHours = thisMonthRecords.reduce((acc, r) => acc + (parseFloat(r.working_hours) || 0), 0);
+    let avgHours = presentDays > 0 ? (totalHours / presentDays).toFixed(1) : '0.0';
+
+    const pEl = document.getElementById('dhHeadPresentCount');
+    const oEl = document.getElementById('dhHeadOnTimeCount');
+    const lEl = document.getElementById('dhHeadLateCount');
+    const aEl = document.getElementById('dhHeadAvgHours');
+    if (pEl) pEl.textContent = presentDays;
+    if (oEl) oEl.textContent = onTimeDays;
+    if (lEl) lEl.textContent = lateDays;
+    if (aEl) aEl.innerHTML = `${avgHours} <span style="font-size:0.9rem;font-weight:600;">Hrs</span>`;
+
+    // Sort records descending by date
+    const sorted = [...(records || [])].sort((a, b) => b.date.localeCompare(a.date));
+
+    tbody.innerHTML = '';
+    if (sorted.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">No attendance records found yet. Click <strong>Clock In</strong> to begin today's shift!</td></tr>`;
+      return;
+    }
+
+    sorted.forEach(r => {
+      const statusClass = r.status === 'Present'
+        ? 'status-closed'
+        : (r.status === 'Late_1' || r.status === 'Late') ? 'status-pending'
+        : 'status-reopened';
+      const displayStatus = r.status === 'Late_1' ? 'Slightly Late'
+        : r.status === 'Late_2' ? 'Late'
+        : (r.status || 'Present');
+
+      tbody.innerHTML += `
+        <tr>
+          <td style="font-weight:600;color:var(--text-primary);">${r.date}</td>
+          <td>${r.clock_in || '—'}</td>
+          <td>${r.clock_out || '—'}</td>
+          <td>${r.working_hours ? r.working_hours.toFixed(1) + ' hrs' : (r.clock_out ? '0.0 hrs' : 'In Progress')}</td>
+          <td><span style="font-size:0.8rem;color:var(--text-muted);background:var(--bg-tertiary);padding:3px 8px;border-radius:6px;">Regular</span></td>
+          <td><span class="status-badge ${statusClass}">${displayStatus}</span></td>
+        </tr>`;
+    });
+  } catch (err) {
+    console.error('loadHeadMyAttendance error:', err);
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--danger);padding:24px;">Failed to load attendance records.</td></tr>`;
+  }
+}
+
+async function handleHeadClockAction() {
+  if (todayHeadRecord && todayHeadRecord.clock_out) {
+    showCustomAlert('Shift Completed', 'You have already completed your attendance shift for today.');
+    return;
+  }
+
+  const btn = document.getElementById('dhHeadClockBtn');
+  const label = document.getElementById('dhHeadClockBtnLabel');
+  if (btn) btn.disabled = true;
+  if (label) label.textContent = 'Verifying Location…';
+
+  const now = new Date();
+  const today = now.toISOString().split('T')[0];
+  const timeStr = now.toTimeString().slice(0, 5);
+
+  let coords;
+  try {
+    coords = await getHeadCurrentPosition();
+  } catch (err) {
+    if (btn) btn.disabled = false;
+    updateHeadClockBtn();
+    showCustomAlert('Location Error', 'Unable to retrieve location coordinates.');
+    return;
+  }
+
+  const { onCampus, distance } = isHeadOnCampus(coords.lat, coords.lng);
+
+  if (!onCampus && !coords.simulated) {
+    if (btn) btn.disabled = false;
+    updateHeadClockBtn();
+    showCustomAlert('📍 Campus Geofence Alert', `You appear to be ${distance}m away from Chitkara University campus.\nAttendance must be marked within campus grounds.`);
+    return;
+  }
+
+  // Clock In
+  if (!todayHeadRecord) {
+    const { status, label: timeLabel, isLate } = getHeadTimeCategory(timeStr);
+    const deptId = currentUser.department_id || (myDept && (myDept.id || myDept._id)) || null;
+
+    try {
+      const newRecord = await apiFetch('/attendance', {
+        method: 'POST',
+        body: JSON.stringify({
+          employee_id: currentUser.id,
+          date: today,
+          clock_in: timeStr,
+          clock_in_lat: coords.lat,
+          clock_in_lng: coords.lng,
+          day_type: 'Regular',
+          status,
+          is_late: isLate,
+          department_id: deptId ? String(deptId) : null,
+        }),
+      });
+
+      todayHeadRecord = newRecord;
+      updateHeadClockBtn();
+      loadHeadMyAttendance();
+
+      let msg = `Clocked in successfully at ${timeStr}.`;
+      if (status === 'Present') msg += '\n✅ On time arrival.';
+      else if (status === 'Late_1') msg += '\n🟡 Slightly late (9:00 - 9:30 AM).';
+      else msg += '\n🔴 Late arrival (after 9:30 AM).';
+      msg += '\nYour attendance record has been logged for Campus Admin review.';
+
+      showCustomAlert(`Clock In — ${timeLabel}`, msg);
+    } catch (err) {
+      if (btn) btn.disabled = false;
+      updateHeadClockBtn();
+      showCustomAlert('Clock In Failed', err.message || 'Unable to record attendance.');
+    }
+  } else {
+    // Clock Out
+    const [inH, inM] = todayHeadRecord.clock_in.split(':').map(Number);
+    const [outH, outM] = timeStr.split(':').map(Number);
+    const rawHours = Math.max(0, ((outH * 60 + outM) - (inH * 60 + inM)) / 60);
+    const effectiveHours = parseFloat(rawHours.toFixed(2));
+
+    const finalStatus = effectiveHours < 4 && todayHeadRecord.status === 'Present'
+      ? 'Early Departure'
+      : todayHeadRecord.status || 'Present';
+
+    try {
+      const recId = todayHeadRecord.id || todayHeadRecord._id;
+      const updated = await apiFetch(`/attendance/${recId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          clock_out: timeStr,
+          clock_out_lat: coords.lat,
+          clock_out_lng: coords.lng,
+          working_hours: effectiveHours,
+          status: finalStatus,
+        }),
+      });
+
+      todayHeadRecord = updated;
+      updateHeadClockBtn();
+      loadHeadMyAttendance();
+
+      showCustomAlert('Shift Completed', `Clocked out at ${timeStr}.\nTotal shift: ${effectiveHours} hours.\nAttendance record updated.`);
+    } catch (err) {
+      if (btn) btn.disabled = false;
+      updateHeadClockBtn();
+      showCustomAlert('Clock Out Failed', err.message || 'Unable to clock out.');
+    }
+  }
 }
 
 // ── ATTENDANCE (Dept Head view) ───────────────────────────

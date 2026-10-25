@@ -86,10 +86,12 @@ function switchTab(tabId) {
     'my-complaints': 'My Complaints',
     'dept-complaints': 'Department Complaints',
     'employees': 'Manage Staff',
-    'dh-attendance': 'Employee Attendance',
+    'dh-my-attendance': 'My Attendance',
+    'dh-attendance': 'Staff Attendance',
     'dh-leaves': 'Leave Requests',
     'dh-payslips': 'Payslips',
     'attendance': 'Attendance',
+    'head-attendance': 'Department Head Attendance Analytics',
     'leave': 'Leave Management',
     'payslips': 'Payslips',
     'my-complaints': 'My Tasks',
@@ -100,10 +102,12 @@ function switchTab(tabId) {
   }
 
   // Auto-load tab data when switching
-  if (tabId === 'my-complaints' && typeof loadMyTasks === 'function') loadMyTasks();
-  if (tabId === 'attendance'    && typeof loadAttendance === 'function') loadAttendance();
-  if (tabId === 'leave'         && typeof loadLeaves === 'function') loadLeaves();
-  if (tabId === 'payslips'      && typeof loadPayslips === 'function') loadPayslips();
+  if (tabId === 'my-complaints'       && typeof loadMyTasks === 'function') loadMyTasks();
+  if (tabId === 'attendance'          && typeof loadAttendance === 'function') loadAttendance();
+  if (tabId === 'dh-my-attendance'    && typeof loadHeadMyAttendance === 'function') loadHeadMyAttendance();
+  if (tabId === 'head-attendance'     && typeof loadHeadAttendanceAnalytics === 'function') loadHeadAttendanceAnalytics();
+  if (tabId === 'leave'               && typeof loadLeaves === 'function') loadLeaves();
+  if (tabId === 'payslips'            && typeof loadPayslips === 'function') loadPayslips();
 }
 
 

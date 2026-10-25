@@ -56,6 +56,12 @@
           Users
         </a>
       </li>
+      <li>
+        <a href="#" class="nav-item" data-tab="head-attendance">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg></span>
+          Head Attendance
+        </a>
+      </li>
     </ul>
 
     <div class="sidebar-bottom">
@@ -214,6 +220,110 @@
           </select>
         </div>
         <div id="usersGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:16px;"></div>
+      </section>
+
+      <!-- ── TAB: HEAD ATTENDANCE ANALYTICS ── -->
+      <section id="tab-head-attendance" class="tab-pane">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-primary);">Department Head Attendance Analytics</h3>
+            <p style="font-size:0.84rem; color:var(--text-muted); margin-top:3px;">Monitor, analyze, and audit daily attendance, shift punctuality, and geofence compliance of Department Heads.</p>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-ghost" onclick="loadHeadAttendanceAnalytics()" style="display:flex; align-items:center; gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+              Refresh
+            </button>
+            <button class="btn-primary" onclick="exportHeadAttendanceReport()" style="display:flex; align-items:center; gap:6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export Report
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit, minmax(210px, 1fr)); margin-bottom:24px;">
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Total Dept Heads</span></div>
+              <span class="sc-value" id="adminHeadTotalHeads">0</span>
+            </div>
+            <div class="sc-icon-box indigo">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Present Today</span></div>
+              <span class="sc-value" id="adminHeadPresentToday">0</span>
+            </div>
+            <div class="sc-icon-box green">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">On-Time Rate</span></div>
+              <span class="sc-value" id="adminHeadOnTimeRate">0%</span>
+            </div>
+            <div class="sc-icon-box blue">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Late / Absent Today</span></div>
+              <span class="sc-value" id="adminHeadLateCount">0</span>
+            </div>
+            <div class="sc-icon-box yellow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Row -->
+        <div class="filter-row" style="margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+          <select id="adminHeadDeptFilter" onchange="filterHeadAttendance()" style="min-width:180px;">
+            <option value="">All Departments</option>
+          </select>
+          <input type="date" id="adminHeadDateFilter" onchange="filterHeadAttendance()" style="max-width:180px;" />
+          <select id="adminHeadStatusFilter" onchange="filterHeadAttendance()" style="min-width:150px;">
+            <option value="">All Statuses</option>
+            <option value="Present">Present (On Time)</option>
+            <option value="Late">Late Arrival</option>
+            <option value="Early Departure">Early Departure</option>
+            <option value="Absent">Not Clocked In (Absent)</option>
+          </select>
+          <input type="text" id="adminHeadSearchInput" placeholder="Search head by name or email..." oninput="filterHeadAttendance()" style="flex:1; min-width:200px;" />
+          <button class="btn-ghost" onclick="resetHeadAttendanceFilters()" style="padding:8px 14px; font-size:0.82rem;">Reset</button>
+        </div>
+
+        <!-- Geofence Info Notice -->
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; font-size:0.8rem; color:var(--text-muted);">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>Attendance logs verify campus coordinates against Chitkara University (30.5094° N, 76.6566° E, 500m geofence radius).</span>
+        </div>
+
+        <!-- Head Attendance Table -->
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Department Head</th>
+                <th>Department</th>
+                <th>Date</th>
+                <th>Punch In</th>
+                <th>Punch Out</th>
+                <th>Hours Worked</th>
+                <th>Punctuality / Status</th>
+                <th>Geofence Audit</th>
+              </tr>
+            </thead>
+            <tbody id="adminHeadAttendanceTableBody">
+              <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:32px;">Loading Department Head attendance analytics...</td></tr>
+            </tbody>
+          </table>
+        </div>
       </section>
 
     </div>

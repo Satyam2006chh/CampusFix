@@ -2,7 +2,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   if (currentUser.role !== "admin") { window.location.href = "login.html"; return; }
-  loadStats(); loadAllComplaints(); loadDepartments(); loadLocations(); loadUsers();
+  loadStats(); loadAllComplaints(); loadDepartments(); loadLocations(); loadUsers(); loadHeadAttendanceAnalytics();
 });
 
 async function loadStats() {
@@ -396,4 +396,330 @@ async function submitEditHead(e) {
   } catch (err) {
     showCustomAlert("Error", err.message || "Failed.");
   }
+}
+
+// ── DEPARTMENT HEAD ATTENDANCE ANALYTICS ────────────────────
+let allHeadAttendanceRecords = [];
+let allDeptHeadsList = [];
+let allDepartmentsList = [];
+
+async function loadHeadAttendanceAnalytics() {
+  const tbody = document.getElementById('adminHeadAttendanceTableBody');
+  if (!tbody) return;
+
+  try {
+    const [heads, depts, attendances] = await Promise.all([
+      apiFetch('/users?role=dept_head'),
+      apiFetch('/departments'),
+      apiFetch('/attendance?role=dept_head')
+    ]);
+
+    allDeptHeadsList = heads || [];
+    allDepartmentsList = depts || [];
+    allHeadAttendanceRecords = attendances || [];
+
+    // Populate department filter
+    const deptFilter = document.getElementById('adminHeadDeptFilter');
+    if (deptFilter && deptFilter.options.length <= 1) {
+      deptFilter.innerHTML = '<option value="">All Departments</option>';
+      allDepartmentsList.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id || d._id;
+        opt.textContent = d.name;
+        deptFilter.appendChild(opt);
+      });
+    }
+
+    // Default to today if date input is empty
+    const dateInput = document.getElementById('adminHeadDateFilter');
+    if (dateInput && !dateInput.value) {
+      dateInput.value = new Date().toISOString().split('T')[0];
+    }
+
+    filterHeadAttendance();
+  } catch (err) {
+    console.error('loadHeadAttendanceAnalytics error:', err);
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--danger);padding:32px;">Failed to load Department Head attendance analytics.</td></tr>`;
+  }
+}
+
+function filterHeadAttendance() {
+  const tbody = document.getElementById('adminHeadAttendanceTableBody');
+  if (!tbody) return;
+
+  const deptFilter = document.getElementById('adminHeadDeptFilter')?.value || '';
+  const dateFilter = document.getElementById('adminHeadDateFilter')?.value || '';
+  const statusFilter = document.getElementById('adminHeadStatusFilter')?.value || '';
+  const searchFilter = (document.getElementById('adminHeadSearchInput')?.value || '').toLowerCase().trim();
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  const targetDate = dateFilter || todayStr;
+
+  // Compute KPI metrics for the target date
+  const headsInDept = deptFilter
+    ? allDeptHeadsList.filter(h => String(h.department_id) === String(deptFilter))
+    : allDeptHeadsList;
+
+  const recordsOnTargetDate = allHeadAttendanceRecords.filter(r => r.date === targetDate);
+  const presentHeadIds = new Set(recordsOnTargetDate.map(r => {
+    return r.employee_id && typeof r.employee_id === 'object'
+      ? String(r.employee_id._id || r.employee_id.id)
+      : String(r.employee_id);
+  }));
+
+  const presentCount = headsInDept.filter(h => presentHeadIds.has(String(h.id || h._id))).length;
+  const onTimeCount = recordsOnTargetDate.filter(r => {
+    const hId = r.employee_id && typeof r.employee_id === 'object'
+      ? String(r.employee_id._id || r.employee_id.id)
+      : String(r.employee_id);
+    const isInDept = headsInDept.some(h => String(h.id || h._id) === hId);
+    return isInDept && r.status === 'Present';
+  }).length;
+
+  const lateCount = recordsOnTargetDate.filter(r => {
+    const hId = r.employee_id && typeof r.employee_id === 'object'
+      ? String(r.employee_id._id || r.employee_id.id)
+      : String(r.employee_id);
+    const isInDept = headsInDept.some(h => String(h.id || h._id) === hId);
+    return isInDept && (r.status === 'Late_1' || r.status === 'Late_2' || r.status === 'Late' || r.status === 'Early Departure');
+  }).length;
+
+  const absentCount = Math.max(0, headsInDept.length - presentCount);
+
+  // Update KPI Stat cards
+  const totalHeadsEl = document.getElementById('adminHeadTotalHeads');
+  const presentTodayEl = document.getElementById('adminHeadPresentToday');
+  const onTimeRateEl = document.getElementById('adminHeadOnTimeRate');
+  const lateCountEl = document.getElementById('adminHeadLateCount');
+
+  if (totalHeadsEl) totalHeadsEl.textContent = headsInDept.length;
+  if (presentTodayEl) presentTodayEl.textContent = `${presentCount} / ${headsInDept.length}`;
+  if (onTimeRateEl) {
+    const rate = presentCount > 0 ? Math.round((onTimeCount / presentCount) * 100) : 0;
+    onTimeRateEl.textContent = `${rate}%`;
+  }
+  if (lateCountEl) lateCountEl.textContent = `${lateCount} Late · ${absentCount} Absent`;
+
+  // Build rows: if a specific date is filtered, include all Department Heads (showing Absent if no record)
+  let rows = [];
+
+  if (dateFilter) {
+    headsInDept.forEach(head => {
+      const headId = String(head.id || head._id);
+      const rec = recordsOnTargetDate.find(r => {
+        const empId = r.employee_id && typeof r.employee_id === 'object'
+          ? String(r.employee_id._id || r.employee_id.id)
+          : String(r.employee_id);
+        return empId === headId;
+      });
+
+      const dept = allDepartmentsList.find(d => String(d.id || d._id) === String(head.department_id));
+      const deptName = dept ? dept.name : '—';
+
+      if (rec) {
+        rows.push({
+          headName: head.name,
+          headEmail: head.email,
+          deptName,
+          date: rec.date,
+          clock_in: rec.clock_in || '—',
+          clock_out: rec.clock_out || '—',
+          working_hours: rec.working_hours ? `${rec.working_hours.toFixed(1)} hrs` : (rec.clock_out ? '0.0 hrs' : 'In Progress'),
+          status: rec.status || 'Present',
+          lat: rec.clock_in_lat,
+          lng: rec.clock_in_lng,
+          isAbsent: false,
+        });
+      } else {
+        rows.push({
+          headName: head.name,
+          headEmail: head.email,
+          deptName,
+          date: dateFilter,
+          clock_in: '—',
+          clock_out: '—',
+          working_hours: '—',
+          status: 'Absent',
+          lat: null,
+          lng: null,
+          isAbsent: true,
+        });
+      }
+    });
+  } else {
+    // Show all records across all dates
+    allHeadAttendanceRecords.forEach(rec => {
+      const empId = rec.employee_id && typeof rec.employee_id === 'object'
+        ? String(rec.employee_id._id || rec.employee_id.id)
+        : String(rec.employee_id);
+      const head = allDeptHeadsList.find(h => String(h.id || h._id) === empId);
+      const headName = head ? head.name : (rec.employee_id?.name || 'Dept Head');
+      const headEmail = head ? head.email : (rec.employee_id?.email || '');
+
+      let deptName = '—';
+      if (rec.department_id && typeof rec.department_id === 'object') {
+        deptName = rec.department_id.name;
+      } else {
+        const d = allDepartmentsList.find(dep => String(dep.id || dep._id) === String(rec.department_id || head?.department_id));
+        if (d) deptName = d.name;
+      }
+
+      rows.push({
+        headName,
+        headEmail,
+        deptName,
+        date: rec.date,
+        clock_in: rec.clock_in || '—',
+        clock_out: rec.clock_out || '—',
+        working_hours: rec.working_hours ? `${rec.working_hours.toFixed(1)} hrs` : (rec.clock_out ? '0.0 hrs' : 'In Progress'),
+        status: rec.status || 'Present',
+        lat: rec.clock_in_lat,
+        lng: rec.clock_in_lng,
+        isAbsent: false,
+      });
+    });
+  }
+
+  // Filter rows by Status & Search
+  if (statusFilter) {
+    if (statusFilter === 'Present') {
+      rows = rows.filter(r => r.status === 'Present');
+    } else if (statusFilter === 'Late') {
+      rows = rows.filter(r => r.status === 'Late_1' || r.status === 'Late_2' || r.status === 'Late');
+    } else if (statusFilter === 'Early Departure') {
+      rows = rows.filter(r => r.status === 'Early Departure');
+    } else if (statusFilter === 'Absent') {
+      rows = rows.filter(r => r.isAbsent || r.status === 'Absent');
+    }
+  }
+
+  if (searchFilter) {
+    rows = rows.filter(r =>
+      r.headName.toLowerCase().includes(searchFilter) ||
+      r.headEmail.toLowerCase().includes(searchFilter) ||
+      r.deptName.toLowerCase().includes(searchFilter)
+    );
+  }
+
+  // Sort rows: Absent and Late arrivals at the top if today, else sort by date desc
+  rows.sort((a, b) => {
+    if (a.date !== b.date) return b.date.localeCompare(a.date);
+    return a.headName.localeCompare(b.headName);
+  });
+
+  tbody.innerHTML = '';
+  if (rows.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px;">No attendance records found matching filters.</td></tr>`;
+    return;
+  }
+
+  rows.forEach(r => {
+    let badgeClass = 'status-closed';
+    let displayStatus = 'On Time';
+
+    if (r.isAbsent || r.status === 'Absent') {
+      badgeClass = 'status-reopened';
+      displayStatus = 'Absent';
+    } else if (r.status === 'Late_1') {
+      badgeClass = 'status-pending';
+      displayStatus = 'Slightly Late';
+    } else if (r.status === 'Late_2' || r.status === 'Late') {
+      badgeClass = 'status-reopened';
+      displayStatus = 'Late Arrival';
+    } else if (r.status === 'Early Departure') {
+      badgeClass = 'status-pending';
+      displayStatus = 'Early Departure';
+    } else if (r.status === 'Present') {
+      badgeClass = 'status-closed';
+      displayStatus = 'Present';
+    }
+
+    const geoAudit = (r.lat && r.lng)
+      ? `<span style="font-size:0.78rem;color:var(--success);display:flex;align-items:center;gap:4px;" title="Geofence verified at ${r.lat}, ${r.lng}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          Campus Ground
+         </span>`
+      : `<span style="font-size:0.78rem;color:var(--text-muted);">—</span>`;
+
+    tbody.innerHTML += `
+      <tr>
+        <td>
+          <div style="font-weight:600;color:var(--text-primary);">${r.headName}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">${r.headEmail}</div>
+        </td>
+        <td><span style="font-weight:500;color:var(--text-primary);">${r.deptName}</span></td>
+        <td>${r.date}</td>
+        <td style="font-weight:600;color:var(--text-primary);">${r.clock_in}</td>
+        <td style="font-weight:600;color:var(--text-primary);">${r.clock_out}</td>
+        <td>${r.working_hours}</td>
+        <td><span class="status-badge ${badgeClass}">${displayStatus}</span></td>
+        <td>${geoAudit}</td>
+      </tr>`;
+  });
+}
+
+function resetHeadAttendanceFilters() {
+  const dept = document.getElementById('adminHeadDeptFilter');
+  const date = document.getElementById('adminHeadDateFilter');
+  const status = document.getElementById('adminHeadStatusFilter');
+  const search = document.getElementById('adminHeadSearchInput');
+
+  if (dept) dept.value = '';
+  if (date) date.value = new Date().toISOString().split('T')[0];
+  if (status) status.value = '';
+  if (search) search.value = '';
+
+  filterHeadAttendance();
+}
+
+function exportHeadAttendanceReport() {
+  const dateVal = document.getElementById('adminHeadDateFilter')?.value || 'All Dates';
+  const tableHtml = document.getElementById('adminHeadAttendanceTableBody')?.innerHTML || '';
+
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>CampusFix — Department Head Attendance Analytics</title>
+        <style>
+          body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 24px; color: #1e1b4b; }
+          h2 { margin: 0 0 4px; color: #312e81; }
+          .subtitle { font-size: 0.85rem; color: #64748b; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; }
+          th { text-align: left; padding: 8px 12px; background: #e0e7ff; color: #3730a3; border-bottom: 2px solid #c7d2fe; }
+          td { padding: 8px 12px; border-bottom: 1px solid #e2e8f0; }
+          .status-badge { padding: 3px 8px; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; }
+          .status-closed { background: #dcfce7; color: #15803d; }
+          .status-pending { background: #fef9c3; color: #a16207; }
+          .status-reopened { background: #fee2e2; color: #b91c1c; }
+        </style>
+      </head>
+      <body>
+        <h2>CampusFix — Department Head Attendance Audit</h2>
+        <div class="subtitle">Report Date: ${dateVal} &nbsp;|&nbsp; Chitkara University Campus Administration</div>
+        <table>
+          <thead>
+            <tr>
+              <th>Department Head</th>
+              <th>Department</th>
+              <th>Date</th>
+              <th>Punch In</th>
+              <th>Punch Out</th>
+              <th>Working Hours</th>
+              <th>Punctuality / Status</th>
+              <th>Geofence Audit</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableHtml}
+          </tbody>
+        </table>
+        <div style="margin-top:24px; font-size:0.75rem; color:#94a3b8; text-align:center;">
+          Generated automatically by CampusFix Super Admin Portal &nbsp;|&nbsp; Powered by MongoDB Atlas
+        </div>
+      </body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.print();
 }

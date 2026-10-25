@@ -45,9 +45,15 @@
         </a>
       </li>
       <li>
+        <a href="#" class="nav-item" data-tab="dh-my-attendance">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+          My Attendance
+        </a>
+      </li>
+      <li>
         <a href="#" class="nav-item" data-tab="dh-attendance">
           <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
-          Attendance
+          Staff Attendance
         </a>
       </li>
       <li>
@@ -204,7 +210,95 @@
         </div>
       </section>
 
-      <!-- ── TAB: ATTENDANCE (Dept Head view) ── -->
+      <!-- ── TAB: MY ATTENDANCE (Dept Head clock-in/out) ── -->
+      <section id="tab-dh-my-attendance" class="tab-pane">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);">Department Head Attendance</h3>
+            <p style="font-size:0.84rem;color:var(--text-muted);margin-top:3px;">Mark your daily shift check-in & check-out. Synced directly with Campus Administration.</p>
+          </div>
+          <button class="btn-primary" id="dhHeadClockBtn" onclick="handleHeadClockAction()" style="min-width:160px;display:flex;align-items:center;justify-content:center;gap:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="dhHeadClockBtnLabel">Clock In</span>
+          </button>
+        </div>
+
+        <!-- Campus Geofence Banner -->
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--radius);border:1px solid rgba(99,102,241,0.25);background:rgba(99,102,241,0.06);margin-bottom:22px;font-size:0.84rem;color:var(--text-secondary);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="flex-shrink:0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>Attendance is verified against <strong style="color:var(--text-primary);">Chitkara University Campus Geofence</strong>. Your attendance is analyzed live on the Super Admin Portal.</span>
+        </div>
+
+        <!-- Attendance Stats Grid -->
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));margin-bottom:24px;">
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Days Present (This Month)</span></div>
+              <span class="sc-value" id="dhHeadPresentCount">0</span>
+            </div>
+            <div class="sc-icon-box green">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Punctual / On-Time</span></div>
+              <span class="sc-value" id="dhHeadOnTimeCount">0</span>
+            </div>
+            <div class="sc-icon-box indigo">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Late Arrivals</span></div>
+              <span class="sc-value" id="dhHeadLateCount">0</span>
+            </div>
+            <div class="sc-icon-box yellow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Avg. Hours / Day</span></div>
+              <span class="sc-value" id="dhHeadAvgHours">0.0 <span style="font-size:0.9rem;font-weight:600;">Hrs</span></span>
+            </div>
+            <div class="sc-icon-box blue">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clock-in Active Status Banner -->
+        <div id="dhHeadClockStatusBanner" style="display:none;padding:12px 18px;border-radius:var(--radius);margin-bottom:20px;font-size:0.88rem;font-weight:600;border:1px solid var(--success);background:var(--success-bg);color:var(--success);">
+          ✓ You are currently clocked in today at <span id="dhHeadClockInTimeText">—</span>. Don't forget to Clock Out at shift end.
+        </div>
+
+        <!-- My Attendance History Table -->
+        <div class="section-header-row" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+          <h3 style="font-size:0.95rem;font-weight:700;">My Attendance History</h3>
+          <span style="font-size:0.8rem;color:var(--text-muted);">Stored permanently in MongoDB Atlas</span>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Clock In</th>
+                <th>Clock Out</th>
+                <th>Working Hours</th>
+                <th>Shift Type</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="dhHeadMyAttendanceBody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">Loading attendance records...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── TAB: ATTENDANCE (Dept Head view of Staff) ── -->
       <section id="tab-dh-attendance" class="tab-pane">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
           <div>
