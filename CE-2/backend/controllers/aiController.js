@@ -192,7 +192,95 @@ Description: ${description || ''}`;
   }
 };
 
+// @desc    Analyze rough description to extract title, category, urgency, and polished tech specs
+// @route   POST /api/ai/analyze
+// @access  Public (or authenticated student)
+const analyzeComplaint = async (req, res) => {
+  const { description } = req.body;
+
+  if (!description || description.trim().length < 3) {
+    return res.status(400).json({
+      success: false,
+      message: 'Please write a brief description of the issue first.'
+    });
+  }
+
+  const systemPrompt = `You are an AI campus maintenance operations assistant for CampusFix.
+Analyze the student's informal description of an issue (which may be in English, Hindi/Hinglish, or mixed notes).
+Your task is to accurately extract and generate:
+1. "title": A concise 4-8 word professional ticket title in English (e.g. "Monitor Display Failure with Burning Odor").
+2. "category": Must be EXACTLY ONE of: ["Electrical", "IT", "Water", "Civil", "Cleaning", "Security", "Hostel"].
+   - Electrical: Fans, lights, switchboards, power sockets, sparks, burning smell from appliances/monitors/switchboards, tripping MCBs, wiring.
+   - IT: Lab PCs, classroom monitors (no smoke/burning), networking, Wi-Fi, classroom projectors, sound/podium audio, lab mice/keyboards.
+   - Water: Plumbing, taps, water coolers, washroom flush, leakages, blocked drains.
+   - Civil: Broken doors, windows, desks, chairs, classroom wall/ceiling cracks, floor tiles.
+   - Cleaning: Washroom dirt, garbage, uncleaned classrooms, wet floors.
+   - Security: Broken door locks, missing equipment, CCTV issues, safety hazards.
+   - Hostel: Mess issues, hostel room furniture, warden facilities.
+   *Note: If an electrical device or monitor has smoke, burning smell, or sparking, categorize as "Electrical" due to fire/power hazard.
+3. "urgency": Must be EXACTLY ONE of: ["Low", "Medium", "High"].
+   - High: Burning smell, fire hazard, smoke, electric sparks, exposed live wire, heavy water flooding, immediate hazard.
+   - Medium: Broken equipment disrupting lab/class (projector down, PC not turning on, fan broken, leaking tap).
+   - Low: Minor inconvenience, squeaky chair, aesthetic flaw, can wait a few days.
+4. "polishedDescription": Professional technician specification formatted as:
+**Issue Summary:** [Clear 1-sentence technical overview]
+
+**Observed Symptoms:**
+- [Bullet 1: Specific malfunction observed]
+- [Bullet 2: Physical/operational indicators]
+
+**Safety & Operational Impact:**
+[Brief note on urgency, safety precautions taken or required, or impact on lab/class]
+
+Return ONLY valid JSON matching this schema:
+{
+  "title": "...",
+  "category": "...",
+  "urgency": "...",
+  "polishedDescription": "..."
+}`;
+
+  try {
+    const rawJson = await callGroqChat([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: description.trim() }
+    ], true);
+
+    let parsed = {};
+    try {
+      parsed = JSON.parse(rawJson);
+    } catch (e) {
+      console.warn('JSON parse error from analyzeComplaint Groq response:', e);
+    }
+
+    // Validate category
+    const validCategories = ['Electrical', 'IT', 'Water', 'Civil', 'Cleaning', 'Security', 'Hostel'];
+    let category = validCategories.find(c => c.toLowerCase() === (parsed.category || '').toLowerCase());
+    if (!category) category = 'IT';
+
+    // Validate urgency
+    const validUrgencies = ['Low', 'Medium', 'High'];
+    let urgency = validUrgencies.find(u => u.toLowerCase() === (parsed.urgency || '').toLowerCase());
+    if (!urgency) urgency = 'Medium';
+
+    res.json({
+      success: true,
+      title: parsed.title || 'Campus Maintenance Issue',
+      category: category,
+      urgency: urgency,
+      polishedDescription: parsed.polishedDescription || description.trim()
+    });
+  } catch (err) {
+    console.error('analyzeComplaint error:', err.message);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to analyze complaint: ' + err.message
+    });
+  }
+};
+
 module.exports = {
   polishDescription,
-  evaluateQuickFix
+  evaluateQuickFix,
+  analyzeComplaint
 };

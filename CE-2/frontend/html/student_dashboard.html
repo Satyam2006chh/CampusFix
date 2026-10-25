@@ -135,7 +135,42 @@
 
       <!-- ── TAB: NEW COMPLAINT ── -->
       <section id="tab-new-complaint" class="tab-pane">
-        <div class="form-card">
+        
+        <!-- STEP 1: AI Complaint Starter (Describe first) -->
+        <div id="aiPromptStep" class="ai-starter-card">
+          <div class="ai-pill-badge">
+            <span class="ai-sparkle-icon">✨</span> AI-Powered Issue Reporter
+          </div>
+          <h3 style="font-size:1.25rem; font-weight:700; color:var(--text-primary); margin-bottom:8px;">Describe What's Broken</h3>
+          <p class="form-desc" style="margin-bottom:18px;">
+            Explain the issue in simple words (Hindi, English, or rough notes). Our AI will automatically determine the title, category, urgency level, and prepare technician specifications.
+          </p>
+
+          <div class="form-group" style="margin-bottom:18px;">
+            <label for="aiInitialDesc" style="font-size:0.85rem; font-weight:600; color:var(--text-secondary);">Detailed Description</label>
+            <textarea id="aiInitialDesc" rows="5" placeholder="e.g. 'pc2 ke monitor me se smell burning ki aa rahi h and display nahi chalri' or 'projector blue screen in Lab 301'"></textarea>
+          </div>
+
+          <div id="aiIntakeError" class="form-error hidden" style="margin-bottom:16px;"></div>
+
+          <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+            <button type="button" class="btn-primary" id="btnRunAiIntake" onclick="handleAiIntakeSubmit()" style="padding:11px 24px; display:inline-flex; align-items:center; gap:8px;">
+              <span id="aiIntakeSpinner" class="hidden ai-spin-icon">⚡</span>
+              <span id="aiIntakeBtnText">✨ Analyze &amp; Auto-Fill Form</span>
+            </button>
+            <button type="button" class="btn-ghost" onclick="skipToFullForm()" style="font-size:0.85rem; color:var(--text-muted);">
+              or Fill manually without AI →
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 2: Full Form (Shown after AI analysis or manual skip) -->
+        <div id="complaintFormCard" class="form-card hidden">
+          <div id="aiAutoFillNotice" class="ai-autofill-banner hidden">
+            <span>✨ <strong>Form Auto-Filled by AI:</strong> Title, category, urgency &amp; tech specs prepared. Please select your <strong>Location</strong> below.</span>
+            <a href="javascript:void(0)" onclick="backToAiStarter()">← Re-describe with AI</a>
+          </div>
+
           <h3>Report a New Issue</h3>
           <p class="form-desc">Provide details about the issue to help the maintenance team locate and fix it faster.</p>
 
@@ -164,7 +199,7 @@
               <div class="form-group">
                 <label for="cLocation">Location</label>
                 <select id="cLocation" required>
-                  <option value="" disabled selected>Loading locations...</option>
+                  <option value="" disabled selected>Select specific location</option>
                 </select>
               </div>
               <div class="form-group">
