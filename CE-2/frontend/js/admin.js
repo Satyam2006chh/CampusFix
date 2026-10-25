@@ -1072,10 +1072,18 @@ function filterHeadPayslipsAdmin() {
   });
 }
 
-function openAdminHeadPayslipModal() {
+async function openAdminHeadPayslipModal() {
   const modal = document.getElementById('adminHeadPayslipModal');
   const sel = document.getElementById('adminHeadPsSelect');
   if (!modal || !sel) return;
+
+  if (!allDeptHeadsList || allDeptHeadsList.length === 0) {
+    try {
+      allDeptHeadsList = await apiFetch('/users?role=dept_head');
+    } catch (err) {
+      console.warn('Failed to fetch heads on modal open:', err);
+    }
+  }
 
   sel.innerHTML = '<option value="" disabled selected>Select a Department Head</option>';
   (allDeptHeadsList || []).forEach(h => {
@@ -1083,7 +1091,10 @@ function openAdminHeadPayslipModal() {
     opt.value = h.id || h._id;
     opt.textContent = `${h.name} (${h.email})`;
     opt.dataset.name = h.name;
-    opt.dataset.dept = h.department_id || '';
+    const dId = h.department_id && typeof h.department_id === 'object'
+      ? (h.department_id._id || h.department_id.id || '')
+      : (h.department_id || '');
+    opt.dataset.dept = dId;
     sel.appendChild(opt);
   });
 
@@ -1130,7 +1141,19 @@ async function submitAdminHeadPayslip(e) {
 
   const selectedOpt = sel.options[sel.selectedIndex];
   const headName = selectedOpt?.dataset.name || 'Dept Head';
-  const deptId = selectedOpt?.dataset.dept || null;
+  
+  // Safe extraction of clean department_id
+  const head = (allDeptHeadsList || []).find(h => String(h.id || h._id) === String(headId));
+  let deptId = null;
+  if (head && head.department_id) {
+    deptId = typeof head.department_id === 'object'
+      ? (head.department_id._id || head.department_id.id)
+      : head.department_id;
+  }
+  if (!deptId || deptId === '[object Object]') {
+    const rawDept = selectedOpt?.dataset.dept;
+    if (rawDept && rawDept !== '[object Object]') deptId = rawDept;
+  }
 
   const month = parseInt(document.getElementById('adminHeadPsMonth')?.value || 1);
   const year = parseInt(document.getElementById('adminHeadPsYear')?.value || 2026);
@@ -1146,7 +1169,7 @@ async function submitAdminHeadPayslip(e) {
   const payload = {
     employee_id: headId,
     employee_name: headName,
-    department_id: deptId ? String(deptId) : null,
+    department_id: (deptId && deptId !== '[object Object]') ? String(deptId) : null,
     month,
     year,
     basic_salary: basic,

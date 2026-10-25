@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Payslip = require('../models/Payslip');
 
 const norm = (p) => ({ ...p, id: p._id });
@@ -47,8 +48,13 @@ const createPayslip = async (req, res) => {
       generated_by: generated_by || 'Admin',
     };
 
-    if (department_id && String(department_id).trim() !== '') {
-      payload.department_id = department_id;
+    if (department_id) {
+      const dId = typeof department_id === 'object'
+        ? (department_id._id || department_id.id)
+        : department_id;
+      if (dId && typeof dId === 'string' && dId !== '[object Object]' && mongoose.Types.ObjectId.isValid(dId)) {
+        payload.department_id = dId;
+      }
     }
 
     const slip = await Payslip.create(payload);

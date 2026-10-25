@@ -241,11 +241,7 @@
             <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-primary);">Department Head Attendance Analytics</h3>
             <p style="font-size:0.84rem; color:var(--text-muted); margin-top:3px;">Monitor, analyze, and audit daily attendance, shift punctuality, and geofence compliance of Department Heads.</p>
           </div>
-          <div style="display:flex; gap:10px;">
-            <button class="btn-ghost" onclick="loadHeadAttendanceAnalytics()" style="display:flex; align-items:center; gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-              Refresh
-            </button>
+          <div>
             <button class="btn-primary" onclick="exportHeadAttendanceReport()" style="display:flex; align-items:center; gap:6px;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Export Report
@@ -340,15 +336,9 @@
 
       <!-- ── TAB: HEAD LEAVE MANAGEMENT ── -->
       <section id="tab-head-leaves" class="tab-pane">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
-          <div>
-            <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-primary);">Department Head Leave Management</h3>
-            <p style="font-size:0.84rem; color:var(--text-muted); margin-top:3px;">Review, approve, or reject leave requests submitted by Department Heads across all campus divisions.</p>
-          </div>
-          <button class="btn-ghost" onclick="loadHeadLeavesAdmin()" style="display:flex; align-items:center; gap:6px;">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-            Refresh
-          </button>
+        <div style="margin-bottom:20px;">
+          <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-primary);">Department Head Leave Management</h3>
+          <p style="font-size:0.84rem; color:var(--text-muted); margin-top:3px;">Review, approve, or reject leave requests submitted by Department Heads across all campus divisions.</p>
         </div>
 
         <!-- KPI Cards -->
@@ -435,11 +425,7 @@
             <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-primary);">Department Head Payslip Management</h3>
             <p style="font-size:0.84rem; color:var(--text-muted); margin-top:3px;">Issue, manage, and audit monthly salary payslips for all Department Heads.</p>
           </div>
-          <div style="display:flex; gap:10px;">
-            <button class="btn-ghost" onclick="loadHeadPayslipsAdmin()" style="display:flex; align-items:center; gap:6px;">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-              Refresh
-            </button>
+          <div>
             <button class="btn-primary" onclick="openAdminHeadPayslipModal()" style="display:flex; align-items:center; gap:6px;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               + Issue Head Payslip
@@ -679,6 +665,10 @@
           <button type="button" class="btn-ghost" onclick="closeModals()">Cancel</button>
           <button type="submit" class="btn-primary">Add Location</button>
         </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ── MODAL: ISSUE HEAD PAYSLIP ── -->
   <div id="adminHeadPayslipModal" class="modal hidden">
     <div class="modal-content" style="max-width:520px;">
