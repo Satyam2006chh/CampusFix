@@ -275,7 +275,184 @@ const seed = async () => {
     ]);
     console.log(`✅ Seeded ${users.length} users`);
 
-    console.log('\n🎉 Database seeded successfully!');
+    // Helper references for seeding related collections
+    const satyam = users.find(u => u.email === 'satyam@gmail.com');
+    const raman = users.find(u => u.email === 'raman@gmail.com');
+    const krishna = users.find(u => u.email === 'krishna@gmail.com');
+    const anil = users.find(u => u.email === 'anil@campusfix.com');
+    const vikram = users.find(u => u.email === 'vikram@campusfix.com');
+    const kamlesh = users.find(u => u.email === 'kamlesh@gmail.com');
+
+    // ── Complaints ───────────────────────────────────────────
+    const complaints = await Complaint.insertMany([
+      {
+        title: 'Fan not working in Lab 1',
+        category: 'Electrical',
+        location_id: locations[7]._id,
+        location_desc: 'Block A, Ground Floor, Lab 1',
+        urgency: 'High',
+        description: 'Ceiling fan #2 in Lab 1 is making a humming sound and not spinning.',
+        user_id: satyam._id,
+        user_name: 'Satyam',
+        status: 'In Progress',
+        upvote_count: 3,
+        assigned_to_id: vikram._id,
+        assigned_to_name: 'Vikram Singh',
+        deadline: '2026-10-28',
+      },
+      {
+        title: 'Water not coming in Washroom',
+        category: 'Plumbing & Water',
+        location_id: locations[6]._id,
+        location_desc: 'Block A, First Floor, Washroom',
+        urgency: 'Medium',
+        description: 'No running water in all three washroom taps since morning.',
+        user_id: satyam._id,
+        user_name: 'Satyam',
+        status: 'Closed',
+        upvote_count: 2,
+        assigned_to_id: krishna._id,
+        assigned_to_name: 'krishna',
+        deadline: '2026-10-27',
+      },
+      {
+        title: 'Monitor Burning Smell and No Display',
+        category: 'Electrical',
+        location_id: locations[2]._id,
+        location_desc: 'Hostel Block B, Room 201-210',
+        urgency: 'High',
+        description: 'Burning odor coming from PC monitor in room while screen remains completely black. Fire hazard.',
+        user_id: raman._id,
+        user_name: 'Raman',
+        status: 'Pending',
+        upvote_count: 0,
+        assigned_to_id: anil._id,
+        assigned_to_name: 'Anil Kumar',
+      },
+      {
+        title: 'Leaking Pipe under Cafeteria Sink',
+        category: 'Plumbing & Water',
+        location_id: locations[18]._id,
+        location_desc: 'Block C, Ground Floor, Cafeteria',
+        urgency: 'Medium',
+        description: 'Constant water dripping from junction pipe under main hand-wash counter.',
+        user_id: satyam._id,
+        user_name: 'Satyam',
+        status: 'In Progress',
+        upvote_count: 1,
+        assigned_to_id: krishna._id,
+        assigned_to_name: 'krishna',
+        deadline: '2026-10-29',
+      },
+      {
+        title: 'Broken Desk Bench in Classroom 101',
+        category: 'Carpentry & Furniture',
+        location_id: locations[4]._id,
+        location_desc: 'Block A, First Floor, Classroom 101',
+        urgency: 'Low',
+        description: 'Row 3 bench wooden plank has cracked and screws are loose.',
+        user_id: raman._id,
+        user_name: 'Raman',
+        status: 'Pending',
+        upvote_count: 0,
+      },
+      {
+        title: 'Water Seepage on Corridor Wall',
+        category: 'Civil & Infrastructure',
+        location_id: locations[9]._id,
+        location_desc: 'Block A, Ground Floor, Corridor',
+        urgency: 'Medium',
+        description: 'Plaster peeling and damp spots near water cooler area.',
+        user_id: satyam._id,
+        user_name: 'Satyam',
+        status: 'Pending',
+        upvote_count: 0,
+      },
+    ]);
+    console.log(`✅ Seeded ${complaints.length} complaints`);
+
+    // ── Attendance ───────────────────────────────────────────
+    const attendances = await Attendance.insertMany([
+      {
+        employee_id: krishna._id,
+        date: '2026-10-25',
+        clock_in: '08:50',
+        clock_out: '17:05',
+        working_hours: 8.25,
+        day_type: 'Regular',
+        status: 'Present',
+        department_id: waterDept._id,
+      },
+      {
+        employee_id: vikram._id,
+        date: '2026-10-25',
+        clock_in: '08:45',
+        clock_out: '17:00',
+        working_hours: 8.25,
+        day_type: 'Regular',
+        status: 'Present',
+        department_id: elecDept._id,
+      },
+    ]);
+    console.log(`✅ Seeded ${attendances.length} attendance records`);
+
+    // ── Leaves ───────────────────────────────────────────────
+    const leaves = await Leave.insertMany([
+      {
+        employee_id: krishna._id,
+        employee_name: 'krishna',
+        department_id: waterDept._id,
+        leave_type: 'Sick Leave',
+        from_date: '2026-10-26',
+        to_date: '2026-10-28',
+        reason: 'Viral fever and doctor advised rest',
+        status: 'Approved',
+        reviewed_by: 'kamlesh',
+        reviewed_at: '2026-10-25',
+      },
+      {
+        employee_id: vikram._id,
+        employee_name: 'Vikram Singh',
+        department_id: elecDept._id,
+        leave_type: 'Casual Leave',
+        from_date: '2026-11-02',
+        to_date: '2026-11-03',
+        reason: 'Personal family commitments',
+        status: 'Pending',
+      },
+    ]);
+    console.log(`✅ Seeded ${leaves.length} leave requests`);
+
+    // ── Payslips ─────────────────────────────────────────────
+    const payslips = await Payslip.insertMany([
+      {
+        employee_id: krishna._id,
+        employee_name: 'krishna',
+        department_id: waterDept._id,
+        month: 10,
+        year: 2026,
+        basic_salary: 34000,
+        allowances: 900,
+        deductions: 0,
+        net_salary: 34900,
+        generated_by: 'suresh',
+      },
+      {
+        employee_id: vikram._id,
+        employee_name: 'Vikram Singh',
+        department_id: elecDept._id,
+        month: 10,
+        year: 2026,
+        basic_salary: 32000,
+        allowances: 800,
+        deductions: 500,
+        net_salary: 32300,
+        generated_by: 'ramesh',
+      },
+    ]);
+    console.log(`✅ Seeded ${payslips.length} payslips`);
+
+    console.log('\n🎉 ALL COLLECTIONS SUCCESSFULLY SEEDED IN MONGODB ATLAS!');
     console.log('\n📋 Login credentials summary:');
     console.log('  Admin:      admin@campusfix.com  / admin@123');
     console.log('  Dept Head:  ramesh@gmail.com     / password123  (Electrical)');

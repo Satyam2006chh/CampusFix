@@ -249,27 +249,14 @@ const resetPassword = async (req, res) => {
   }
 
   try {
-    let passwordToStore = newPassword;
-    if (process.env.USE_JSON_DB !== 'true') {
-      const salt = await bcrypt.genSalt(10);
-      passwordToStore = await bcrypt.hash(newPassword, salt);
-    }
+    const salt = await bcrypt.genSalt(10);
+    const passwordToStore = await bcrypt.hash(newPassword, salt);
 
-    let updated = null;
-    if (typeof User.findOneAndUpdate === 'function') {
-      updated = await User.findOneAndUpdate({ email: emailLower }, { password: passwordToStore });
-    } else {
-      const user = await User.findOne({ email: emailLower });
-      if (user) {
-        user.password = passwordToStore;
-        if (typeof user.save === 'function') {
-          await user.save();
-        } else {
-          await User.findByIdAndUpdate(user._id || user.id, { password: passwordToStore });
-        }
-        updated = user;
-      }
-    }
+    const updated = await User.findOneAndUpdate(
+      { email: emailLower },
+      { password: passwordToStore },
+      { new: true }
+    );
 
     if (!updated) {
       return res.status(404).json({ success: false, message: 'User not found.' });
