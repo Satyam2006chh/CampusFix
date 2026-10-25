@@ -263,8 +263,7 @@
       if (!email.endsWith('@' + INTERNAL_COLLEGE_DOMAIN)) {
         // Plain email detected -> DO NOT SEND OTP OR EMAIL
         domainCard.classList.remove('hidden');
-        errorEl.textContent = 'Only official college email ID is permitted for accessing this application.';
-        errorEl.classList.remove('hidden');
+        errorEl.classList.add('hidden'); // Keep downside warning hidden, upper red card is shown
         return;
       }
 
@@ -288,9 +287,11 @@
         } else {
           if (data.code === 'DOMAIN_BLOCKED') {
             domainCard.classList.remove('hidden');
+            errorEl.classList.add('hidden');
+          } else {
+            errorEl.textContent = data.message || 'Failed to send verification code. Please try again.';
+            errorEl.classList.remove('hidden');
           }
-          errorEl.textContent = data.message || 'Failed to send verification code. Please try again.';
-          errorEl.classList.remove('hidden');
         }
       } catch (err) {
         errorEl.textContent = 'Cannot connect to backend server. Make sure port 5000 is running.';
@@ -435,9 +436,9 @@
           verifyBtn.style.background = '#10b981';
           clearInterval(otpTimerInterval);
 
-          // Redirect to login page as requested
+          // Redirect to Student Portal login page (Screenshot 3)
           setTimeout(() => {
-            window.location.href = 'login.html';
+            window.location.href = 'login.html?portal=student&email=' + encodeURIComponent(pendingRegistrationData.email) + '&registered=true';
           }, 1200);
         } else {
           otpError.textContent = data.message || 'Invalid or expired verification code.';
