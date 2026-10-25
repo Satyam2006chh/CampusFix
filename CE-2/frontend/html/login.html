@@ -133,13 +133,17 @@
         <p class="auth-footer-note">© 2026 CampusFix. All rights reserved.</p>
       </div>
 
-      <!-- Login form (shown after role selection) -->
+      <!-- Login form (shown after role selection - Screenshot 3) -->
       <div class="auth-panel hidden" id="loginPanel">
         <button class="back-btn" onclick="showPortalSelect()">← Back to portals</button>
 
         <div class="login-role-badge" id="loginRoleBadge"></div>
         <h2 class="auth-panel-title" id="loginTitle">Sign In</h2>
         <p class="auth-panel-sub" id="loginSubtitle">Enter your credentials to continue</p>
+
+        <!-- Registration or Reset Success Banner -->
+        <div id="loginSuccessBanner" class="hidden" style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:12px 14px; margin-bottom:18px; color:#34d399; font-size:0.85rem; font-weight:600; line-height:1.4;">
+        </div>
 
         <!-- Standard Form (email + password) -->
         <form id="loginForm" onsubmit="handleLogin(event)">
@@ -156,6 +160,12 @@
               </button>
             </div>
           </div>
+
+          <!-- Forgot Password Link -->
+          <div style="display:flex; justify-content:flex-end; margin-top:-6px; margin-bottom:16px;">
+            <a href="javascript:void(0)" onclick="openForgotPassword()" class="forgot-link" style="font-size:0.82rem; color:var(--accent); text-decoration:none; font-weight:600; cursor:pointer;">Forgot Password?</a>
+          </div>
+
           <div id="loginError" class="form-error hidden">Invalid email or password. Please try again.</div>
           <button type="submit" class="btn-primary btn-full" id="loginSubmitBtn">
             <span id="loginBtnText">Sign In →</span>
@@ -167,6 +177,113 @@
         </div>
 
         <p class="auth-footer-note">© 2026 CampusFix. All rights reserved.</p>
+      </div>
+
+      <!-- Forgot Password Flow Panel -->
+      <div class="auth-panel hidden" id="forgotPasswordPanel">
+        <button class="back-btn" onclick="backToLoginFromForgot()">← Back to Sign In</button>
+
+        <!-- Step 1: Request Reset Code -->
+        <div id="forgotStep1">
+          <div class="login-role-badge">Account Recovery</div>
+          <h2 class="auth-panel-title">Reset Password</h2>
+          <p class="auth-panel-sub">Enter your registered college email to receive a verification code.</p>
+
+          <!-- Domain Blocked Error Card -->
+          <div id="forgotDomainCard" class="domain-blocked-card hidden">
+            <div class="domain-blocked-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            </div>
+            <div class="domain-blocked-title">Official College Email Required</div>
+            <p class="domain-blocked-text">
+              Only official college email IDs are registered on CampusFix. Personal email accounts cannot be used.
+            </p>
+          </div>
+
+          <form onsubmit="handleSendForgotOtp(event)" id="forgotEmailForm">
+            <div class="form-group">
+              <label for="forgotEmail">College Email Address</label>
+              <input type="email" id="forgotEmail" placeholder="e.g. yourname.roll@college.edu.in" required autocomplete="email" />
+            </div>
+            <div id="forgotError1" class="form-error hidden" style="margin-bottom:14px;"></div>
+            <button type="submit" class="btn-primary btn-full" id="forgotSubmitBtn1">
+              <span id="forgotSubmitBtnText1">Send Verification Code →</span>
+            </button>
+          </form>
+        </div>
+
+        <!-- Step 2: Enter 6-digit OTP -->
+        <div id="forgotStep2" class="hidden">
+          <div class="otp-card">
+            <div class="otp-header-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            </div>
+            <h2 class="auth-panel-title">Verify Reset Code</h2>
+            <p class="auth-panel-sub" style="margin-bottom:8px;">
+              We have sent a 6-digit security code to:
+            </p>
+            <div id="forgotTargetEmail" class="otp-email-target">student@college.edu.in</div>
+
+            <div class="otp-inputs-row" id="forgotOtpBoxes">
+              <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" autofocus />
+              <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" />
+              <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" />
+              <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" />
+              <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" />
+              <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" />
+            </div>
+
+            <div class="otp-timer-box">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span>Expires in <strong id="forgotOtpCountdown" class="otp-timer-highlight">10:00</strong></span>
+            </div>
+
+            <div id="forgotError2" class="form-error hidden" style="margin-bottom:16px;"></div>
+
+            <button type="button" class="btn-primary btn-full" id="forgotVerifyBtn" onclick="handleVerifyForgotOtp()">
+              <span id="forgotVerifyBtnText">Verify Code &amp; Continue →</span>
+            </button>
+
+            <div style="margin-top:18px; font-size:0.85rem; color:var(--text-muted);">
+              Didn't receive the email? 
+              <button type="button" class="otp-resend-link" id="forgotResendBtn" onclick="resendForgotOtp()">Resend Code</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Enter New Password & Confirm Password -->
+        <div id="forgotStep3" class="hidden">
+          <div class="login-role-badge">New Password</div>
+          <h2 class="auth-panel-title">Set New Password</h2>
+          <p class="auth-panel-sub">Create a new secure password for your account.</p>
+
+          <form onsubmit="handleResetPassword(event)" id="newPasswordForm">
+            <div class="form-group">
+              <label for="newPasswordInput">New Password</label>
+              <div class="password-wrapper">
+                <input type="password" id="newPasswordInput" placeholder="Enter new strong password" required />
+                <button type="button" class="eye-btn" onclick="togglePasswordVisibility('newPasswordInput')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label for="confirmNewPasswordInput">Confirm New Password</label>
+              <div class="password-wrapper">
+                <input type="password" id="confirmNewPasswordInput" placeholder="Re-enter new password" required />
+                <button type="button" class="eye-btn" onclick="togglePasswordVisibility('confirmNewPasswordInput')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+            <div id="forgotError3" class="form-error hidden" style="margin-bottom:16px;"></div>
+            <button type="submit" class="btn-primary btn-full" id="resetPasswordSubmitBtn">
+              <span id="resetPasswordSubmitBtnText">Update Password &amp; Sign In →</span>
+            </button>
+          </form>
+        </div>
+
+        <p class="auth-footer-note" style="margin-top:28px;">© 2026 CampusFix. All rights reserved.</p>
       </div>
 
     </div>
