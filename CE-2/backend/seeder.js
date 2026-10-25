@@ -43,7 +43,7 @@ const seed = async () => {
     ]);
     console.log(`✅ Seeded ${departments.length} departments`);
 
-    const [, , elecDept, , , waterDept] = departments;
+    const [carpentryDept, civilDept, elecDept, housekeepingDept, itDept, waterDept, securityDept] = departments;
 
     // ── Locations ───────────────────────────────────────────
     const locations = await Location.insertMany([
@@ -74,7 +74,7 @@ const seed = async () => {
 
     // ── Users ────────────────────────────────────────────────
     const users = await User.insertMany([
-      // Admin
+      // 1. Admin
       {
         name: 'Super Admin',
         email: 'admin@campusfix.com',
@@ -82,7 +82,8 @@ const seed = async () => {
         role: 'admin',
         is_active: 1,
       },
-      // Dept Heads
+
+      // 2. Department Heads
       {
         name: 'Ramesh',
         email: 'ramesh@gmail.com',
@@ -108,7 +109,17 @@ const seed = async () => {
         phone: '8998988998',
         is_active: 1,
       },
-      // Students
+      {
+        name: 'Vijay Kumar',
+        email: 'vijay@gmail.com',
+        password: await bcrypt.hash('Vijay@123', 10),
+        role: 'dept_head',
+        department_id: civilDept._id,
+        phone: '9876543210',
+        is_active: 1,
+      },
+
+      // 3. Students
       {
         name: 'Satyam',
         email: 'satyam@gmail.com',
@@ -118,7 +129,26 @@ const seed = async () => {
         role: 'student',
         is_active: 1,
       },
-      // Employees – Electrical
+      {
+        name: 'Raman',
+        email: 'raman@gmail.com',
+        roll_no: '2410993397',
+        phone: '8998987679',
+        password: await bcrypt.hash('Raman@123', 10),
+        role: 'student',
+        is_active: 1,
+      },
+      {
+        name: 'Harsh',
+        email: 'harsh@gmail.com',
+        roll_no: '2410993398',
+        phone: '8998987680',
+        password: await bcrypt.hash('Harsh@123', 10),
+        role: 'student',
+        is_active: 1,
+      },
+
+      // 4. Employees – Electrical & Power
       {
         name: 'Vikram Singh',
         email: 'vikram@campusfix.com',
@@ -141,7 +171,52 @@ const seed = async () => {
         availability: 'Available',
         is_active: 1,
       },
-      // Employees – Plumbing
+      {
+        name: 'Kamal Kumar',
+        email: 'kamal@gmail.com',
+        password: await bcrypt.hash('Kamal@123', 10),
+        role: 'employee',
+        department_id: elecDept._id,
+        designation: 'Junior Electrician',
+        phone: '8877665544',
+        availability: 'Available',
+        is_active: 1,
+      },
+      {
+        name: 'Devender Kumar',
+        email: 'devender@gmail.com',
+        password: await bcrypt.hash('Devender@123', 10),
+        role: 'employee',
+        department_id: elecDept._id,
+        designation: 'Junior Helper',
+        phone: '9988776655',
+        availability: 'Available',
+        is_active: 1,
+      },
+      {
+        name: 'Raju mistri',
+        email: 'raju@gmail.com',
+        password: await bcrypt.hash('Raju@123', 10),
+        role: 'employee',
+        department_id: elecDept._id,
+        designation: 'Dehadi',
+        phone: '7788990011',
+        availability: 'Available',
+        is_active: 1,
+      },
+      {
+        name: 'Bhuvan Sharma',
+        email: 'bhuvan@gmail.com',
+        password: await bcrypt.hash('bhuvan@2123', 10),
+        role: 'employee',
+        department_id: elecDept._id,
+        designation: 'Super Senior',
+        phone: '7878787878',
+        availability: 'Available',
+        is_active: 1,
+      },
+
+      // 5. Employees – Plumbing & Water
       {
         name: 'krishna',
         email: 'krishna@gmail.com',
@@ -175,18 +250,42 @@ const seed = async () => {
         availability: 'Available',
         is_active: 1,
       },
+      {
+        name: 'Santosh Yadav',
+        email: 'santosh@campusfix.com',
+        password: await bcrypt.hash('Employee@123', 10),
+        role: 'employee',
+        department_id: waterDept._id,
+        designation: 'Pipe Fitter',
+        phone: '9876506666',
+        availability: 'Available',
+        is_active: 1,
+      },
+      {
+        name: 'Rajan Sharma',
+        email: 'rajan@gmail.com',
+        password: await bcrypt.hash('Rajan@123', 10),
+        role: 'employee',
+        department_id: waterDept._id,
+        designation: 'Senior Plumber',
+        phone: '7878787878',
+        availability: 'Available',
+        is_active: 1,
+      },
     ]);
     console.log(`✅ Seeded ${users.length} users`);
 
     console.log('\n🎉 Database seeded successfully!');
-    console.log('\n📋 Login credentials:');
-    console.log('  Admin:     admin@campusfix.com  / admin@123');
-    console.log('  Dept Head: ramesh@gmail.com     / password123  (Electrical)');
-    console.log('  Dept Head: suresh@gmail.com     / password123  (Plumbing)');
-    console.log('  Dept Head: kamlesh@gmail.com    / Kamlesh@123  (Plumbing)');
-    console.log('  Student:   satyam@gmail.com     / Satyam@123');
-    console.log('  Employee:  vikram@campusfix.com / Employee@123 (Electrician)');
-    console.log('  Employee:  krishna@gmail.com    / Krishna@123  (Plumber)');
+    console.log('\n📋 Login credentials summary:');
+    console.log('  Admin:      admin@campusfix.com  / admin@123');
+    console.log('  Dept Head:  ramesh@gmail.com     / password123  (Electrical)');
+    console.log('  Dept Head:  suresh@gmail.com     / password123  (Plumbing)');
+    console.log('  Dept Head:  kamlesh@gmail.com    / Kamlesh@123  (Plumbing)');
+    console.log('  Dept Head:  vijay@gmail.com      / Vijay@123    (Civil)');
+    console.log('  Student:    satyam@gmail.com     / Satyam@123');
+    console.log('  Student:    raman@gmail.com      / Raman@123');
+    console.log('  Student:    harsh@gmail.com      / Harsh@123');
+    console.log('  Employees:  krishna, vikram, anil, mohan, ravi, santosh, kamal, devender, raju, bhuvan, rajan');
   } catch (err) {
     console.error('❌ Seed error:', err.message);
   } finally {
