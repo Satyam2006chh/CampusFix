@@ -1804,13 +1804,37 @@ async function openLeaveAdvisorModal(leaveId) {
 async function loadAttendanceAnomaliesAdmin() {
   const container = document.getElementById('adminAttAnomalyList');
   const badge = document.getElementById('adminAttAnomalyBadge');
+  const btn = document.getElementById('btnReauditAttendance') || document.querySelector('.btn-reaudit-logs');
   if (!container) return;
+
+  // Immediate visual feedback on the button
+  if (btn) {
+    btn.classList.add('is-auditing');
+    btn.innerHTML = `<svg class="reaudit-spin-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Auditing...</span>`;
+  }
+  container.style.opacity = '0.6';
+
+  const resetBtn = (success = true) => {
+    if (!btn) return;
+    btn.classList.remove('is-auditing');
+    if (success) {
+      btn.classList.add('is-audited');
+      btn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> <span>Audited</span>`;
+      setTimeout(() => {
+        btn.classList.remove('is-audited');
+        btn.innerHTML = `<svg class="reaudit-spin-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Re-audit Logs</span>`;
+      }, 1400);
+    } else {
+      btn.innerHTML = `<svg class="reaudit-spin-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg> <span>Re-audit Logs</span>`;
+    }
+  };
 
   try {
     const res = await apiFetch('/ai/admin/attendance-audit');
     if (!res || !res.success || !res.anomalies?.length) {
       container.innerHTML = '<span style="color:var(--success);">✓ All recent clock-in records are verified within campus geofence (500m) with standard shift durations.</span>';
       if (badge) badge.style.display = 'none';
+      resetBtn(true);
       return;
     }
 
@@ -1834,8 +1858,12 @@ async function loadAttendanceAnomaliesAdmin() {
         `).join('')}
       </div>
     `;
+    resetBtn(true);
   } catch (err) {
     container.innerHTML = '<span style="color:var(--text-muted);">Attendance scans currently unavailable.</span>';
+    resetBtn(false);
+  } finally {
+    container.style.opacity = '1';
   }
 }
 

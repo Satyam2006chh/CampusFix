@@ -1377,8 +1377,10 @@ select option {
   font-family: monospace;
 }
 
-/* ─── Re-audit Vouchers Button Styling ────────────────────── */
+/* ─── Re-audit Vouchers & Logs Buttons Styling ────────────────────── */
 #btnReauditPayroll,
+#btnReauditAttendance,
+.btn-reaudit-logs,
 .btn-reaudit-vouchers {
   display: inline-flex;
   align-items: center;
@@ -1399,6 +1401,8 @@ select option {
 }
 
 #btnReauditPayroll:hover,
+#btnReauditAttendance:hover,
+.btn-reaudit-logs:hover,
 .btn-reaudit-vouchers:hover {
   background: rgba(99, 102, 241, 0.25);
   border-color: rgba(129, 140, 248, 0.8);
@@ -1408,12 +1412,16 @@ select option {
 }
 
 #btnReauditPayroll:active,
+#btnReauditAttendance:active,
+.btn-reaudit-logs:active,
 .btn-reaudit-vouchers:active {
   transform: scale(0.96) translateY(0);
   background: rgba(99, 102, 241, 0.35);
 }
 
 #btnReauditPayroll.is-auditing,
+#btnReauditAttendance.is-auditing,
+.btn-reaudit-logs.is-auditing,
 .btn-reaudit-vouchers.is-auditing {
   opacity: 0.8;
   cursor: wait;
@@ -1424,6 +1432,8 @@ select option {
 }
 
 #btnReauditPayroll.is-audited,
+#btnReauditAttendance.is-audited,
+.btn-reaudit-logs.is-audited,
 .btn-reaudit-vouchers.is-audited {
   background: rgba(16, 185, 129, 0.2);
   border-color: rgba(52, 211, 153, 0.6);
