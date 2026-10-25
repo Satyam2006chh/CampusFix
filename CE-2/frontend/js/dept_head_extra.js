@@ -372,19 +372,136 @@ async function loadDeptAttendance() {
 }
 
 // ── LEAVE REQUESTS (Dept Head view) ──────────────────────
+function openHeadApplyLeaveModal() {
+  const modal = document.getElementById('headApplyLeaveModal');
+  if (!modal) return;
+  const today = new Date().toISOString().split('T')[0];
+  const fromEl = document.getElementById('headLeaveFrom');
+  const toEl = document.getElementById('headLeaveTo');
+  if (fromEl) { fromEl.min = today; fromEl.value = today; }
+  if (toEl) { toEl.min = today; toEl.value = today; }
+  modal.classList.remove('hidden');
+}
+
+function closeHeadApplyLeaveModal() {
+  const modal = document.getElementById('headApplyLeaveModal');
+  if (!modal) return;
+  modal.classList.add('hidden');
+  document.getElementById('headApplyLeaveForm')?.reset();
+}
+
+async function submitHeadLeave(e) {
+  e.preventDefault();
+  const leaveType = document.getElementById('headLeaveType')?.value;
+  const fromDate  = document.getElementById('headLeaveFrom')?.value;
+  const toDate    = document.getElementById('headLeaveTo')?.value;
+  const reason    = (document.getElementById('headLeaveReason')?.value || '').trim();
+
+  if (!leaveType || !fromDate || !toDate || !reason) {
+    showCustomAlert('Missing Fields', 'Please fill in all leave application details.');
+    return;
+  }
+
+  if (toDate < fromDate) {
+    showCustomAlert('Invalid Dates', 'The end date cannot be earlier than the start date.');
+    return;
+  }
+
+  const deptId = currentUser.department_id || (myDept && (myDept.id || myDept._id)) || null;
+
+  const payload = {
+    employee_id: currentUser.id,
+    employee_name: currentUser.name,
+    department_id: deptId ? String(deptId) : null,
+    leave_type: leaveType,
+    from_date: fromDate,
+    to_date: toDate,
+    reason,
+  };
+
+  try {
+    await apiFetch('/leaves', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    closeHeadApplyLeaveModal();
+    loadHeadMyLeaves();
+    showCustomAlert('Leave Application Submitted', 'Your leave request has been submitted to the Campus Administrator for approval.');
+  } catch (err) {
+    showCustomAlert('Submission Error', err.message || 'Unable to submit leave request.');
+  }
+}
+
+async function loadHeadMyLeaves() {
+  if (!currentUser || !currentUser.id) return;
+  const tbody = document.getElementById('dhMyLeavesBody');
+  if (!tbody) return;
+
+  try {
+    const leaves = await apiFetch(`/leaves?employee_id=${currentUser.id}`);
+    const sorted = (leaves || []).sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
+
+    tbody.innerHTML = '';
+    if (sorted.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px;">You haven't submitted any leave applications yet. Click <strong>Apply for Leave</strong> above.</td></tr>`;
+      return;
+    }
+
+    sorted.forEach(l => {
+      const statusClass = l.status === 'Approved' ? 'status-closed' : l.status === 'Rejected' ? 'status-reopened' : 'status-pending';
+      let adminReview = '—';
+      if (l.status === 'Pending') {
+        adminReview = `<span style="color:var(--text-muted);font-size:0.8rem;display:flex;align-items:center;gap:4px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Awaiting Admin Action
+        </span>`;
+      } else {
+        const revDate = l.reviewed_at ? new Date(l.reviewed_at).toLocaleDateString() : '';
+        adminReview = `<div style="font-size:0.82rem;font-weight:600;color:var(--text-primary);">${l.reviewed_by || 'Admin'}</div>
+                       <div style="font-size:0.74rem;color:var(--text-muted);">${revDate}</div>`;
+      }
+
+      tbody.innerHTML += `
+        <tr>
+          <td style="font-weight:600;color:var(--text-primary);">${l.leave_type}</td>
+          <td style="white-space:nowrap;">${l.from_date} → ${l.to_date}</td>
+          <td style="max-width:220px;color:var(--text-secondary);">${l.reason}</td>
+          <td><span class="status-badge ${statusClass}">${l.status}</span></td>
+          <td>${adminReview}</td>
+        </tr>`;
+    });
+  } catch (err) {
+    console.error('loadHeadMyLeaves error:', err);
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger);padding:24px;">Failed to load your leave applications.</td></tr>`;
+  }
+}
+
 async function loadDeptLeaves() {
   if (!myDept) return;
+  // Always load Head's own leaves too
+  loadHeadMyLeaves();
+
   try {
     const deptId = String(myDept.id || myDept._id || '');
     const leaves = await apiFetch(`/leaves?department_id=${deptId}`);
-    const sorted = (leaves || []).sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
+
+    // Exclude the Dept Head's own requests from staff list
+    const staffLeaves = (leaves || []).filter(l => {
+      const empId = l.employee_id && typeof l.employee_id === 'object'
+        ? String(l.employee_id._id || l.employee_id.id)
+        : String(l.employee_id);
+      return empId !== String(currentUser.id);
+    });
+
+    const sorted = staffLeaves.sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
 
     const tbody = document.getElementById('dhLeaveBody');
     if (!tbody) return;
     tbody.innerHTML = '';
 
     if (sorted.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">No leave applications found.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">No employee leave applications found.</td></tr>`;
       return;
     }
 

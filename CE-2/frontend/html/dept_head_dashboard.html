@@ -326,19 +326,64 @@
 
       <!-- ── TAB: LEAVE REQUESTS (Dept Head view) ── -->
       <section id="tab-dh-leaves" class="tab-pane">
-        <div style="margin-bottom:20px;">
-          <h3 style="font-size:1rem;font-weight:700;color:var(--text-primary);">Leave Management</h3>
-          <p style="font-size:0.82rem;color:var(--text-muted);margin-top:2px;">Review and approve/reject employee leave requests.</p>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h3 style="font-size:1.1rem;font-weight:700;color:var(--text-primary);">Leave Management</h3>
+            <p style="font-size:0.84rem;color:var(--text-muted);margin-top:2px;">Apply for personal leave (reviewed by Super Admin) and manage departmental staff requests.</p>
+          </div>
+          <button class="btn-primary" onclick="openHeadApplyLeaveModal()" style="display:flex;align-items:center;gap:6px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Apply for Leave
+          </button>
         </div>
-        <div class="table-container">
-          <table class="data-table">
-            <thead>
-              <tr><th>Employee</th><th>Type</th><th>Dates</th><th>Reason</th><th>Status</th><th>Actions</th></tr>
-            </thead>
-            <tbody id="dhLeaveBody">
-              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">No leave applications found.</td></tr>
-            </tbody>
-          </table>
+
+        <!-- Section: My Leave Applications -->
+        <div style="margin-bottom:28px;">
+          <div class="section-header-row" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+            <h4 style="font-size:0.95rem;font-weight:700;color:var(--text-primary);">My Leave Applications</h4>
+            <span style="font-size:0.8rem;color:var(--text-muted);">Decided by Campus Administrator</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Leave Type</th>
+                  <th>Dates</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Admin Review Details</th>
+                </tr>
+              </thead>
+              <tbody id="dhMyLeavesBody">
+                <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:24px;">Loading your leave applications...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section: Staff Leave Requests -->
+        <div>
+          <div class="section-header-row" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+            <h4 style="font-size:0.95rem;font-weight:700;color:var(--text-primary);">Department Staff Requests</h4>
+            <span style="font-size:0.8rem;color:var(--text-muted);">Reviewed and Approved by You</span>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>Type</th>
+                  <th>Dates</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="dhLeaveBody">
+                <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px;">No employee leave applications found.</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </section>
 
@@ -543,6 +588,51 @@
         <div class="modal-footer">
           <button type="button" class="btn-ghost" onclick="closePayslipModal()">Cancel</button>
           <button type="submit" class="btn-primary">Generate</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── MODAL: APPLY FOR LEAVE (Dept Head) ── -->
+  <div id="headApplyLeaveModal" class="modal hidden">
+    <div class="modal-content" style="max-width:500px;">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Apply for Leave</h3>
+          <p class="modal-subtitle">Submit your leave request to Campus Administrator.</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeHeadApplyLeaveModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="headApplyLeaveForm" onsubmit="submitHeadLeave(event)">
+        <div class="form-group" style="margin-bottom:14px;">
+          <label>Leave Type</label>
+          <select id="headLeaveType" required>
+            <option value="" disabled selected>Select leave type</option>
+            <option value="Casual Leave">Casual Leave</option>
+            <option value="Sick Leave">Sick Leave</option>
+            <option value="Annual Leave">Annual Leave</option>
+            <option value="Emergency Leave">Emergency Leave</option>
+          </select>
+        </div>
+        <div class="form-row" style="margin-bottom:14px;">
+          <div class="form-group">
+            <label>From Date</label>
+            <input type="date" id="headLeaveFrom" required />
+          </div>
+          <div class="form-group">
+            <label>To Date</label>
+            <input type="date" id="headLeaveTo" required />
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:20px;">
+          <label>Reason for Leave</label>
+          <textarea id="headLeaveReason" rows="3" required placeholder="Provide clear reason or handover details..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" onclick="closeHeadApplyLeaveModal()">Cancel</button>
+          <button type="submit" class="btn-primary">Submit Application</button>
         </div>
       </form>
     </div>

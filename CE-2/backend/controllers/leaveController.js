@@ -2,7 +2,7 @@ const Leave = require('../models/Leave');
 
 const norm = (l) => ({ ...l, id: l._id });
 
-// GET /api/leaves  — ?employee_id=, ?department_id=, ?status=
+// GET /api/leaves  — ?employee_id=, ?department_id=, ?status=, ?role=
 const getLeaves = async (req, res) => {
   try {
     const filter = {};
@@ -10,7 +10,17 @@ const getLeaves = async (req, res) => {
     if (req.query.department_id) filter.department_id = req.query.department_id;
     if (req.query.status)        filter.status        = req.query.status;
 
-    const leaves = await Leave.find(filter).sort({ createdAt: -1 }).lean();
+    let query = Leave.find(filter)
+      .populate('employee_id', 'name email role department_id designation phone')
+      .populate('department_id', 'name')
+      .sort({ createdAt: -1 });
+
+    let leaves = await query.lean();
+
+    if (req.query.role) {
+      leaves = leaves.filter(l => l.employee_id && l.employee_id.role === req.query.role);
+    }
+
     res.json(leaves.map(norm));
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -30,10 +40,13 @@ const createLeave = async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
-// PATCH /api/leaves/:id  — dept head approves/rejects
+// PATCH /api/leaves/:id  — dept head or admin approves/rejects
 const updateLeave = async (req, res) => {
   try {
-    const leave = await Leave.findByIdAndUpdate(req.params.id, req.body, { new: true }).lean();
+    const leave = await Leave.findByIdAndUpdate(req.params.id, req.body, { new: true })
+      .populate('employee_id', 'name email role department_id designation phone')
+      .populate('department_id', 'name')
+      .lean();
     if (!leave) return res.status(404).json({ message: 'Leave not found' });
     res.json(norm(leave));
   } catch (err) { res.status(500).json({ message: err.message }); }

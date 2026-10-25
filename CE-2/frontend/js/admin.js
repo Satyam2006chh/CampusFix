@@ -2,7 +2,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   if (currentUser.role !== "admin") { window.location.href = "login.html"; return; }
-  loadStats(); loadAllComplaints(); loadDepartments(); loadLocations(); loadUsers(); loadHeadAttendanceAnalytics();
+  loadStats(); loadAllComplaints(); loadDepartments(); loadLocations(); loadUsers(); loadHeadAttendanceAnalytics(); loadHeadLeavesAdmin();
 });
 
 async function loadStats() {
@@ -722,4 +722,204 @@ function exportHeadAttendanceReport() {
   `);
   printWindow.document.close();
   printWindow.print();
+}
+
+// ── DEPARTMENT HEAD LEAVE MANAGEMENT (Admin) ──────────────
+let allHeadLeavesList = [];
+
+async function loadHeadLeavesAdmin() {
+  const tbody = document.getElementById('adminHeadLeavesBody');
+  if (!tbody) return;
+
+  try {
+    const [heads, depts, leaves] = await Promise.all([
+      apiFetch('/users?role=dept_head'),
+      apiFetch('/departments'),
+      apiFetch('/leaves?role=dept_head')
+    ]);
+
+    allDeptHeadsList = heads || [];
+    allDepartmentsList = depts || [];
+    allHeadLeavesList = leaves || [];
+
+    // Populate department filter
+    const deptFilter = document.getElementById('adminLeaveDeptFilter');
+    if (deptFilter && deptFilter.options.length <= 1) {
+      deptFilter.innerHTML = '<option value="">All Departments</option>';
+      allDepartmentsList.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id || d._id;
+        opt.textContent = d.name;
+        deptFilter.appendChild(opt);
+      });
+    }
+
+    // Update KPIs
+    const total = allHeadLeavesList.length;
+    const pending = allHeadLeavesList.filter(l => l.status === 'Pending').length;
+    const approved = allHeadLeavesList.filter(l => l.status === 'Approved').length;
+    const rejected = allHeadLeavesList.filter(l => l.status === 'Rejected').length;
+
+    const tEl = document.getElementById('adminLeaveTotal');
+    const pEl = document.getElementById('adminLeavePending');
+    const aEl = document.getElementById('adminLeaveApproved');
+    const rEl = document.getElementById('adminLeaveRejected');
+
+    if (tEl) tEl.textContent = total;
+    if (pEl) pEl.textContent = pending;
+    if (aEl) aEl.textContent = approved;
+    if (rEl) rEl.textContent = rejected;
+
+    filterHeadLeavesAdmin();
+  } catch (err) {
+    console.error('loadHeadLeavesAdmin error:', err);
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--danger);padding:32px;">Failed to load Department Head leave requests.</td></tr>`;
+  }
+}
+
+function filterHeadLeavesAdmin() {
+  const tbody = document.getElementById('adminHeadLeavesBody');
+  if (!tbody) return;
+
+  const deptFilter = document.getElementById('adminLeaveDeptFilter')?.value || '';
+  const statusFilter = document.getElementById('adminLeaveStatusFilter')?.value || '';
+  const searchFilter = (document.getElementById('adminLeaveSearchInput')?.value || '').toLowerCase().trim();
+
+  let filtered = [...allHeadLeavesList];
+
+  if (deptFilter) {
+    filtered = filtered.filter(l => {
+      const dId = l.department_id && typeof l.department_id === 'object'
+        ? String(l.department_id._id || l.department_id.id)
+        : String(l.department_id);
+      return dId === String(deptFilter);
+    });
+  }
+
+  if (statusFilter) {
+    filtered = filtered.filter(l => l.status === statusFilter);
+  }
+
+  if (searchFilter) {
+    filtered = filtered.filter(l => {
+      const empName = (l.employee_name || l.employee_id?.name || '').toLowerCase();
+      const empEmail = (l.employee_id?.email || '').toLowerCase();
+      const reason = (l.reason || '').toLowerCase();
+      const type = (l.leave_type || '').toLowerCase();
+      return empName.includes(searchFilter) || empEmail.includes(searchFilter) || reason.includes(searchFilter) || type.includes(searchFilter);
+    });
+  }
+
+  // Sort: Pending first, then by date descending
+  filtered.sort((a, b) => {
+    if (a.status === 'Pending' && b.status !== 'Pending') return -1;
+    if (a.status !== 'Pending' && b.status === 'Pending') return 1;
+    return new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0);
+  });
+
+  tbody.innerHTML = '';
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:32px;">No Department Head leave requests found.</td></tr>`;
+    return;
+  }
+
+  filtered.forEach(l => {
+    const headName = l.employee_name || l.employee_id?.name || 'Dept Head';
+    const headEmail = l.employee_id?.email || '';
+
+    let deptName = '—';
+    if (l.department_id && typeof l.department_id === 'object') {
+      deptName = l.department_id.name;
+    } else {
+      const d = allDepartmentsList.find(dep => String(dep.id || dep._id) === String(l.department_id));
+      if (d) deptName = d.name;
+    }
+
+    // Calculate days
+    let durationText = `${l.from_date} → ${l.to_date}`;
+    if (l.from_date && l.to_date) {
+      const from = new Date(l.from_date);
+      const to = new Date(l.to_date);
+      const days = Math.round(Math.abs((to - from) / (24 * 60 * 60 * 1000))) + 1;
+      durationText += ` <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600;">(${days} day${days > 1 ? 's' : ''})</span>`;
+    }
+
+    const statusClass = l.status === 'Approved' ? 'status-closed' : l.status === 'Rejected' ? 'status-reopened' : 'status-pending';
+
+    let reviewInfo = '—';
+    if (l.reviewed_by) {
+      const rDate = l.reviewed_at ? new Date(l.reviewed_at).toLocaleDateString() : '';
+      reviewInfo = `<div><strong style="color:var(--text-primary);">${l.reviewed_by}</strong></div>
+                    <div style="font-size:0.75rem;color:var(--text-muted);">${rDate}</div>`;
+    } else if (l.status === 'Pending') {
+      reviewInfo = `<span style="font-size:0.78rem;color:var(--warning);font-weight:500;">Action Required</span>`;
+    }
+
+    let actionsHtml = '—';
+    if (l.status === 'Pending') {
+      actionsHtml = `
+        <div style="display:flex; gap:6px;">
+          <button class="action-btn" style="color:var(--success);border-color:rgba(16,185,129,0.3);font-weight:600;" onclick="reviewHeadLeaveAdmin('${l.id}','Approved')">
+            Approve
+          </button>
+          <button class="action-btn danger" style="font-weight:600;" onclick="reviewHeadLeaveAdmin('${l.id}','Rejected')">
+            Reject
+          </button>
+        </div>`;
+    } else {
+      actionsHtml = `<span style="font-size:0.78rem;color:var(--text-muted);">${l.status}</span>`;
+    }
+
+    tbody.innerHTML += `
+      <tr>
+        <td>
+          <div style="font-weight:600;color:var(--text-primary);">${headName}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">${headEmail}</div>
+        </td>
+        <td><span style="font-weight:500;color:var(--text-primary);">${deptName}</span></td>
+        <td><span style="font-weight:600;color:var(--accent);">${l.leave_type}</span></td>
+        <td style="white-space:nowrap;">${durationText}</td>
+        <td style="max-width:220px;color:var(--text-secondary);font-size:0.82rem;">${l.reason}</td>
+        <td><span class="status-badge ${statusClass}">${l.status}</span></td>
+        <td>${reviewInfo}</td>
+        <td>${actionsHtml}</td>
+      </tr>`;
+  });
+}
+
+async function reviewHeadLeaveAdmin(leaveId, decision) {
+  const action = decision === 'Approved' ? 'approve' : 'reject';
+  showCustomConfirm(
+    `${decision === 'Approved' ? 'Approve' : 'Reject'} Department Head Leave`,
+    `Are you sure you want to ${action} this leave request? The Department Head will see this decision immediately.`,
+    async () => {
+      try {
+        await apiFetch(`/leaves/${leaveId}`, {
+          method: 'PATCH',
+          body: JSON.stringify({
+            status: decision,
+            reviewed_by: currentUser.name || 'Campus Administrator',
+            reviewed_at: new Date().toISOString()
+          })
+        });
+
+        loadHeadLeavesAdmin();
+        showCustomAlert('Leave Updated', `Department Head leave request has been ${decision.toLowerCase()}.`);
+      } catch (err) {
+        showCustomAlert('Error', err.message || 'Failed to update leave request.');
+      }
+    }
+  );
+}
+
+function resetHeadLeavesFilters() {
+  const dept = document.getElementById('adminLeaveDeptFilter');
+  const status = document.getElementById('adminLeaveStatusFilter');
+  const search = document.getElementById('adminLeaveSearchInput');
+
+  if (dept) dept.value = '';
+  if (status) status.value = '';
+  if (search) search.value = '';
+
+  filterHeadLeavesAdmin();
 }

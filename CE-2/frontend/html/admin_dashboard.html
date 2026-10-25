@@ -62,6 +62,12 @@
           Head Attendance
         </a>
       </li>
+      <li>
+        <a href="#" class="nav-item" data-tab="head-leaves">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="9" y1="15" x2="15" y2="15"/></svg></span>
+          Head Leaves
+        </a>
+      </li>
     </ul>
 
     <div class="sidebar-bottom">
@@ -321,6 +327,96 @@
             </thead>
             <tbody id="adminHeadAttendanceTableBody">
               <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:32px;">Loading Department Head attendance analytics...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ── TAB: HEAD LEAVE MANAGEMENT ── -->
+      <section id="tab-head-leaves" class="tab-pane">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h3 style="font-size:1.15rem; font-weight:700; color:var(--text-primary);">Department Head Leave Management</h3>
+            <p style="font-size:0.84rem; color:var(--text-muted); margin-top:3px;">Review, approve, or reject leave requests submitted by Department Heads across all campus divisions.</p>
+          </div>
+          <button class="btn-ghost" onclick="loadHeadLeavesAdmin()" style="display:flex; align-items:center; gap:6px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+            Refresh
+          </button>
+        </div>
+
+        <!-- KPI Cards -->
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:24px;">
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Total Requests</span></div>
+              <span class="sc-value" id="adminLeaveTotal">0</span>
+            </div>
+            <div class="sc-icon-box indigo">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Pending Approval</span></div>
+              <span class="sc-value" id="adminLeavePending">0</span>
+            </div>
+            <div class="sc-icon-box yellow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Approved</span></div>
+              <span class="sc-value" id="adminLeaveApproved">0</span>
+            </div>
+            <div class="sc-icon-box green">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Rejected</span></div>
+              <span class="sc-value" id="adminLeaveRejected">0</span>
+            </div>
+            <div class="sc-icon-box" style="background:var(--danger-bg);color:var(--danger);">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Filter Row -->
+        <div class="filter-row" style="margin-bottom:18px; flex-wrap:wrap; gap:12px;">
+          <select id="adminLeaveDeptFilter" onchange="filterHeadLeavesAdmin()" style="min-width:180px;">
+            <option value="">All Departments</option>
+          </select>
+          <select id="adminLeaveStatusFilter" onchange="filterHeadLeavesAdmin()" style="min-width:150px;">
+            <option value="">All Statuses</option>
+            <option value="Pending">Pending Review</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+          <input type="text" id="adminLeaveSearchInput" placeholder="Search by head name, email or reason..." oninput="filterHeadLeavesAdmin()" style="flex:1; min-width:200px;" />
+          <button class="btn-ghost" onclick="resetHeadLeavesFilters()" style="padding:8px 14px; font-size:0.82rem;">Reset</button>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Department Head</th>
+                <th>Department</th>
+                <th>Leave Type</th>
+                <th>Dates & Duration</th>
+                <th>Reason</th>
+                <th>Status</th>
+                <th>Review Info</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="adminHeadLeavesBody">
+              <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:32px;">Loading Department Head leave requests...</td></tr>
             </tbody>
           </table>
         </div>
