@@ -233,7 +233,7 @@
     {
       "name": "Satyam",
       "email": "satyam3396.beai24@chitkara.edu.in",
-      "password": "Satyam@1234",
+      "password": "Satyam@12345",
       "roll_no": "2410993396",
       "phone": "8989898989",
       "role": "student",
@@ -241,7 +241,7 @@
       "id": "mvnnmka9jpcnn",
       "_id": "mvnnmka9jpcnn",
       "createdAt": "2026-10-25T09:57:48.465Z",
-      "updatedAt": "2026-10-25T09:57:48.465Z"
+      "updatedAt": "2026-10-25T10:10:03.578Z"
     }
   ],
   "departments": [

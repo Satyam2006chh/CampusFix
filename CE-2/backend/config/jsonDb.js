@@ -125,8 +125,15 @@ class JsonCollection {
     });
 
     const matchPassword = async function (enteredPassword) {
-      // In JSON testing, compare directly or hash
-      return enteredPassword === this.password;
+      if (!enteredPassword || !this.password) return false;
+      if (enteredPassword === this.password) return true;
+      try {
+        const bcrypt = require('bcryptjs');
+        if (typeof this.password === 'string' && this.password.startsWith('$2')) {
+          return await bcrypt.compare(enteredPassword, this.password);
+        }
+      } catch (err) {}
+      return false;
     };
 
     const doc = item ? { ...item, _id: item.id, matchPassword } : null;
@@ -153,7 +160,15 @@ class JsonCollection {
     const items = this.getAll();
     const item = items.find((it) => String(it.id) === String(id) || String(it._id) === String(id));
     const matchPassword = async function (enteredPassword) {
-      return enteredPassword === this.password;
+      if (!enteredPassword || !this.password) return false;
+      if (enteredPassword === this.password) return true;
+      try {
+        const bcrypt = require('bcryptjs');
+        if (typeof this.password === 'string' && this.password.startsWith('$2')) {
+          return await bcrypt.compare(enteredPassword, this.password);
+        }
+      } catch (err) {}
+      return false;
     };
     const doc = item ? { ...item, _id: item.id, matchPassword } : null;
 
