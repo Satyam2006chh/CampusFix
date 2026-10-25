@@ -959,3 +959,87 @@ select option {
 .cf-rule        { font-size:0.73rem; color:var(--text-muted); display:flex; align-items:center; gap:6px; transition:color .2s; }
 .cf-rule-pass   { color:#10b981; }
 .cf-rule-icon   { font-size:0.7rem; font-weight:700; width:14px; text-align:center; }
+
+/* ─── AI FEATURES STYLING (Groq Powered) ──────────────────── */
+.desc-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+.btn-ai-magic {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.15));
+  border: 1px solid rgba(168, 85, 247, 0.4);
+  color: #c084fc;
+  padding: 5px 14px;
+  border-radius: var(--radius-full, 99px);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.btn-ai-magic:hover {
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3), rgba(168, 85, 247, 0.3));
+  border-color: #a855f7;
+  color: #f3e8ff;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.3);
+  transform: translateY(-1px);
+}
+.btn-ai-magic:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+.ai-sparkle-icon {
+  display: inline-block;
+  animation: pulseSparkle 2s infinite ease-in-out;
+}
+@keyframes pulseSparkle {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px #c084fc); }
+  50% { transform: scale(1.25); filter: drop-shadow(0 0 6px #e879f9); }
+}
+
+.ai-undo-link {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  text-decoration: underline;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: color 0.2s;
+}
+.ai-undo-link:hover {
+  color: var(--accent);
+}
+
+/* Quick Fix Modal Steps */
+.qf-step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 0.88rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+.qf-step-item:last-child {
+  margin-bottom: 0;
+}
+.qf-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(99, 102, 241, 0.25);
+  color: #a5b4fc;
+  font-weight: 700;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+

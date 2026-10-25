@@ -153,7 +153,80 @@ function renderAllComplaints() {
 
 
 let currentDuplicateId = null;
+let rawOriginalDescription = '';
+let pendingComplaintData = null;
 
+// ─── AI FEATURE 1: POLISH & STRUCTURE (Groq Powered) ─────────
+async function polishComplaintDescription() {
+  const descEl = document.getElementById('cDesc');
+  const btn = document.getElementById('btnPolishAi');
+  const btnText = document.getElementById('btnPolishText');
+  const undoContainer = document.getElementById('aiUndoContainer');
+  const errorEl = document.getElementById('cError');
+
+  const text = descEl.value.trim();
+  if (text.length < 3) {
+    errorEl.textContent = 'Please write a brief description or rough notes first before polishing.';
+    errorEl.classList.remove('hidden');
+    descEl.focus();
+    return;
+  }
+  errorEl.classList.add('hidden');
+
+  rawOriginalDescription = descEl.value;
+  btn.disabled = true;
+  btnText.textContent = 'Polishing with AI...';
+
+  const title = document.getElementById('cTitle').value.trim();
+  const category = document.getElementById('cCategory').value;
+  const locSelect = document.getElementById('cLocation');
+  const locationText = locSelect.options[locSelect.selectedIndex]?.text || '';
+
+  try {
+    const res = await fetch('http://localhost:5000/api/ai/polish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        description: text,
+        category,
+        location: locationText
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success && data.polishedText) {
+      descEl.value = data.polishedText;
+      btnText.textContent = '✓ Polished!';
+      
+      undoContainer.innerHTML = `<a href="javascript:void(0)" class="ai-undo-link" onclick="undoAiPolish()">(↺ Revert to raw notes)</a>`;
+
+      setTimeout(() => {
+        btnText.textContent = 'AI Polish & Structure';
+        btn.disabled = false;
+      }, 2500);
+    } else {
+      errorEl.textContent = data.message || 'Failed to polish description.';
+      errorEl.classList.remove('hidden');
+      btnText.textContent = 'AI Polish & Structure';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    errorEl.textContent = 'AI service temporarily unavailable. You can still submit your manual description.';
+    errorEl.classList.remove('hidden');
+    btnText.textContent = 'AI Polish & Structure';
+    btn.disabled = false;
+  }
+}
+
+function undoAiPolish() {
+  if (rawOriginalDescription) {
+    document.getElementById('cDesc').value = rawOriginalDescription;
+    document.getElementById('aiUndoContainer').innerHTML = '';
+  }
+}
+
+// ─── AI FEATURE 2: SMART QUICK-FIX ASSISTANT ──────────────────
 async function submitComplaint(e) {
   e.preventDefault();
   const btn       = document.getElementById('cSubmitBtn');
@@ -172,7 +245,6 @@ async function submitComplaint(e) {
   if (!ok) return;
 
   btn.disabled = true;
-  btn.textContent = 'Submitting...';
 
   let locDesc = '';
   try {
@@ -195,6 +267,79 @@ async function submitComplaint(e) {
     created_at:  new Date().toISOString()
   };
 
+  pendingComplaintData = data;
+
+  // Step 1: Evaluate if issue can be resolved via 30-second quick fix
+  btn.textContent = 'Analyzing issue...';
+  try {
+    const qfRes = await fetch('http://localhost:5000/api/ai/quick-fix', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: data.title,
+        description: data.description,
+        category: data.category
+      })
+    });
+    const qfData = await qfRes.json();
+    if (qfData.success && qfData.hasQuickFix && qfData.steps && qfData.steps.length > 0) {
+      showQuickFixModal(qfData.title, qfData.steps);
+      btn.disabled = false;
+      btn.textContent = 'Submit Complaint';
+      return; // Stop here to let student attempt quick fix
+    }
+  } catch (qfErr) {
+    console.warn('Quick-fix check skipped:', qfErr);
+  }
+
+  // Step 2: Proceed with regular ticket submission
+  await executeComplaintSubmission(data);
+}
+
+function showQuickFixModal(title, steps) {
+  document.getElementById('qfTitle').textContent = title || 'Quick 30-Second Fix Available';
+  const container = document.getElementById('qfStepsContainer');
+  container.innerHTML = steps.map((s, idx) => `
+    <div class="qf-step-item">
+      <span class="qf-step-num">${idx + 1}</span>
+      <span>${s}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('quickFixModal').classList.remove('hidden');
+}
+
+function closeQuickFixModal() {
+  document.getElementById('quickFixModal').classList.add('hidden');
+}
+
+function resolveSelfHelpSuccess() {
+  closeQuickFixModal();
+  document.getElementById('complaintForm').reset();
+  const successEl = document.getElementById('cSuccess');
+  successEl.textContent = '🎉 Great job! You resolved the issue yourself and saved maintenance resources.';
+  successEl.classList.remove('hidden');
+  setTimeout(() => {
+    successEl.classList.add('hidden');
+    successEl.textContent = 'Complaint submitted! Redirecting...';
+  }, 4000);
+}
+
+async function proceedWithTicketSubmission() {
+  closeQuickFixModal();
+  if (pendingComplaintData) {
+    await executeComplaintSubmission(pendingComplaintData);
+  }
+}
+
+async function executeComplaintSubmission(data) {
+  const btn       = document.getElementById('cSubmitBtn');
+  const errorEl   = document.getElementById('cError');
+  const successEl = document.getElementById('cSuccess');
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
   try {
     const existing = await apiFetch(`/complaints?location_id=${data.location_id}&category=${encodeURIComponent(data.category)}`);
     const duplicate = existing.find(c => c.status !== 'Closed' && c.status !== 'Resolved');
@@ -203,6 +348,7 @@ async function submitComplaint(e) {
       showDuplicateModal(duplicate);
     } else {
       await apiFetch('/complaints', { method: 'POST', body: JSON.stringify(data) });
+      successEl.textContent = 'Complaint submitted! Redirecting...';
       successEl.classList.remove('hidden');
       document.getElementById('complaintForm').reset();
       loadStats();
