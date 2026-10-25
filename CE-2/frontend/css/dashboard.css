@@ -122,6 +122,49 @@
 }
 .nav-item.active .nav-icon { opacity: 1; }
 
+/* ─── ACTION PENDING NAV BADGES ──────────────────────────── */
+.nav-badge {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #f59e0b;
+  color: #0f172a;
+  line-height: 1;
+  letter-spacing: -0.2px;
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+  transition: all var(--transition);
+  animation: pulse-nav-badge 2s infinite ease-in-out;
+}
+
+@keyframes pulse-nav-badge {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.6);
+  }
+  70% {
+    transform: scale(1.06);
+    box-shadow: 0 0 0 6px rgba(245, 158, 11, 0);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+.nav-item.active .nav-badge {
+  background: #ffffff;
+  color: #4f46e5;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  animation: none;
+}
+
 /* Sidebar bottom */
 .sidebar-bottom {
   padding: 16px 12px 20px;

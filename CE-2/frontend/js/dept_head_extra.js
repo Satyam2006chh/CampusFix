@@ -23,6 +23,17 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check head's own attendance on load
   loadHeadMyAttendance();
 
+  // Background polling for new employee leave applications once myDept is ready
+  const deptCheckInterval = setInterval(() => {
+    if (typeof myDept !== 'undefined' && myDept) {
+      checkDeptPendingLeavesBadge(true);
+      setInterval(() => {
+        checkDeptPendingLeavesBadge(false);
+      }, 10000);
+      clearInterval(deptCheckInterval);
+    }
+  }, 800);
+
   // Populate filter select once myDept is ready (poll briefly)
   const interval = setInterval(() => {
     if (typeof allEmployees !== 'undefined' && allEmployees.length > 0) {
@@ -477,6 +488,52 @@ async function loadHeadMyLeaves() {
   }
 }
 
+let lastDeptPendingLeavesCount = null;
+
+function updateDeptLeavesBadge(count) {
+  const badge = document.getElementById('dhLeavesNavBadge');
+  if (!badge) return;
+  const num = Number(count) || 0;
+  if (num > 0) {
+    badge.textContent = num > 99 ? '99+' : num;
+    badge.style.display = 'inline-flex';
+    badge.title = `${num} pending employee leave application${num > 1 ? 's' : ''}`;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function checkDeptPendingLeavesBadge(silent = false) {
+  if (!myDept) return;
+  try {
+    const deptId = String(myDept.id || myDept._id || '');
+    const leaves = await apiFetch(`/leaves?department_id=${deptId}`);
+    const staffLeaves = (leaves || []).filter(l => {
+      const empId = l.employee_id && typeof l.employee_id === 'object'
+        ? String(l.employee_id._id || l.employee_id.id)
+        : String(l.employee_id);
+      return empId !== String(currentUser.id);
+    });
+    const pendingCount = staffLeaves.filter(l => l.status === 'Pending').length;
+    updateDeptLeavesBadge(pendingCount);
+
+    if (lastDeptPendingLeavesCount !== null && pendingCount > lastDeptPendingLeavesCount && !silent) {
+      if (typeof showToastNotification === 'function') {
+        const latest = staffLeaves.find(l => l.status === 'Pending');
+        const applicantName = latest?.employee_name || 'A staff member';
+        showToastNotification(`🔔 <strong>${applicantName}</strong> submitted a leave application pending review.`, 'warning');
+      }
+      const activeTab = document.querySelector('.nav-item.active');
+      if (activeTab && activeTab.dataset.tab === 'dh-leaves') {
+        loadDeptLeaves();
+      }
+    }
+    lastDeptPendingLeavesCount = pendingCount;
+  } catch (err) {
+    // Suppress background poll errors
+  }
+}
+
 async function loadDeptLeaves() {
   if (!myDept) return;
   // Always load Head's own leaves too
@@ -493,6 +550,10 @@ async function loadDeptLeaves() {
         : String(l.employee_id);
       return empId !== String(currentUser.id);
     });
+
+    const pendingStaffCount = staffLeaves.filter(l => l.status === 'Pending').length;
+    updateDeptLeavesBadge(pendingStaffCount);
+    lastDeptPendingLeavesCount = pendingStaffCount;
 
     const sorted = staffLeaves.sort((a, b) => new Date(b.createdAt || b.created_at || 0) - new Date(a.createdAt || a.created_at || 0));
 

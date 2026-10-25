@@ -195,3 +195,61 @@ window.showCustomConfirm = function(titleOrMsg, msgOrCallback, callbackArg) {
     if (result) callback();  
   };
 };
+
+window.showToastNotification = function(text, type = 'info', duration = 4500) {
+  let container = document.getElementById('cfToastContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'cfToastContainer';
+    container.style.cssText = `
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      z-index: 99999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    `;
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement('div');
+  toast.className = 'cf-toast-item';
+  const borderColor = type === 'danger' ? 'var(--danger, #ef4444)' : type === 'warning' ? '#f59e0b' : 'var(--accent, #6366f1)';
+  toast.style.cssText = `
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--bg-card, #1e293b);
+    color: var(--text-primary, #ffffff);
+    border: 1px solid var(--border-color, rgba(255,255,255,0.12));
+    border-left: 4px solid ${borderColor};
+    border-radius: 8px;
+    padding: 12px 18px;
+    font-size: 0.86rem;
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.5), 0 0 15px rgba(245, 158, 11, 0.25);
+    transform: translateX(120%);
+    opacity: 0;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: 380px;
+  `;
+
+  toast.innerHTML = `
+    <div style="flex:1; line-height:1.4;">${text}</div>
+    <button style="background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:16px;padding:2px 6px;" onclick="this.parentElement.remove()">✕</button>
+  `;
+
+  container.appendChild(toast);
+  requestAnimationFrame(() => {
+    toast.style.transform = 'translateX(0)';
+    toast.style.opacity = '1';
+  });
+
+  setTimeout(() => {
+    toast.style.transform = 'translateX(120%)';
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 400);
+  }, duration);
+};

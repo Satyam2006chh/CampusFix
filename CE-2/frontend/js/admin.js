@@ -3,6 +3,12 @@
 document.addEventListener("DOMContentLoaded", () => {
   if (currentUser.role !== "admin") { window.location.href = "login.html"; return; }
   loadStats(); loadAllComplaints(); loadDepartments(); loadLocations(); loadUsers(); loadHeadAttendanceAnalytics(); loadHeadLeavesAdmin(); loadHeadPayslipsAdmin();
+
+  // Background polling for new Department Head leave requests
+  checkPendingLeavesBadge(true);
+  setInterval(() => {
+    checkPendingLeavesBadge(false);
+  }, 10000);
 });
 
 async function loadStats() {
@@ -726,6 +732,46 @@ function exportHeadAttendanceReport() {
 
 // ── DEPARTMENT HEAD LEAVE MANAGEMENT (Admin) ──────────────
 let allHeadLeavesList = [];
+let lastAdminPendingLeavesCount = null;
+
+function updateHeadLeavesBadge(count) {
+  const badge = document.getElementById('adminHeadLeavesNavBadge');
+  if (!badge) return;
+  const num = Number(count) || 0;
+  if (num > 0) {
+    badge.textContent = num > 99 ? '99+' : num;
+    badge.style.display = 'inline-flex';
+    badge.title = `${num} Department Head leave request${num > 1 ? 's' : ''} awaiting review`;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+async function checkPendingLeavesBadge(silent = false) {
+  try {
+    const leaves = await apiFetch('/leaves?role=dept_head');
+    const pendingList = (leaves || []).filter(l => l.status === 'Pending');
+    const count = pendingList.length;
+
+    updateHeadLeavesBadge(count);
+
+    if (lastAdminPendingLeavesCount !== null && count > lastAdminPendingLeavesCount) {
+      if (typeof showToastNotification === 'function') {
+        const latest = pendingList[0];
+        const applicantName = latest?.employee_name || latest?.employee_id?.name || 'A Department Head';
+        showToastNotification(`🔔 <strong>${applicantName}</strong> submitted a leave request pending approval.`, 'warning');
+      }
+      // If currently viewing the Head Leaves tab, refresh the table so it appears live
+      const activeTab = document.querySelector('.nav-item.active');
+      if (activeTab && activeTab.dataset.tab === 'head-leaves') {
+        loadHeadLeavesAdmin();
+      }
+    }
+    lastAdminPendingLeavesCount = count;
+  } catch (err) {
+    // Suppress background poll errors
+  }
+}
 
 async function loadHeadLeavesAdmin() {
   const tbody = document.getElementById('adminHeadLeavesBody');
@@ -769,6 +815,9 @@ async function loadHeadLeavesAdmin() {
     if (pEl) pEl.textContent = pending;
     if (aEl) aEl.textContent = approved;
     if (rEl) rEl.textContent = rejected;
+
+    updateHeadLeavesBadge(pending);
+    lastAdminPendingLeavesCount = pending;
 
     filterHeadLeavesAdmin();
   } catch (err) {
