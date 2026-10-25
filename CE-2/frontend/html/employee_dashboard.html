@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Employee Dashboard — CampusFix</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+</head>
+<body class="dash-body">
+
+  <!-- ─── SIDEBAR ─────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="40" height="40" rx="9" fill="#4f46e5"/>
+        <path d="M20 9L11 13V19C11 24.2 15 29.1 20 30.3C25 29.1 29 24.2 29 19V13L20 9Z" fill="white" fill-opacity="0.12" stroke="white" stroke-width="1" stroke-opacity="0.25"/>
+        <path d="M23.5 14.5C22.1 13.1 20.1 12.7 18.3 13.5L20.8 16L19.5 17.3L17 14.8C16.2 16.6 16.6 18.6 18 20C19.2 21.2 20.9 21.6 22.5 21.1L25.5 24.1C25.9 24.5 26.5 24.5 26.9 24.1C27.3 23.7 27.3 23.1 26.9 22.7L23.9 19.7C24.4 18.1 24 16.4 23.5 14.5Z" fill="white"/>
+      </svg>
+      <span class="logo-text">Campus<span>Fix</span></span>
+    </div>
+
+    <div class="sidebar-user-block">
+      <div class="user-greeting">Employee</div>
+      <div class="user-name-big" id="sidebarEmpName">—</div>
+    </div>
+
+    <span class="sidebar-nav-label">Navigation</span>
+
+    <ul class="sidebar-nav">
+      <li>
+        <a href="#" class="nav-item active" data-tab="overview">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+          Dashboard
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-item" data-tab="attendance">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+          Attendance
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-item" data-tab="leave">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          Leave
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-item" data-tab="payslips">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span>
+          Payslips
+        </a>
+      </li>
+      <li>
+        <a href="#" class="nav-item" data-tab="my-complaints">
+          <span class="nav-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></span>
+          My Tasks
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-bottom">
+      <div class="user-info">
+        <div class="user-avatar" id="userAvatar">E</div>
+        <div class="user-details">
+          <span class="user-name" id="userNameDisplay">Employee</span>
+          <span class="user-role" id="userDesigDisplay">Staff</span>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="logout()">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Log out
+      </button>
+    </div>
+  </aside>
+
+  <!-- ─── MAIN CONTENT ──────────────────────────────────────────── -->
+  <main class="main-content">
+    <header class="topbar">
+      <h2 class="topbar-title" id="pageTitle">Dashboard</h2>
+      <div class="topbar-actions">
+        <button class="dash-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+          <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          <svg class="icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="content-wrapper">
+
+      <!-- ══ TAB: OVERVIEW / DASHBOARD ══ -->
+      <section id="tab-overview" class="tab-pane active">
+
+        <!-- Welcome banner -->
+        <div style="margin-bottom:24px;">
+          <h3 style="font-size:1.35rem;font-weight:800;letter-spacing:-0.02em;color:var(--text-primary);">
+            Welcome, <span id="welcomeName">—</span>!
+          </h3>
+          <p style="font-size:0.85rem;color:var(--text-muted);margin-top:4px;" id="welcomeDesig">—</p>
+        </div>
+
+        <!-- Stats cards -->
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(165px,1fr));margin-bottom:28px;">
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Dept Complaints</span></div>
+              <span class="sc-value" id="dStatTotal">0</span>
+            </div>
+            <div class="sc-icon-box indigo">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Assigned to Me</span></div>
+              <span class="sc-value" id="dStatAssigned">0</span>
+            </div>
+            <div class="sc-icon-box blue">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Completed by Me</span></div>
+              <span class="sc-value" id="dStatCompleted">0</span>
+            </div>
+            <div class="sc-icon-box green">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Pending for Me</span></div>
+              <span class="sc-value" id="dStatPending">0</span>
+            </div>
+            <div class="sc-icon-box yellow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Late Completed</span></div>
+              <span class="sc-value" id="dStatLate" style="color:var(--danger);">0</span>
+            </div>
+            <div class="sc-icon-box red">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Days Present</span></div>
+              <span class="sc-value" id="dStatPresent">0</span>
+            </div>
+            <div class="sc-icon-box purple">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick actions removed — use sidebar nav instead -->
+
+        <!-- Recent assigned complaints -->
+        <div class="recent-section">
+          <div class="section-header-row">
+            <h3>My Recent Tasks</h3>
+            <a href="#" class="view-all" onclick="switchTab('my-complaints')">View All →</a>
+          </div>
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr><th>ID</th><th>Title &amp; Location</th><th>Urgency</th><th>Status</th><th>Deadline</th></tr>
+              </thead>
+              <tbody id="recentTasksBody">
+                <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:28px;">No tasks assigned yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- ══ TAB: ATTENDANCE ══ -->
+      <section id="tab-attendance" class="tab-pane">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h3 style="font-size:1.05rem;font-weight:700;color:var(--text-primary);">Attendance</h3>
+            <p style="font-size:0.82rem;color:var(--text-muted);">Track your work hours and daily check-ins.</p>
+          </div>
+          <!-- Clock In/Out button — shown fixed at bottom-right on mobile, inline here -->
+          <button class="btn-primary" id="clockBtn" onclick="handleClockAction()" style="min-width:148px;">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span id="clockBtnLabel">Clock In</span>
+          </button>
+        </div>
+
+        <!-- Geolocation info banner -->
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--radius);border:1px solid rgba(192,132,252,0.2);background:rgba(192,132,252,0.06);margin-bottom:20px;font-size:0.82rem;color:var(--text-secondary);">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="flex-shrink:0;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          Clock-in and Clock-out require you to be physically present at <strong style="color:var(--text-primary);margin:0 4px;">Chitkara University, Rajpura</strong>. Your GPS location is verified automatically.
+        </div>
+
+        <!-- Attendance stats -->
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:28px;">
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Days Present</span></div>
+              <span class="sc-value" id="attPresent">0</span>
+            </div>
+            <div class="sc-icon-box purple">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Late Arrivals</span></div>
+              <span class="sc-value" id="attLate">0</span>
+            </div>
+            <div class="sc-icon-box yellow">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Avg. Working Hrs</span></div>
+              <span class="sc-value" id="attAvgHrs">0 <span style="font-size:1rem;font-weight:600;">Hrs</span></span>
+            </div>
+            <div class="sc-icon-box blue">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Clock In status banner -->
+        <div id="clockStatusBanner" style="display:none;padding:12px 18px;border-radius:var(--radius);margin-bottom:20px;font-size:0.88rem;font-weight:600;border:1px solid var(--success);background:var(--success-bg);color:var(--success);">
+          ✓ Clocked in today at <span id="clockInTime">—</span>
+        </div>
+
+        <!-- Attendance table -->
+        <div class="section-header-row" style="margin-bottom:12px;">
+          <h3>Recent Activity</h3>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr><th>Date</th><th>Check In</th><th>Check Out</th><th>Working Hours</th><th>Day Type</th><th>Status</th></tr>
+            </thead>
+            <tbody id="attendanceBody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">No records found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ══ TAB: LEAVE ══ -->
+      <section id="tab-leave" class="tab-pane">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+          <div>
+            <h3 style="font-size:1.05rem;font-weight:700;color:var(--text-primary);">Leave Management</h3>
+            <p style="font-size:0.82rem;color:var(--text-muted);">Your leave history and requests.</p>
+          </div>
+          <button class="btn-primary" onclick="openLeaveModal()">+ Apply for Leave</button>
+        </div>
+
+        <!-- Leave type summary -->
+        <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:28px;">
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Sick Leave</span></div>
+              <span class="sc-value" id="leaveSick">0 <span style="font-size:0.85rem;font-weight:500;color:var(--text-muted);">taken</span></span>
+            </div>
+            <div class="sc-icon-box red">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Casual Leave</span></div>
+              <span class="sc-value" id="leaveCasual">0 <span style="font-size:0.85rem;font-weight:500;color:var(--text-muted);">taken</span></span>
+            </div>
+            <div class="sc-icon-box blue">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="sc-left">
+              <div class="sc-header"><span class="sc-title">Annual Leave</span></div>
+              <span class="sc-value" id="leaveAnnual">0 <span style="font-size:0.85rem;font-weight:500;color:var(--text-muted);">taken</span></span>
+            </div>
+            <div class="sc-icon-box green">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <!-- Leave history table -->
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr><th>Type</th><th>Dates</th><th>Reason</th><th>Status</th></tr>
+            </thead>
+            <tbody id="leaveBody">
+              <tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:32px;">No leave applications found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ══ TAB: PAYSLIPS ══ -->
+      <section id="tab-payslips" class="tab-pane">
+        <div style="margin-bottom:24px;">
+          <h3 style="font-size:1.05rem;font-weight:700;color:var(--text-primary);">Payslips</h3>
+          <p style="font-size:0.82rem;color:var(--text-muted);">Your payslip history — download anytime.</p>
+        </div>
+
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr><th>Period</th><th>Basic Salary</th><th>Allowances</th><th>Deductions</th><th>Net Salary</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="payslipBody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">No payslips generated yet.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ══ TAB: MY TASKS ══ -->
+      <section id="tab-my-complaints" class="tab-pane">
+        <div style="margin-bottom:20px;">
+          <h3 style="font-size:1.05rem;font-weight:700;color:var(--text-primary);">My Assigned Tasks</h3>
+          <p style="font-size:0.82rem;color:var(--text-muted);">All complaints assigned to you.</p>
+        </div>
+        <div class="filter-row" style="margin-bottom:16px;">
+          <select id="taskFilterStatus" onchange="loadMyTasks()">
+            <option value="">All Statuses</option>
+            <option value="In Progress">In Progress</option>
+            <option value="Overdue">Overdue</option>
+            <option value="Waiting Confirmation">Waiting Confirmation</option>
+            <option value="Closed">Closed</option>
+          </select>
+        </div>
+        <div class="table-container">
+          <table class="data-table">
+            <thead>
+              <tr><th>ID</th><th>Title &amp; Location</th><th>Urgency</th><th>Status</th><th>Deadline</th><th>Action</th></tr>
+            </thead>
+            <tbody id="allTasksBody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">No tasks found.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+    </div><!-- /content-wrapper -->
+  </main>
+
+  <!-- ── MODAL: APPLY FOR LEAVE ── -->
+  <div id="leaveModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Apply for Leave</h3>
+          <p class="modal-subtitle">Submit your leave request for approval</p>
+        </div>
+        <button class="modal-close-btn" onclick="closeLeaveModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <form id="leaveForm" onsubmit="submitLeave(event)">
+        <div class="form-group" style="margin-bottom:16px;">
+          <label for="leaveType">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Leave Type
+          </label>
+          <select id="leaveType" required>
+            <option value="" disabled selected>Select leave type</option>
+            <option value="Sick Leave">Sick Leave</option>
+            <option value="Casual Leave">Casual Leave</option>
+            <option value="Annual Leave">Annual Leave</option>
+            <option value="Emergency Leave">Emergency Leave</option>
+          </select>
+        </div>
+        <div style="margin-bottom:6px;font-size:0.78rem;font-weight:600;color:var(--text-secondary);">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-right:4px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Duration
+        </div>
+        <div class="form-row" style="margin-bottom:16px;">
+          <div class="form-group">
+            <label for="leaveFrom">From</label>
+            <input type="date" id="leaveFrom" required />
+          </div>
+          <div class="form-group">
+            <label for="leaveTo">To</label>
+            <input type="date" id="leaveTo" required />
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:20px;">
+          <label for="leaveReason">Reason</label>
+          <textarea id="leaveReason" rows="4" placeholder="Briefly describe why you need this leave..." required></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn-ghost" onclick="closeLeaveModal()">Cancel</button>
+          <button type="submit" class="btn-primary">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+            Submit
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── MODAL: PAYSLIP DOWNLOAD PREVIEW ── -->
+  <div id="payslipPreviewModal" class="modal hidden">
+    <div class="modal-content" style="max-width:500px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Payslip</h3>
+        <button class="modal-close-btn" onclick="document.getElementById('payslipPreviewModal').classList.add('hidden')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div id="payslipPreviewContent" style="padding:4px 0;"></div>
+      <div class="modal-footer">
+        <button class="btn-ghost" onclick="document.getElementById('payslipPreviewModal').classList.add('hidden')">Close</button>
+        <button class="btn-primary" onclick="printPayslip()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+          Download PDF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/validation.js"></script>
+  <script src="../js/dashboard.js"></script>
+  <script src="../js/employee.js"></script>
+  <script>
+    (function() {
+      const saved = localStorage.getItem('cf-theme') || 'dark';
+      document.documentElement.setAttribute('data-theme', saved);
+    })();
+    function toggleTheme() {
+      const html = document.documentElement;
+      const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('cf-theme', next);
+    }
+  </script>
+</body>
+</html>
+

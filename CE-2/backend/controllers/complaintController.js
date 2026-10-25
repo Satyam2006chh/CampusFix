@@ -91,13 +91,18 @@ const createComplaint = async (req, res) => {
 
 // @desc    Update complaint (partial)
 // @route   PATCH /api/complaints/:id
-// @access  Private (student/dept_head/admin depending on field)
+// @access  Private
 const updateComplaint = async (req, res) => {
   try {
-    const complaint = await Complaint.findByIdAndUpdate(req.params.id, req.body, {
+    const result = await Complaint.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
-    }).lean();
+    });
+
+    // JSON DB returns a plain object; Mongoose returns a Mongoose doc — normalise both
+    const complaint = result && typeof result.lean === 'function'
+      ? await result.lean()
+      : result;
 
     if (!complaint) return res.status(404).json({ message: 'Complaint not found' });
     res.json(normalize(complaint));

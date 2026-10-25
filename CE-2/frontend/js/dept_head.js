@@ -138,10 +138,11 @@ function renderAllComplaints() {
     if (c.status === 'Pending' || c.status === 'Reopened') {
       actionHtml = `<button class="action-btn" onclick="openAssignModal('${c.id}')">Assign</button>`;
     } else if (c.status === 'In Progress' || c.status === 'Overdue') {
-      actionHtml = `<button class="action-btn" onclick="markResolved('${c.id}')"
-        style="color:var(--success); border-color:rgba(16,185,129,0.3);">Mark Resolved</button>`;
+      actionHtml = `<span style="font-size:0.78rem;color:var(--info);">🔧 Being fixed by ${c.assigned_to_name || 'staff'}</span>`;
     } else if (c.status === 'Waiting Confirmation') {
-      actionHtml = `<span style="font-size:0.78rem;color:var(--text-muted);">Awaiting Student</span>`;
+      actionHtml = `<span style="font-size:0.78rem;color:var(--warning);">⏳ Awaiting Student</span>`;
+    } else if (c.status === 'Closed') {
+      actionHtml = `<span style="font-size:0.78rem;color:var(--success);">✓ Closed</span>`;
     }
 
     const upvoteBadge = c.upvote_count > 0
@@ -232,13 +233,17 @@ let allEmployees = [];
 async function loadEmployees() {
   if (!myDept) return;
   try {
-    // Fetch ALL users — filter fully client-side to avoid json-server
-    // type coercion issues (department_id stored as number OR string)
     const allUsers = await apiFetch('/users');
-    allEmployees = allUsers.filter(u =>
-      u.role === 'employee' &&
-      String(u.department_id) === String(myDept.id)
-    );
+    const deptId = String(myDept.id || myDept._id || '');
+
+    allEmployees = allUsers.filter(u => {
+      if (u.role !== 'employee') return false;
+      // department_id may be a populated object OR a raw id string/number
+      const rawDeptId = u.department_id && typeof u.department_id === 'object'
+        ? String(u.department_id.id || u.department_id._id || '')
+        : String(u.department_id || '');
+      return rawDeptId === deptId;
+    });
     renderEmployees();
   } catch (err) { console.error('loadEmployees error:', err); }
 }
@@ -472,7 +477,7 @@ async function submitEmployee(e) {
     designation:   document.getElementById('empDesig').value.trim(),
     phone:         document.getElementById('empPhone').value.trim(),
     role:          'employee',
-    department_id: myDept.id,
+    department_id: String(myDept.id || myDept._id || ''),
     availability:  'Available',
     is_active:     1
   };

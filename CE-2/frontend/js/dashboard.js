@@ -85,12 +85,25 @@ function switchTab(tabId) {
     'new-complaint': 'Report an Issue',
     'my-complaints': 'My Complaints',
     'dept-complaints': 'Department Complaints',
-    'employees': 'Manage Staff'
+    'employees': 'Manage Staff',
+    'dh-attendance': 'Employee Attendance',
+    'dh-leaves': 'Leave Requests',
+    'dh-payslips': 'Payslips',
+    'attendance': 'Attendance',
+    'leave': 'Leave Management',
+    'payslips': 'Payslips',
+    'my-complaints': 'My Tasks',
   };
   const titleEl = document.getElementById('pageTitle');
   if (titleEl && titles[tabId]) {
     titleEl.textContent = titles[tabId];
   }
+
+  // Auto-load tab data when switching
+  if (tabId === 'my-complaints' && typeof loadMyTasks === 'function') loadMyTasks();
+  if (tabId === 'attendance'    && typeof loadAttendance === 'function') loadAttendance();
+  if (tabId === 'leave'         && typeof loadLeaves === 'function') loadLeaves();
+  if (tabId === 'payslips'      && typeof loadPayslips === 'function') loadPayslips();
 }
 
 

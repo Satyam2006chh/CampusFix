@@ -43,23 +43,24 @@
   color: #fff;
   letter-spacing: -0.02em;
 }
-.sidebar-brand .logo-text span { color: #a5b4fc; }
+.sidebar-brand .logo-text span { color: #818cf8; }
 
 /* Sidebar user greeting block */
 .sidebar-user-block {
-  padding: 16px 20px;
-  margin: 0 12px 8px;
-  background: rgba(255,255,255,0.05);
+  padding: 14px 18px;
+  margin: 0 10px 8px;
+  background: rgba(99, 102, 241, 0.06);
   border: 1px solid var(--sidebar-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius);
 }
 .sidebar-user-block .user-greeting {
-  font-size: 0.7rem;
-  color: #a5b4fc;
-  font-weight: 500;
+  font-size: 0.66rem;
+  color: #818cf8;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.1em;
   margin-bottom: 4px;
+  font-family: var(--font);
 }
 .sidebar-user-block .user-name-big {
   font-size: 0.9rem;
@@ -69,12 +70,13 @@
 
 /* Sidebar nav label */
 .sidebar-nav-label {
-  font-size: 0.65rem;
+  font-size: 0.62rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: #6366f1;
+  letter-spacing: 0.14em;
+  color: #52525b;
   padding: 14px 20px 6px;
+  font-family: var(--font);
 }
 
 .sidebar-nav {
@@ -107,7 +109,7 @@
   background: var(--accent);
   color: #fff;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(99,102,241,0.4);
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
 }
 .nav-icon {
   width: 18px;
@@ -162,11 +164,11 @@
   text-overflow: ellipsis;
 }
 .user-role {
-  font-size: 0.68rem;
-  color: #818cf8;
+  font-size: 0.67rem;
+  color: #52525b;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  font-weight: 500;
+  letter-spacing: 0.08em;
+  font-weight: 600;
 }
 
 .btn-logout {
@@ -336,18 +338,18 @@
   justify-content: center;
   flex-shrink: 0;
 }
-.sc-icon-box.blue   { background: #eff6ff; color: #3b82f6; }
-.sc-icon-box.green  { background: #ecfdf5; color: #10b981; }
-.sc-icon-box.yellow { background: #fffbeb; color: #f59e0b; }
-.sc-icon-box.purple { background: #f5f3ff; color: #7c3aed; }
-.sc-icon-box.red    { background: #fef2f2; color: #ef4444; }
+.sc-icon-box.blue   { background: #eef2ff; color: #4f46e5; }
+.sc-icon-box.green  { background: #ecfdf5; color: #059669; }
+.sc-icon-box.yellow { background: #fffbeb; color: #d97706; }
+.sc-icon-box.purple { background: #eef2ff; color: #4f46e5; }
+.sc-icon-box.red    { background: #fef2f2; color: #dc2626; }
 .sc-icon-box.indigo { background: #eef2ff; color: #4f46e5; }
-[data-theme="dark"] .sc-icon-box.blue   { background: rgba(59,130,246,0.1); color: #60a5fa; }
-[data-theme="dark"] .sc-icon-box.green  { background: rgba(16,185,129,0.1); color: #34d399; }
-[data-theme="dark"] .sc-icon-box.yellow { background: rgba(245,158,11,0.1); color: #fbbf24; }
-[data-theme="dark"] .sc-icon-box.purple { background: rgba(124,58,237,0.1); color: #a78bfa; }
-[data-theme="dark"] .sc-icon-box.red    { background: rgba(239,68,68,0.1); color: #f87171; }
-[data-theme="dark"] .sc-icon-box.indigo { background: rgba(79,70,229,0.12); color: #818cf8; }
+[data-theme="dark"] .sc-icon-box.blue   { background: rgba(99,102,241,0.10); color: #818cf8; }
+[data-theme="dark"] .sc-icon-box.green  { background: rgba(16,185,129,0.10); color: #34d399; }
+[data-theme="dark"] .sc-icon-box.yellow { background: rgba(245,158,11,0.10); color: #fbbf24; }
+[data-theme="dark"] .sc-icon-box.purple { background: rgba(99,102,241,0.10); color: #818cf8; }
+[data-theme="dark"] .sc-icon-box.red    { background: rgba(239,68,68,0.10);  color: #f87171; }
+[data-theme="dark"] .sc-icon-box.indigo { background: rgba(99,102,241,0.10); color: #818cf8; }
 
 /* Backwards-compatible sc-icon used in existing HTML */
 .sc-icon { color: var(--text-muted); }
@@ -515,7 +517,7 @@
 .filter-row select:focus,
 .filter-row input[type="date"]:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
 }
 /* Date input — don't add the arrow on it */
 .filter-row input[type="date"] {
@@ -583,7 +585,7 @@
 .form-group select:focus,
 .form-group textarea:focus {
   border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+  box-shadow: 0 0 0 3px rgba(99,102,241,0.12);
   background: var(--bg-surface);
 }
 select option {

@@ -1,84 +1,58 @@
 const Department = require('../models/Department');
 
+const safeLean = async (result) => {
+  if (!result) return null;
+  return typeof result.lean === 'function' ? await result.lean() : result;
+};
+
 // @desc    Get all departments
-// @route   GET /api/departments
-// @access  Private
 const getDepartments = async (req, res) => {
   try {
     const departments = await Department.find().lean();
-    const result = departments.map((d) => ({ ...d, id: d._id }));
-    res.json(result);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    res.json(departments.map((d) => ({ ...d, id: d._id || d.id })));
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // @desc    Get single department
-// @route   GET /api/departments/:id
-// @access  Private
 const getDepartment = async (req, res) => {
   try {
     const dept = await Department.findById(req.params.id).lean();
     if (!dept) return res.status(404).json({ message: 'Department not found' });
-    res.json({ ...dept, id: dept._id });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    res.json({ ...dept, id: dept._id || dept.id });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // @desc    Create department
-// @route   POST /api/departments
-// @access  Admin
 const createDepartment = async (req, res) => {
   try {
     const { name, description, category_tag } = req.body;
-    if (!name || !category_tag) {
-      return res.status(400).json({ message: 'Name and category_tag are required' });
-    }
-
+    if (!name || !category_tag) return res.status(400).json({ message: 'Name and category_tag are required' });
     const dept = await Department.create({ name, description, category_tag });
-    res.status(201).json({ ...dept.toObject(), id: dept._id });
+    const obj = dept.toObject ? dept.toObject() : dept;
+    res.status(201).json({ ...obj, id: obj._id || obj.id });
   } catch (err) {
-    if (err.code === 11000) {
-      return res.status(400).json({ message: 'Department name already exists' });
-    }
+    if (err.code === 11000) return res.status(400).json({ message: 'Department name already exists' });
     res.status(500).json({ message: err.message });
   }
 };
 
 // @desc    Update department
-// @route   PATCH /api/departments/:id
-// @access  Admin
 const updateDepartment = async (req, res) => {
   try {
-    const dept = await Department.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    }).lean();
+    const result = await Department.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const dept = await safeLean(result);
     if (!dept) return res.status(404).json({ message: 'Department not found' });
-    res.json({ ...dept, id: dept._id });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+    res.json({ ...dept, id: dept._id || dept.id });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // @desc    Delete department
-// @route   DELETE /api/departments/:id
-// @access  Admin
 const deleteDepartment = async (req, res) => {
   try {
     const dept = await Department.findByIdAndDelete(req.params.id);
     if (!dept) return res.status(404).json({ message: 'Department not found' });
     res.json({ message: 'Department deleted successfully' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
-module.exports = {
-  getDepartments,
-  getDepartment,
-  createDepartment,
-  updateDepartment,
-  deleteDepartment,
-};
+module.exports = { getDepartments, getDepartment, createDepartment, updateDepartment, deleteDepartment };

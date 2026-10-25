@@ -23,6 +23,13 @@ const ROLE_CONFIG = {
     subtitle: 'Sign in to report and track campus issues',
     redirect: '../html/student_dashboard.html',
     showSignup: true
+  },
+  employee: {
+    label:    'Employee',
+    title:    'Employee Portal',
+    subtitle: 'Sign in to view your tasks and attendance',
+    redirect: '../html/employee_dashboard.html',
+    showSignup: false
   }
 };
 
