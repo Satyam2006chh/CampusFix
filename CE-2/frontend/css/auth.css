@@ -462,3 +462,244 @@
   width: 14px;
   text-align: center;
 }
+
+/* ─── GOOGLE AUTH & STUDENT OTP EXTENSIONS ────────────────── */
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: var(--radius-md, 10px);
+  background: var(--bg-surface, #1e1b4b);
+  color: var(--text-primary, #ffffff);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+.btn-google:hover {
+  background: var(--bg-surface-hover, #2e2868);
+  border-color: rgba(99, 102, 241, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.2);
+}
+.btn-google svg {
+  flex-shrink: 0;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+  color: var(--text-muted, #94a3b8);
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+}
+.auth-divider::before { margin-right: 14px; }
+.auth-divider::after { margin-left: 14px; }
+
+/* ─── DOMAIN BLOCKED CARD ─────────────────────────────────── */
+.domain-blocked-card {
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-radius: var(--radius-md, 12px);
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  animation: fadeIn 0.3s ease-out;
+}
+.domain-blocked-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+}
+.domain-blocked-title {
+  color: #f87171;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.domain-blocked-text {
+  font-size: 0.85rem;
+  color: var(--text-secondary, #cbd5e1);
+  line-height: 1.5;
+  margin-bottom: 14px;
+}
+.domain-blocked-email {
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 2px 8px;
+  border-radius: 4px;
+  color: #fca5a5;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+/* ─── OTP VERIFICATION PANEL ──────────────────────────────── */
+.otp-card {
+  text-align: center;
+  animation: fadeIn 0.3s ease-out;
+}
+.otp-header-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 16px;
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(99, 102, 241, 0.3);
+  color: var(--accent, #6366f1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+}
+.otp-email-target {
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--accent, #818cf8);
+  font-weight: 600;
+  word-break: break-all;
+}
+.otp-inputs-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 24px 0 16px;
+}
+.otp-box {
+  width: 46px;
+  height: 56px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border, rgba(255, 255, 255, 0.15));
+  background: var(--bg-surface, #0f172a);
+  color: var(--text-primary, #ffffff);
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.5rem;
+  font-weight: 700;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.otp-box:focus {
+  border-color: var(--accent, #6366f1);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+  transform: translateY(-2px);
+}
+.otp-timer-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--text-muted, #94a3b8);
+  margin-bottom: 20px;
+}
+.otp-timer-highlight {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: var(--accent, #a5b4fc);
+}
+.otp-resend-link {
+  background: none;
+  border: none;
+  color: var(--accent, #818cf8);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+  transition: color 0.2s;
+}
+.otp-resend-link:hover {
+  color: #c7d2fe;
+}
+.otp-resend-link:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  text-decoration: none;
+}
+
+/* ─── FIREBASE / DEV MODAL ────────────────────────────────── */
+#firebaseSetupModal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+.firebase-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+}
+.firebase-modal-box {
+  position: relative;
+  z-index: 10;
+  width: 90%;
+  max-width: 440px;
+  background: var(--bg-surface, #1e1b4b);
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.15));
+  border-radius: var(--radius-lg, 16px);
+  padding: 24px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  animation: fadeIn 0.25s ease-out;
+}
+.firebase-modal-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.g-icon-circle {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  flex-shrink: 0;
+}
+.firebase-modal-header h3 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary, #ffffff);
+  margin: 0 0 2px;
+}
+.firebase-modal-header p {
+  font-size: 0.8rem;
+  color: var(--text-muted, #94a3b8);
+  margin: 0;
+}
+.firebase-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+

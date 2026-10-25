@@ -229,6 +229,19 @@
       "_id": "mvmqjgt1lyfws",
       "createdAt": "2026-10-24T18:31:36.661Z",
       "updatedAt": "2026-10-24T20:30:50.143Z"
+    },
+    {
+      "name": "Satyam",
+      "email": "satyam3396.beai24@chitkara.edu.in",
+      "password": "Satyam@12345",
+      "roll_no": "2410993396",
+      "phone": "8989898989",
+      "role": "student",
+      "is_active": 1,
+      "id": "mvnnmka9jpcnn",
+      "_id": "mvnnmka9jpcnn",
+      "createdAt": "2026-10-25T09:57:48.465Z",
+      "updatedAt": "2026-10-25T10:10:03.578Z"
     }
   ],
   "departments": [
@@ -596,6 +609,24 @@
       "assigned_to_name": "krishna",
       "deadline": "2026-10-27",
       "reopen_reason": null
+    },
+    {
+      "title": "Monitor Burning Smell and No Display",
+      "category": "Electrical",
+      "location_id": 3,
+      "location_desc": "Hostel Block B, Room 201-210",
+      "urgency": "High",
+      "description": "**Issue Summary:** Monitor of PC2 emitting a burning smell and not displaying any image; projector in Lab 301 showing a blue screen.\n\n**Observed Symptoms:**\n- Burning odor coming from PC2 monitor while the screen remains black.\n- Projector in Lab 301 displays only a blue screen with no projected content.\n\n**Safety & Operational Impact:**\nThe monitor poses a fire hazard and should be powered off immediately; both issues halt lab activities and require urgent attention.",
+      "user_id": "mvnnmka9jpcnn",
+      "user_name": "Satyam",
+      "status": "Pending",
+      "upvote_count": 0,
+      "source": "original",
+      "original_complaint_id": null,
+      "id": "mvnpqnp6y6bu7",
+      "_id": "mvnpqnp6y6bu7",
+      "createdAt": "2026-10-25T10:56:58.746Z",
+      "updatedAt": "2026-10-25T10:56:58.746Z"
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"

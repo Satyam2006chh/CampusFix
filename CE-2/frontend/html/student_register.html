@@ -70,10 +70,31 @@
 
     <!-- ── RIGHT PANEL ── -->
     <div class="auth-right">
-      <div class="auth-panel">
+
+      <!-- Registration Form Panel -->
+      <div class="auth-panel" id="registerFormPanel">
         <div class="login-role-badge">Student Account</div>
         <h2 class="auth-panel-title">Create Account</h2>
         <p class="auth-panel-sub">Fill in your details to register as a student.</p>
+
+        <!-- Official College Email Notice -->
+        <div class="college-notice-badge" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 8px; padding: 12px 14px; margin: 16px 0 20px; font-size: 0.85rem; color: var(--text-primary); line-height: 1.5;">
+          <span style="display: flex; align-items: flex-start; gap: 8px;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent); flex-shrink:0; margin-top:2px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span><strong>• The official college email ID is permitted for accessing this application.</strong></span>
+          </span>
+        </div>
+
+        <!-- Domain Blocked Error Card (shown if non-college plain email is entered) -->
+        <div id="domainBlockedCard" class="domain-blocked-card hidden">
+          <div class="domain-blocked-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+          </div>
+          <div class="domain-blocked-title">Official College Email Required</div>
+          <p class="domain-blocked-text">
+            Registration is strictly restricted to official college email IDs. Personal email accounts (like Gmail, Yahoo, Outlook) cannot be used to create an account.
+          </p>
+        </div>
 
         <form id="registerForm" onsubmit="handleRegister(event)">
           <div class="register-grid">
@@ -87,7 +108,7 @@
             </div>
             <div class="form-group" style="grid-column: 1 / -1;">
               <label for="regEmail">Email Address</label>
-              <input type="email" id="regEmail" placeholder="student@campus.edu" required />
+              <input type="email" id="regEmail" placeholder="e.g. yourname.roll@college.edu.in" required />
             </div>
             <div class="form-group">
               <label for="regPhone">Phone (Optional)</label>
@@ -101,7 +122,6 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
               </div>
-              <!-- Password strength meter injected here by JS -->
             </div>
             <div class="form-group" style="grid-column: 1 / -1;">
               <label for="regConfirmPassword">Confirm Password</label>
@@ -117,7 +137,7 @@
           <div id="regError" class="form-error hidden" style="margin-top:16px;"></div>
 
           <button type="submit" class="btn-primary btn-full" id="regSubmitBtn" style="margin-top:20px;">
-            <span id="regBtnText">Create Account →</span>
+            <span id="regBtnText">Verify Email &amp; Create Account →</span>
           </button>
         </form>
 
@@ -127,6 +147,50 @@
 
         <p class="auth-footer-note">© 2026 CampusFix. All rights reserved.</p>
       </div>
+
+      <!-- OTP Verification Panel (swapped in when OTP is sent) -->
+      <div class="auth-panel hidden" id="otpRegisterPanel">
+        <button class="back-btn" onclick="backToRegisterForm()">← Back to Edit Details</button>
+
+        <div class="otp-card">
+          <div class="otp-header-icon">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <h2 class="auth-panel-title">Verify Official Email</h2>
+          <p class="auth-panel-sub" style="margin-bottom:8px;">
+            We have sent a 6-digit verification code to:
+          </p>
+          <div id="otpTargetEmail" class="otp-email-target">student@college.edu.in</div>
+
+          <div class="otp-inputs-row" id="otpBoxes">
+            <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" autofocus />
+            <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" />
+            <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" />
+            <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" />
+            <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" />
+            <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" />
+          </div>
+
+          <div class="otp-timer-box">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <span>Expires in <strong id="otpCountdown" class="otp-timer-highlight">10:00</strong></span>
+          </div>
+
+          <div id="otpError" class="form-error hidden" style="margin-bottom:16px;"></div>
+
+          <button type="button" class="btn-primary btn-full" id="verifyOtpBtn" onclick="submitOtpAndRegister()">
+            <span id="verifyOtpBtnText">Verify &amp; Complete Registration →</span>
+          </button>
+
+          <div style="margin-top:18px; font-size:0.85rem; color:var(--text-muted);">
+            Didn't receive the email? 
+            <button type="button" class="otp-resend-link" id="resendOtpBtn" onclick="resendRegistrationOtp()">Resend Code</button>
+          </div>
+        </div>
+
+        <p class="auth-footer-note" style="margin-top:28px;">© 2026 CampusFix. All rights reserved.</p>
+      </div>
+
     </div>
 
   </div>
@@ -137,16 +201,19 @@
       const saved = localStorage.getItem('cf-theme');
       if (saved) document.documentElement.setAttribute('data-theme', saved);
     })();
+
     function toggleTheme() {
       const html = document.documentElement;
       const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
       html.setAttribute('data-theme', next);
       localStorage.setItem('cf-theme', next);
     }
+
     function toggleRegPassword() {
       const input = document.getElementById('regPassword');
       input.type = input.type === 'password' ? 'text' : 'password';
     }
+
     function toggleConfirmPassword() {
       const input = document.getElementById('regConfirmPassword');
       input.type = input.type === 'password' ? 'text' : 'password';
@@ -155,69 +222,280 @@
     // Inject password strength meter once DOM is ready
     document.addEventListener('DOMContentLoaded', () => {
       injectPasswordMeter('regPassword', 'reg-pw-meter');
+      setupOtpBoxInputs();
     });
+
+    let pendingRegistrationData = null;
+    let otpTimerInterval = null;
+
+    // Internal college domain
+    const INTERNAL_COLLEGE_DOMAIN = 'chitkara.edu.in';
 
     async function handleRegister(e) {
       e.preventDefault();
 
-      const errorEl  = document.getElementById('regError');
+      const errorEl = document.getElementById('regError');
+      const domainCard = document.getElementById('domainBlockedCard');
       errorEl.classList.add('hidden');
+      domainCard.classList.add('hidden');
       clearAllErrors(document.getElementById('registerForm'));
 
-      // ── Client-side validation ──────────────────────────────
+      // Client-side form validation
       let ok = true;
-      ok = validateRequired('regName',  'Full name')  && ok;
-      ok = validateRequired('regRollNo','Roll number') && ok;
-      ok = validateEmail('regEmail')                   && ok;
-      ok = validatePhone('regPhone')                   && ok;
-      ok = validateStrongPassword('regPassword')       && ok;
+      ok = validateRequired('regName',   'Full name')   && ok;
+      ok = validateRequired('regRollNo', 'Roll number')  && ok;
+      ok = validateEmail('regEmail')                    && ok;
+      ok = validatePhone('regPhone')                    && ok;
+      ok = validateStrongPassword('regPassword')        && ok;
       ok = validatePasswordMatch('regPassword', 'regConfirmPassword') && ok;
 
-      if (!ok) return; // stop — inline errors already show
-      // ────────────────────────────────────────────────────────
+      if (!ok) return;
 
       const name     = document.getElementById('regName').value.trim();
       const roll_no  = document.getElementById('regRollNo').value.trim();
-      const email    = document.getElementById('regEmail').value.trim();
+      const email    = document.getElementById('regEmail').value.trim().toLowerCase();
       const phone    = document.getElementById('regPhone').value.trim();
       const password = document.getElementById('regPassword').value;
       const btnText  = document.getElementById('regBtnText');
       const btn      = document.getElementById('regSubmitBtn');
 
-      btnText.textContent = 'Creating Account...';
+      // Check if email ends with official college domain
+      if (!email.endsWith('@' + INTERNAL_COLLEGE_DOMAIN)) {
+        // Plain email detected -> DO NOT SEND OTP OR EMAIL
+        domainCard.classList.remove('hidden');
+        errorEl.classList.add('hidden'); // Keep downside warning hidden, upper red card is shown
+        return;
+      }
+
+      // Valid college email -> Send OTP
+      pendingRegistrationData = { name, roll_no, email, phone, password };
+
+      btnText.textContent = 'Sending Verification Code...';
       btn.disabled = true;
+
       try {
-        const res = await fetch('http://localhost:5000/api/auth/register', {
+        const res = await fetch('http://localhost:5000/api/auth/send-registration-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, name })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          // Switch to OTP panel
+          showOtpPanel(email);
+        } else {
+          if (data.code === 'DOMAIN_BLOCKED') {
+            domainCard.classList.remove('hidden');
+            errorEl.classList.add('hidden');
+          } else {
+            errorEl.textContent = data.message || 'Failed to send verification code. Please try again.';
+            errorEl.classList.remove('hidden');
+          }
+        }
+      } catch (err) {
+        errorEl.textContent = 'Cannot connect to backend server. Make sure port 5000 is running.';
+        errorEl.classList.remove('hidden');
+      } finally {
+        btnText.textContent = 'Verify Email & Create Account →';
+        btn.disabled = false;
+      }
+    }
+
+    function showOtpPanel(email) {
+      document.getElementById('registerFormPanel').classList.add('hidden');
+      const otpPanel = document.getElementById('otpRegisterPanel');
+      otpPanel.classList.remove('hidden');
+      document.getElementById('otpTargetEmail').textContent = email;
+      document.getElementById('otpError').classList.add('hidden');
+
+      const boxes = document.querySelectorAll('#otpBoxes .otp-box');
+      boxes.forEach(b => { b.value = ''; b.disabled = false; });
+      if (boxes[0]) boxes[0].focus();
+
+      startCountdown(10 * 60);
+    }
+
+    function backToRegisterForm() {
+      clearInterval(otpTimerInterval);
+      document.getElementById('otpRegisterPanel').classList.add('hidden');
+      document.getElementById('registerFormPanel').classList.remove('hidden');
+    }
+
+    function setupOtpBoxInputs() {
+      const boxes = Array.from(document.querySelectorAll('#otpBoxes .otp-box'));
+      boxes.forEach((box, idx) => {
+        box.onkeydown = (e) => {
+          if (e.key === 'Backspace' && !box.value && idx > 0) {
+            boxes[idx - 1].focus();
+          }
+        };
+
+        box.oninput = (e) => {
+          const val = box.value.replace(/[^0-9]/g, '');
+          box.value = val ? val[0] : '';
+          if (box.value && idx < boxes.length - 1) {
+            boxes[idx + 1].focus();
+          }
+          const fullOtp = boxes.map(b => b.value).join('');
+          if (fullOtp.length === 6) {
+            submitOtpAndRegister();
+          }
+        };
+
+        box.onpaste = (e) => {
+          e.preventDefault();
+          const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+          if (paste.length > 0) {
+            for (let i = 0; i < boxes.length; i++) {
+              boxes[i].value = paste[i] || '';
+            }
+            const lastIdx = Math.min(paste.length - 1, boxes.length - 1);
+            boxes[lastIdx].focus();
+            if (paste.length >= 6) {
+              submitOtpAndRegister();
+            }
+          }
+        };
+      });
+    }
+
+    function startCountdown(secondsRemaining) {
+      clearInterval(otpTimerInterval);
+      const countdownEl = document.getElementById('otpCountdown');
+      const resendBtn = document.getElementById('resendOtpBtn');
+      if (resendBtn) {
+        resendBtn.disabled = true;
+        resendBtn.style.opacity = '0.5';
+      }
+
+      let totalSecs = secondsRemaining;
+      let elapsed = 0;
+
+      function update() {
+        const mins = Math.floor(totalSecs / 60);
+        const secs = totalSecs % 60;
+        countdownEl.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+        elapsed++;
+        if (elapsed >= 30 && resendBtn) {
+          resendBtn.disabled = false;
+          resendBtn.style.opacity = '1';
+        }
+
+        if (totalSecs <= 0) {
+          clearInterval(otpTimerInterval);
+          countdownEl.textContent = 'Expired';
+          const otpError = document.getElementById('otpError');
+          otpError.textContent = 'Verification code has expired. Please click "Resend Code".';
+          otpError.classList.remove('hidden');
+        }
+        totalSecs--;
+      }
+
+      update();
+      otpTimerInterval = setInterval(update, 1000);
+    }
+
+    async function submitOtpAndRegister() {
+      const boxes = Array.from(document.querySelectorAll('#otpBoxes .otp-box'));
+      const otp = boxes.map(b => b.value.trim()).join('');
+      const otpError = document.getElementById('otpError');
+      const verifyBtn = document.getElementById('verifyOtpBtn');
+      const btnText = document.getElementById('verifyOtpBtnText');
+
+      otpError.classList.add('hidden');
+
+      if (otp.length < 6) {
+        otpError.textContent = 'Please enter the complete 6-digit verification code.';
+        otpError.classList.remove('hidden');
+        return;
+      }
+
+      if (!pendingRegistrationData) {
+        otpError.textContent = 'Registration session expired. Please refill the form.';
+        otpError.classList.remove('hidden');
+        return;
+      }
+
+      btnText.textContent = 'Verifying & Registering...';
+      verifyBtn.disabled = true;
+
+      try {
+        const payload = { ...pendingRegistrationData, otp };
+        const res = await fetch('http://localhost:5000/api/auth/verify-and-register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          btnText.textContent = '✓ Verified! Redirecting to login...';
+          verifyBtn.style.background = '#10b981';
+          clearInterval(otpTimerInterval);
+
+          // Redirect to Student Portal login page (Screenshot 3)
+          setTimeout(() => {
+            window.location.href = 'login.html?portal=student&email=' + encodeURIComponent(pendingRegistrationData.email) + '&registered=true';
+          }, 1200);
+        } else {
+          otpError.textContent = data.message || 'Invalid or expired verification code.';
+          otpError.classList.remove('hidden');
+          boxes.forEach(b => b.classList.add('shake'));
+          setTimeout(() => boxes.forEach(b => b.classList.remove('shake')), 400);
+        }
+      } catch (err) {
+        otpError.textContent = 'Network error while verifying OTP.';
+        otpError.classList.remove('hidden');
+      } finally {
+        verifyBtn.disabled = false;
+        if (!btnText.textContent.includes('Redirecting')) {
+          btnText.textContent = 'Verify & Complete Registration →';
+        }
+      }
+    }
+
+    async function resendRegistrationOtp() {
+      const resendBtn = document.getElementById('resendOtpBtn');
+      const otpError = document.getElementById('otpError');
+      if (!pendingRegistrationData) return;
+
+      resendBtn.disabled = true;
+      resendBtn.textContent = 'Sending...';
+      otpError.classList.add('hidden');
+
+      try {
+        const res = await fetch('http://localhost:5000/api/auth/send-registration-otp', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            name, 
-            roll_no, 
-            email, 
-            phone, 
-            password
+            email: pendingRegistrationData.email,
+            name: pendingRegistrationData.name
           })
         });
         const data = await res.json();
-        
-        if (res.ok && data.token) {
-          sessionStorage.setItem('cf_token', data.token);
-          sessionStorage.setItem('cf_user', JSON.stringify(data.user));
-          sessionStorage.setItem('cf_role', 'student');
-          window.location.href = 'student_dashboard.html';
+        if (res.ok && data.success) {
+          resendBtn.textContent = 'Code Sent!';
+          startCountdown(10 * 60);
+          const boxes = document.querySelectorAll('#otpBoxes .otp-box');
+          boxes.forEach(b => b.value = '');
+          if (boxes[0]) boxes[0].focus();
+          setTimeout(() => { resendBtn.textContent = 'Resend Code'; }, 3000);
         } else {
-          errorEl.textContent = data.message || 'Registration failed.';
-          errorEl.classList.remove('hidden');
+          otpError.textContent = data.message || 'Failed to resend code.';
+          otpError.classList.remove('hidden');
+          resendBtn.textContent = 'Resend Code';
+          resendBtn.disabled = false;
         }
       } catch (err) {
-        errorEl.textContent = 'Cannot connect to the server. Make sure it is running on port 5000.';
-        errorEl.classList.remove('hidden');
-      } finally {
-        btnText.textContent = 'Create Account →';
-        btn.disabled = false;
+        otpError.textContent = 'Network error while resending code.';
+        otpError.classList.remove('hidden');
+        resendBtn.textContent = 'Resend Code';
+        resendBtn.disabled = false;
       }
     }
   </script>
 </body>
 </html>
-

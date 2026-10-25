@@ -148,7 +148,205 @@ function renderAllComplaints() {
 }
 
 let currentDuplicateId = null;
+let rawOriginalDescription = '';
+let pendingComplaintData = null;
 
+// ─── AI FEATURE 1: AI INTAKE STARTER (Auto Title, Category, Urgency & Tech Specs) ───
+async function handleAiIntakeSubmit() {
+  const initialDescEl = document.getElementById('aiInitialDesc');
+  const btn = document.getElementById('btnRunAiIntake');
+  const btnText = document.getElementById('aiIntakeBtnText');
+  const spinner = document.getElementById('aiIntakeSpinner');
+  const errorEl = document.getElementById('aiIntakeError');
+
+  const text = initialDescEl.value.trim();
+  if (text.length < 3) {
+    errorEl.textContent = 'Please write a brief description of what is broken or malfunctioning.';
+    errorEl.classList.remove('hidden');
+    initialDescEl.focus();
+    return;
+  }
+  errorEl.classList.add('hidden');
+
+  btn.disabled = true;
+  spinner.classList.remove('hidden');
+  btnText.textContent = 'AI Analyzing Issue & Structuring Specs...';
+
+  try {
+    const res = await fetch('http://localhost:5000/api/ai/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ description: text })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      // 1. Auto-fill title
+      if (data.title) {
+        document.getElementById('cTitle').value = data.title;
+      }
+      // 2. Auto-select category
+      if (data.category) {
+        const catSelect = document.getElementById('cCategory');
+        for (let i = 0; i < catSelect.options.length; i++) {
+          if (catSelect.options[i].value.toLowerCase() === data.category.toLowerCase()) {
+            catSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      // 3. Auto-select urgency
+      if (data.urgency) {
+        const urgSelect = document.getElementById('cUrgency');
+        for (let i = 0; i < urgSelect.options.length; i++) {
+          if (urgSelect.options[i].value.toLowerCase() === data.urgency.toLowerCase()) {
+            urgSelect.selectedIndex = i;
+            break;
+          }
+        }
+      }
+      // 4. Fill structured polished description
+      if (data.polishedDescription) {
+        document.getElementById('cDesc').value = data.polishedDescription;
+        rawOriginalDescription = text;
+        const undoContainer = document.getElementById('aiUndoContainer');
+        if (undoContainer) {
+          undoContainer.innerHTML = `<a href="javascript:void(0)" class="ai-undo-link" onclick="undoAiPolish()">(↺ Revert to raw notes)</a>`;
+        }
+      }
+
+      // 5. Leave location unselected for student to pick
+      document.getElementById('cLocation').selectedIndex = 0;
+
+      // 6. Transition screens: hide AI starter, show full form card
+      document.getElementById('aiPromptStep').classList.add('hidden');
+      const formCard = document.getElementById('complaintFormCard');
+      formCard.classList.remove('hidden');
+      const notice = document.getElementById('aiAutoFillNotice');
+      if (notice) notice.classList.remove('hidden');
+
+      // Focus on location selection so user can immediately choose
+      setTimeout(() => {
+        document.getElementById('cLocation').focus();
+      }, 150);
+    } else {
+      errorEl.textContent = data.message || 'Failed to analyze description. Try manual entry.';
+      errorEl.classList.remove('hidden');
+    }
+  } catch (err) {
+    console.error('AI intake error:', err);
+    errorEl.textContent = 'AI service temporarily unavailable. You can skip and fill manually.';
+    errorEl.classList.remove('hidden');
+  } finally {
+    btn.disabled = false;
+    spinner.classList.add('hidden');
+    btnText.textContent = '✨ Analyze & Auto-Fill Form';
+  }
+}
+
+function skipToFullForm() {
+  const initialText = document.getElementById('aiInitialDesc').value.trim();
+  if (initialText) {
+    document.getElementById('cDesc').value = initialText;
+  }
+  document.getElementById('aiPromptStep').classList.add('hidden');
+  document.getElementById('complaintFormCard').classList.remove('hidden');
+  const notice = document.getElementById('aiAutoFillNotice');
+  if (notice) notice.classList.add('hidden');
+  document.getElementById('cTitle').focus();
+}
+
+function backToAiStarter() {
+  document.getElementById('complaintFormCard').classList.add('hidden');
+  document.getElementById('aiPromptStep').classList.remove('hidden');
+  document.getElementById('aiInitialDesc').focus();
+}
+
+function resetReportIssueSteps() {
+  document.getElementById('complaintForm').reset();
+  const initialDesc = document.getElementById('aiInitialDesc');
+  if (initialDesc) initialDesc.value = '';
+  const intakeErr = document.getElementById('aiIntakeError');
+  if (intakeErr) intakeErr.classList.add('hidden');
+  const formCard = document.getElementById('complaintFormCard');
+  if (formCard) formCard.classList.add('hidden');
+  const promptStep = document.getElementById('aiPromptStep');
+  if (promptStep) promptStep.classList.remove('hidden');
+  const notice = document.getElementById('aiAutoFillNotice');
+  if (notice) notice.classList.add('hidden');
+}
+
+// ─── AI FEATURE 2: POLISH & STRUCTURE (Groq Powered) ─────────
+async function polishComplaintDescription() {
+  const descEl = document.getElementById('cDesc');
+  const btn = document.getElementById('btnPolishAi');
+  const btnText = document.getElementById('btnPolishText');
+  const undoContainer = document.getElementById('aiUndoContainer');
+  const errorEl = document.getElementById('cError');
+
+  const text = descEl.value.trim();
+  if (text.length < 3) {
+    errorEl.textContent = 'Please write a brief description or rough notes first before polishing.';
+    errorEl.classList.remove('hidden');
+    descEl.focus();
+    return;
+  }
+  errorEl.classList.add('hidden');
+
+  rawOriginalDescription = descEl.value;
+  btn.disabled = true;
+  btnText.textContent = 'Polishing with AI...';
+
+  const title = document.getElementById('cTitle').value.trim();
+  const category = document.getElementById('cCategory').value;
+  const locSelect = document.getElementById('cLocation');
+  const locationText = locSelect.options[locSelect.selectedIndex]?.text || '';
+
+  try {
+    const res = await fetch('http://localhost:5000/api/ai/polish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title,
+        description: text,
+        category,
+        location: locationText
+      })
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success && data.polishedText) {
+      descEl.value = data.polishedText;
+      btnText.textContent = '✓ Polished!';
+      
+      undoContainer.innerHTML = `<a href="javascript:void(0)" class="ai-undo-link" onclick="undoAiPolish()">(↺ Revert to raw notes)</a>`;
+
+      setTimeout(() => {
+        btnText.textContent = 'AI Polish & Structure';
+        btn.disabled = false;
+      }, 2500);
+    } else {
+      errorEl.textContent = data.message || 'Failed to polish description.';
+      errorEl.classList.remove('hidden');
+      btnText.textContent = 'AI Polish & Structure';
+      btn.disabled = false;
+    }
+  } catch (err) {
+    errorEl.textContent = 'AI service temporarily unavailable. You can still submit your manual description.';
+    errorEl.classList.remove('hidden');
+    btnText.textContent = 'AI Polish & Structure';
+    btn.disabled = false;
+  }
+}
+
+function undoAiPolish() {
+  if (rawOriginalDescription) {
+    document.getElementById('cDesc').value = rawOriginalDescription;
+    document.getElementById('aiUndoContainer').innerHTML = '';
+  }
+}
+
+// ─── AI FEATURE 2: SMART QUICK-FIX ASSISTANT ──────────────────
 async function submitComplaint(e) {
   e.preventDefault();
   const btn       = document.getElementById('cSubmitBtn');
@@ -167,7 +365,6 @@ async function submitComplaint(e) {
   if (!ok) return;
 
   btn.disabled = true;
-  btn.textContent = 'Submitting...';
 
   let locDesc = '';
   try {
@@ -190,6 +387,82 @@ async function submitComplaint(e) {
     created_at:  new Date().toISOString()
   };
 
+  pendingComplaintData = data;
+
+  // Step 1: Evaluate if issue can be resolved via 30-second quick fix
+  btn.textContent = 'Analyzing issue...';
+  try {
+    const qfRes = await fetch('http://localhost:5000/api/ai/quick-fix', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: data.title,
+        description: data.description,
+        category: data.category
+      })
+    });
+    const qfData = await qfRes.json();
+    if (qfData.success && qfData.hasQuickFix && qfData.steps && qfData.steps.length > 0) {
+      showQuickFixModal(qfData.title, qfData.steps);
+      btn.disabled = false;
+      btn.textContent = 'Submit Complaint';
+      return; // Stop here to let student attempt quick fix
+    }
+  } catch (qfErr) {
+    console.warn('Quick-fix check skipped:', qfErr);
+  }
+
+  // Step 2: Proceed with regular ticket submission
+  await executeComplaintSubmission(data);
+}
+
+function showQuickFixModal(title, steps) {
+  document.getElementById('qfTitle').textContent = title || 'Quick 30-Second Fix Available';
+  const container = document.getElementById('qfStepsContainer');
+  container.innerHTML = steps.map((s, idx) => `
+    <div class="qf-step-item">
+      <span class="qf-step-num">${idx + 1}</span>
+      <span>${s}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('quickFixModal').classList.remove('hidden');
+}
+
+function closeQuickFixModal() {
+  document.getElementById('quickFixModal').classList.add('hidden');
+}
+
+function resolveSelfHelpSuccess() {
+  closeQuickFixModal();
+  resetReportIssueSteps();
+  const successEl = document.getElementById('cSuccess');
+  successEl.textContent = '🎉 Great job! You resolved the issue yourself and saved maintenance resources.';
+  successEl.classList.remove('hidden');
+  document.getElementById('complaintFormCard').classList.remove('hidden');
+  document.getElementById('aiPromptStep').classList.add('hidden');
+  setTimeout(() => {
+    successEl.classList.add('hidden');
+    successEl.textContent = 'Complaint submitted! Redirecting...';
+    resetReportIssueSteps();
+  }, 4000);
+}
+
+async function proceedWithTicketSubmission() {
+  closeQuickFixModal();
+  if (pendingComplaintData) {
+    await executeComplaintSubmission(pendingComplaintData);
+  }
+}
+
+async function executeComplaintSubmission(data) {
+  const btn       = document.getElementById('cSubmitBtn');
+  const errorEl   = document.getElementById('cError');
+  const successEl = document.getElementById('cSuccess');
+
+  btn.disabled = true;
+  btn.textContent = 'Submitting...';
+
   try {
     const existing = await apiFetch(`/complaints?location_id=${data.location_id}&category=${encodeURIComponent(data.category)}`);
     const duplicate = existing.find(c => c.status !== 'Closed' && c.status !== 'Resolved');
@@ -198,8 +471,9 @@ async function submitComplaint(e) {
       showDuplicateModal(duplicate);
     } else {
       await apiFetch('/complaints', { method: 'POST', body: JSON.stringify(data) });
+      successEl.textContent = 'Complaint submitted! Redirecting...';
       successEl.classList.remove('hidden');
-      document.getElementById('complaintForm').reset();
+      resetReportIssueSteps();
       loadStats();
       loadComplaints();
       setTimeout(() => {
