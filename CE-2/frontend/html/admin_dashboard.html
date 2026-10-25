@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../css/style.css" />
-  <link rel="stylesheet" href="../css/dashboard.css" />
+  <link rel="stylesheet" href="../css/dashboard.css?v=2.5" />
 </head>
 <body class="dash-body">
 
@@ -96,7 +96,11 @@
   <main class="main-content">
     <header class="topbar">
       <h2 class="topbar-title" id="pageTitle">Campus Overview</h2>
-      <div class="topbar-actions">
+      <div class="topbar-actions" style="display:flex; align-items:center; gap:12px;">
+        <button class="btn-ai-magic" id="btnOpenAiCopilot" onclick="toggleAiCopilot(null, event)" style="display:flex; align-items:center; gap:7px; padding:7px 14px; font-size:0.84rem; font-weight:600; border-radius:8px; cursor:pointer;">
+          <span class="ai-sparkle-icon">✨</span>
+          <span>Ask CampusFix AI</span>
+        </button>
         <button class="dash-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
           <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
           <svg class="icon-sun"  viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -108,6 +112,85 @@
 
       <!-- ── TAB: OVERVIEW ── -->
       <section id="tab-overview" class="tab-pane active">
+
+        <!-- ── AI EXECUTIVE BRIEFING SECTION ── -->
+        <div id="aiExecutiveBriefCard" class="ai-starter-card" style="margin-bottom:24px; padding:20px; border-radius:12px; background:linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(168,85,247,0.06) 100%); border:1px solid rgba(99,102,241,0.22); position:relative; overflow:hidden;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span class="ai-pill-badge" style="background:rgba(99,102,241,0.18); color:var(--accent); border:1px solid rgba(99,102,241,0.3); padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; margin:0;">
+                <span class="ai-sparkle-icon">✨</span> Gemini Operations Intelligence
+              </span>
+              <span id="aiBriefTimestamp" style="font-size:0.78rem; color:var(--text-muted); display:none;">Last updated: <span id="aiBriefTimeVal">--</span></span>
+            </div>
+            <button id="btnGenerateBrief" class="btn-primary" onclick="fetchDailyAiBrief()" style="display:flex; align-items:center; gap:8px; padding:8px 16px; font-size:0.84rem; cursor:pointer;">
+              <span class="ai-sparkle-icon">✨</span>
+              <span id="btnGenerateBriefText">Generate Daily AI Brief</span>
+            </button>
+          </div>
+
+          <!-- Empty / Initial Prompt State -->
+          <div id="aiBriefInitialState" style="padding:10px 2px;">
+            <h4 style="font-size:1.02rem; font-weight:700; color:var(--text-primary); margin-bottom:4px;">Campus Operations Daily Briefing</h4>
+            <p style="font-size:0.85rem; color:var(--text-secondary); max-width:680px; line-height:1.5; margin:0;">
+              Synthesize real-time complaints, department resolution velocity, infrastructure hotspots, and department head attendance in a 30-second AI executive summary.
+            </p>
+          </div>
+
+          <!-- Loading Skeleton State -->
+          <div id="aiBriefLoadingState" class="hidden" style="padding:14px 2px;">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+              <span class="ai-spin-icon" style="font-size:1.1rem;">⚡</span>
+              <span style="font-size:0.88rem; color:var(--text-primary); font-weight:600;">Analyzing live MongoDB records with Google Gemini...</span>
+            </div>
+            <div style="height:12px; background:rgba(255,255,255,0.06); border-radius:6px; margin-bottom:8px; width:92%;"></div>
+            <div style="height:12px; background:rgba(255,255,255,0.06); border-radius:6px; margin-bottom:8px; width:75%;"></div>
+            <div style="height:12px; background:rgba(255,255,255,0.06); border-radius:6px; width:50%;"></div>
+          </div>
+
+          <!-- Populated AI Brief Content -->
+          <div id="aiBriefContentState" class="hidden">
+            <!-- Headline -->
+            <div id="aiBriefHeadline" style="font-size:0.95rem; font-weight:600; color:var(--text-primary); line-height:1.5; margin-bottom:14px; padding:10px 14px; background:rgba(255,255,255,0.04); border-left:3px solid var(--accent); border-radius:6px;">
+            </div>
+
+            <!-- 3-Column Insights Grid -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); gap:14px; margin-bottom:16px;">
+              <!-- Critical Alerts -->
+              <div style="background:var(--bg-card); padding:14px; border-radius:8px; border:1px solid rgba(239,68,68,0.25);">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                  <span style="color:var(--danger); font-size:0.8rem; font-weight:700; text-transform:uppercase;">🚨 Critical Alerts</span>
+                </div>
+                <ul id="aiBriefAlertsList" style="list-style:none; padding:0; margin:0; font-size:0.83rem; color:var(--text-secondary); line-height:1.6;">
+                </ul>
+              </div>
+
+              <!-- Department Highlights -->
+              <div style="background:var(--bg-card); padding:14px; border-radius:8px; border:1px solid rgba(99,102,241,0.25);">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                  <span style="color:var(--accent); font-size:0.8rem; font-weight:700; text-transform:uppercase;">🏢 Department Highlights</span>
+                </div>
+                <ul id="aiBriefDeptsList" style="list-style:none; padding:0; margin:0; font-size:0.83rem; color:var(--text-secondary); line-height:1.6;">
+                </ul>
+              </div>
+
+              <!-- Staffing Summary -->
+              <div style="background:var(--bg-card); padding:14px; border-radius:8px; border:1px solid rgba(16,185,129,0.25);">
+                <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+                  <span style="color:var(--success); font-size:0.8rem; font-weight:700; text-transform:uppercase;">👥 Workforce & Leadership</span>
+                </div>
+                <p id="aiBriefStaffingText" style="font-size:0.83rem; color:var(--text-secondary); line-height:1.6; margin:0;"></p>
+              </div>
+            </div>
+
+            <!-- Recommended Next Actions -->
+            <div style="background:rgba(245,158,11,0.07); border:1px solid rgba(245,158,11,0.25); border-radius:8px; padding:12px 16px;">
+              <span style="font-size:0.8rem; font-weight:700; color:#f59e0b; text-transform:uppercase; letter-spacing:0.3px; display:block; margin-bottom:6px;">Recommended Administrator Actions:</span>
+              <ul id="aiBriefActionsList" style="margin:0; padding-left:18px; font-size:0.83rem; color:var(--text-secondary); line-height:1.6;">
+              </ul>
+            </div>
+          </div>
+        </div>
+
         <div class="filter-row" style="margin-bottom:16px; justify-content:flex-end;">
           <select id="overviewFiltDept" onchange="loadStats()">
             <option value="">All Departments</option>
@@ -182,11 +265,30 @@
             <option value="In Progress">In Progress</option>
             <option value="Closed">Closed</option>
           </select>
+          <button class="btn-ghost" onclick="loadComplaintTriageAdmin()" style="display:flex; align-items:center; gap:6px; font-size:0.82rem; padding:8px 14px;">
+            <span class="ai-sparkle-icon">✨</span> AI Safety Triage
+          </button>
         </div>
+
+        <!-- ── AI SAFETY TRIAGE & HAZARD RADAR ── -->
+        <div id="aiSafetyRadarCard" style="margin-bottom:18px; padding:12px 16px; border-radius:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.25); display:none; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:1.15rem;">🚨</span>
+            <div>
+              <span style="font-weight:700; color:var(--danger); font-size:0.86rem;" id="aiRadarTitle">Safety Hazard Radar Active</span>
+              <p style="margin:2px 0 0 0; font-size:0.8rem; color:var(--text-secondary);" id="aiRadarSubtitle">Scanning complaints for life-safety hazards and student under-reporting.</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn-ghost" onclick="filterSafetyHazardsOnly(true)" id="btnFilterHazards" style="padding:6px 12px; font-size:0.8rem; border-color:rgba(239,68,68,0.3); color:var(--danger);">Show Flagged Only</button>
+            <button class="btn-ghost" onclick="filterSafetyHazardsOnly(false)" style="padding:6px 12px; font-size:0.8rem;">Show All</button>
+          </div>
+        </div>
+
         <div class="table-container">
           <table class="data-table">
             <thead>
-              <tr><th>ID</th><th>Title &amp; Location</th><th>Dept</th><th>Status</th><th>Submitted</th></tr>
+              <tr><th>ID</th><th>Title &amp; Location</th><th>Dept</th><th>Status</th><th>Urgency &amp; AI Triage</th><th>Submitted</th></tr>
             </thead>
             <tbody id="globalComplaintsBody"></tbody>
           </table>
@@ -219,6 +321,43 @@
             <thead><tr><th>Campus</th><th>Block</th><th>Floor</th><th>Room / Area</th></tr></thead>
             <tbody id="locationsBody"></tbody>
           </table>
+        </div>
+
+        <!-- ── AI CAMPUS INFRASTRUCTURE RISK DASHBOARD ── -->
+        <div style="margin-top:28px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+            <div>
+              <h3 style="font-size:1.05rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:8px;">
+                <span>Predictive Maintenance &amp; Infrastructure Risk Radar</span>
+                <span class="ai-pill-badge" style="margin:0; font-size:0.7rem; padding:3px 8px;">✨ Predictive AI</span>
+              </h3>
+              <p style="font-size:0.82rem; color:var(--text-muted); margin-top:2px;">
+                Identifies recurring failure patterns across blocks and recommends preventive servicing before major breakdowns occur.
+              </p>
+            </div>
+            <button class="btn-ghost" onclick="loadInfrastructureRisksAdmin()" style="font-size:0.82rem; padding:6px 12px; cursor:pointer;">Refresh Risk Audit</button>
+          </div>
+
+          <div class="table-container">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Campus Location</th>
+                  <th>Infrastructure Category</th>
+                  <th>Incident Density</th>
+                  <th>Empirical Risk Level</th>
+                  <th>Evidence (Past Incidents)</th>
+                  <th>Recommended Preventive Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminInfraRisksBody">
+                <tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:24px;">Analyzing infrastructure risk clusters...</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px; font-style:italic;">
+            * Note: Risk indicators are empirical estimates derived from historical ticket clusters and recurrence patterns. They do not constitute guaranteed mechanical failures.
+          </p>
         </div>
       </section>
 
@@ -311,6 +450,21 @@
         <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px; font-size:0.8rem; color:var(--text-muted);">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
           <span>Attendance logs verify campus coordinates against Chitkara University (30.5094° N, 76.6566° E, 500m geofence radius).</span>
+        </div>
+
+        <!-- ── AI ATTENDANCE ANOMALY AUDITOR ── -->
+        <div id="adminAttAnomalyContainer" style="margin-bottom:20px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:1.1rem;">📍</span>
+              <h4 style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin:0;">AI Geofence &amp; Attendance Anomaly Radar</h4>
+              <span id="adminAttAnomalyBadge" class="nav-badge" style="position:static; margin:0; background:#f59e0b; color:#0f172a; display:none;">0</span>
+            </div>
+            <button class="btn-ghost" onclick="loadAttendanceAnomaliesAdmin()" style="font-size:0.8rem; padding:5px 10px; cursor:pointer;">Re-audit Logs</button>
+          </div>
+          <div id="adminAttAnomalyList" style="font-size:0.83rem; color:var(--text-secondary);">
+            Loading attendance verification scans...
+          </div>
         </div>
 
         <!-- Head Attendance Table -->
@@ -408,12 +562,13 @@
                 <th>Dates & Duration</th>
                 <th>Reason</th>
                 <th>Status</th>
+                <th>AI Staffing Risk</th>
                 <th>Review Info</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody id="adminHeadLeavesBody">
-              <tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:32px;">Loading Department Head leave requests...</td></tr>
+              <tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:32px;">Loading Department Head leave requests...</td></tr>
             </tbody>
           </table>
         </div>
@@ -431,6 +586,21 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
               + Issue Head Payslip
             </button>
+          </div>
+        </div>
+
+        <!-- ── AI PAYROLL ANOMALY AUDITOR ── -->
+        <div id="adminPayrollAnomalyContainer" style="margin-bottom:20px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:1.1rem;">💰</span>
+              <h4 style="font-size:0.95rem; font-weight:700; color:var(--text-primary); margin:0;">AI Payroll &amp; Voucher Integrity Audit</h4>
+              <span id="adminPayrollAnomalyBadge" class="nav-badge" style="position:static; margin:0; background:var(--accent); color:#fff; display:none;">0</span>
+            </div>
+            <button class="btn-ghost" onclick="loadPayrollAnomaliesAdmin()" style="font-size:0.8rem; padding:5px 10px; cursor:pointer;">Re-audit Vouchers</button>
+          </div>
+          <div id="adminPayrollAnomalyList" style="font-size:0.83rem; color:var(--text-secondary);">
+            Scanning payslip structures for anomalies and duplicate vouchers...
           </div>
         </div>
 
@@ -728,9 +898,59 @@
     </div>
   </div>
 
+  <!-- ── MODAL / DRAWER: ASK CAMPUSFIX AI COPILOT ── -->
+  <div id="aiCopilotOverlay" class="hidden" onclick="toggleAiCopilot()"></div>
+  
+  <aside id="aiCopilotDrawer">
+    <!-- Drawer Header -->
+    <div class="copilot-header">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="width:34px; height:34px; border-radius:8px; background:linear-gradient(135deg, #6366f1, #a855f7); display:flex; align-items:center; justify-content:center; color:#fff; font-size:16px;">✨</span>
+        <div>
+          <h3 style="font-size:1.02rem; font-weight:700; color:#f8fafc; margin:0;">Ask CampusFix AI</h3>
+          <span style="font-size:0.75rem; color:#94a3b8;">Real-time MongoDB Intelligence Copilot</span>
+        </div>
+      </div>
+      <button onclick="toggleAiCopilot()" style="background:none; border:none; color:#94a3b8; cursor:pointer; font-size:18px; padding:4px 8px;">✕</button>
+    </div>
+
+    <!-- Quick Inquiry Suggested Pills -->
+    <div class="copilot-suggestions">
+      <span style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:#94a3b8; letter-spacing:0.4px; display:block; margin-bottom:8px;">Suggested Inquiries</span>
+      <div style="display:flex; flex-wrap:wrap; gap:6px;">
+        <button type="button" class="ai-pill-btn" onclick="askCopilotPredefined('Which department has the most overdue complaints this week?')">Overdue Complaints</button>
+        <button type="button" class="ai-pill-btn" onclick="askCopilotPredefined('How many department heads arrived late today?')">Late Dept Heads</button>
+        <button type="button" class="ai-pill-btn" onclick="askCopilotPredefined('Which campus block has the highest number of complaints?')">Hotspot Block</button>
+        <button type="button" class="ai-pill-btn" onclick="askCopilotPredefined('What is the average complaint resolution time this month?')">Avg Resolution Time</button>
+        <button type="button" class="ai-pill-btn" onclick="askCopilotPredefined('How many leave requests are pending approval?')">Pending Leaves</button>
+      </div>
+    </div>
+
+    <!-- Chat Messages Scroll Area -->
+    <div id="aiCopilotChatBody" class="copilot-chat-body">
+      <!-- Welcome message -->
+      <div class="ai-chat-bubble assistant">
+        <p style="margin:0 0 6px 0; font-weight:600; color:#f8fafc;">Hello Administrator 👋</p>
+        <p style="margin:0; font-size:0.85rem; color:#cbd5e1; line-height:1.5;">
+          I analyze verified campus data on complaints, department resolution velocity, geofence compliance, and staffing in real time. Select a quick query above or ask any operational question below.
+        </p>
+      </div>
+    </div>
+
+    <!-- Input Footer -->
+    <div class="copilot-footer">
+      <form id="aiCopilotForm" onsubmit="submitAiCopilotQuery(event)" style="display:flex; gap:8px;">
+        <input type="text" id="aiCopilotInput" placeholder="Ask about complaints, attendance, leaves..." style="flex:1; padding:10px 14px; font-size:0.86rem; border-radius:8px; border:1px solid rgba(255,255,255,0.18); background:#0b0d14; color:#f8fafc;" />
+        <button type="submit" id="btnAiCopilotSend" class="btn-primary" style="padding:0 16px; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </form>
+    </div>
+  </aside>
+
   <script src="../js/validation.js"></script>
   <script src="../js/dashboard.js"></script>
-  <script src="../js/admin.js"></script>
+  <script src="../js/admin.js?v=2.5"></script>
   <script>
     (function() {
       const saved = localStorage.getItem('cf-theme');

@@ -1153,3 +1153,165 @@ select option {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+/* ─── ADMIN AI COPILOT & EXECUTIVE BRIEF STYLES ───────────── */
+.ai-pill-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  padding: 5px 10px;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.ai-pill-btn:hover {
+  background: rgba(99, 102, 241, 0.2);
+  border-color: rgba(99, 102, 241, 0.4);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.ai-chat-bubble {
+  max-width: 88%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  word-break: break-word;
+}
+.ai-chat-bubble.user {
+  align-self: flex-end;
+  background: var(--accent);
+  color: #fff;
+  border-bottom-right-radius: 3px;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+}
+.ai-chat-bubble.assistant {
+  align-self: flex-start;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-bottom-left-radius: 3px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.ai-chat-bubble.assistant table {
+  width: 100%;
+  margin-top: 8px;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+.ai-chat-bubble.assistant th,
+.ai-chat-bubble.assistant td {
+  padding: 5px 8px;
+  border: 1px solid var(--border-color);
+  text-align: left;
+}
+.ai-chat-bubble.assistant th {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 600;
+}
+
+/* AI Magic Button in Topbar */
+.btn-ai-magic {
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c026d3 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  user-select: none;
+}
+.btn-ai-magic:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5);
+  border-color: rgba(255, 255, 255, 0.4) !important;
+  filter: brightness(1.08);
+}
+.btn-ai-magic:active {
+  transform: translateY(0);
+}
+.btn-ai-magic .ai-sparkle-icon {
+  animation: pulseSparkle 2s ease-in-out infinite;
+}
+@keyframes pulseSparkle {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.25); opacity: 0.85; }
+}
+
+#aiCopilotDrawer {
+  font-family: inherit;
+}
+
+/* ─── AI COPILOT SLIDE-OUT DRAWER & OVERLAY ─────────────────── */
+#aiCopilotOverlay {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: rgba(0, 0, 0, 0.65) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  z-index: 99998 !important;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.3s ease !important;
+}
+#aiCopilotOverlay.active {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  display: block !important;
+}
+
+#aiCopilotDrawer {
+  position: fixed !important;
+  top: 0 !important;
+  right: -520px;
+  width: 480px !important;
+  max-width: 94vw !important;
+  height: 100vh !important;
+  background: #0f121d !important;
+  color: #f1f5f9 !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
+  z-index: 99999 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-shadow: -15px 0 45px rgba(0, 0, 0, 0.75) !important;
+  transition: right 0.35s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  overflow: hidden !important;
+}
+#aiCopilotDrawer.open {
+  right: 0px !important;
+}
+
+.copilot-header {
+  padding: 18px 20px;
+  background: #161a29;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.copilot-suggestions {
+  padding: 12px 18px;
+  background: #121522;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+.copilot-chat-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  background: #0b0d14;
+}
+.copilot-footer {
+  padding: 14px 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #161a29;
+}
+
+

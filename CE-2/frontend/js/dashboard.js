@@ -107,9 +107,17 @@ function switchTab(tabId) {
   if (tabId === 'my-complaints'       && typeof loadMyTasks === 'function') loadMyTasks();
   if (tabId === 'attendance'          && typeof loadAttendance === 'function') loadAttendance();
   if (tabId === 'dh-my-attendance'    && typeof loadHeadMyAttendance === 'function') loadHeadMyAttendance();
-  if (tabId === 'head-attendance'     && typeof loadHeadAttendanceAnalytics === 'function') loadHeadAttendanceAnalytics();
+  if (tabId === 'head-attendance'     && typeof loadHeadAttendanceAnalytics === 'function') {
+    loadHeadAttendanceAnalytics();
+    if (typeof loadAttendanceAnomaliesAdmin === 'function') loadAttendanceAnomaliesAdmin();
+  }
   if (tabId === 'head-leaves'         && typeof loadHeadLeavesAdmin === 'function') loadHeadLeavesAdmin();
-  if (tabId === 'head-payslips'       && typeof loadHeadPayslipsAdmin === 'function') loadHeadPayslipsAdmin();
+  if (tabId === 'head-payslips'       && typeof loadHeadPayslipsAdmin === 'function') {
+    loadHeadPayslipsAdmin();
+    if (typeof loadPayrollAnomaliesAdmin === 'function') loadPayrollAnomaliesAdmin();
+  }
+  if (tabId === 'locations'           && typeof loadInfrastructureRisksAdmin === 'function') loadInfrastructureRisksAdmin();
+  if (tabId === 'complaints'          && typeof loadComplaintTriageAdmin === 'function') loadComplaintTriageAdmin();
   if (tabId === 'leave'               && typeof loadLeaves === 'function') loadLeaves();
   if (tabId === 'payslips'            && typeof loadPayslips === 'function') loadPayslips();
 }

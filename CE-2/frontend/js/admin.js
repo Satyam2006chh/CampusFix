@@ -4,6 +4,12 @@ document.addEventListener("DOMContentLoaded", () => {
   if (currentUser.role !== "admin") { window.location.href = "login.html"; return; }
   loadStats(); loadAllComplaints(); loadDepartments(); loadLocations(); loadUsers(); loadHeadAttendanceAnalytics(); loadHeadLeavesAdmin(); loadHeadPayslipsAdmin();
 
+  // Initialize AI Safety, Risk, and Audit Scans
+  loadComplaintTriageAdmin();
+  loadInfrastructureRisksAdmin();
+  loadAttendanceAnomaliesAdmin();
+  loadPayrollAnomaliesAdmin();
+
   // Background polling for new Department Head leave requests
   checkPendingLeavesBadge(true);
   setInterval(() => {
@@ -77,21 +83,23 @@ async function loadStats() {
   } catch (err) { console.error(err); }
 }
 
+let activeTriageAuditMap = {};
+let filterOnlyHazardsMode = false;
+
 async function loadAllComplaints() {
   try {
-    const filtDept   = document.getElementById("filtDept").value;
-    const filtStatus = document.getElementById("filtStatus").value;
+    const filtDept   = document.getElementById("filtDept")?.value || '';
+    const filtStatus = document.getElementById("filtStatus")?.value || '';
 
     let complaints = await apiFetch('/complaints');
-
-    complaints = complaints.filter(c => c.source !== 'upvoted');
+    complaints = (complaints || []).filter(c => c.source !== 'upvoted');
 
     if (filtStatus) {
       complaints = complaints.filter(c => c.status === filtStatus);
     }
     if (filtDept) {
       const depts = await apiFetch('/departments');
-      const dept  = depts.find(d => d.id == filtDept);
+      const dept  = (depts || []).find(d => d.id == filtDept);
       if (dept) {
         complaints = complaints.filter(c =>
           c.category && c.category.toLowerCase() === dept.category_tag.toLowerCase()
@@ -99,14 +107,21 @@ async function loadAllComplaints() {
       }
     }
 
-    complaints.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    if (filterOnlyHazardsMode) {
+      complaints = complaints.filter(c => {
+        const tr = activeTriageAuditMap[String(c.id || c._id)];
+        return tr && tr.isSafetyHazard;
+      });
+    }
+
+    complaints.sort((a, b) => new Date(b.created_at || b.createdAt || 0) - new Date(a.created_at || a.createdAt || 0));
 
     const tbody = document.getElementById("globalComplaintsBody");
     if (!tbody) return;
     tbody.innerHTML = "";
 
     if (!complaints.length) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px;">No complaints found.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:32px;">No complaints found.</td></tr>';
       return;
     }
 
@@ -119,8 +134,26 @@ async function loadAllComplaints() {
              padding:2px 8px;border-radius:20px;margin-left:6px;font-weight:600;">
              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                <polyline points="18 15 12 9 6 15"/>
-             </svg>${c.upvote_count} upvote${c.upvote_count !== 1 ? 's' : ''}</span>`
+             </svg>${c.upvote_count}</span>`
         : '';
+
+      const tr = activeTriageAuditMap[String(c.id || c._id)];
+      let triageHtml = `<span style="font-size:0.8rem;color:var(--text-secondary);font-weight:600;">${c.urgency || 'Medium'}</span>`;
+
+      if (tr && tr.isSafetyHazard) {
+        triageHtml = `
+          <div>
+            <span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;background:rgba(239,68,68,0.18);color:var(--danger);font-weight:700;font-size:0.75rem;">
+              ⚡ ${tr.hazardType || 'Safety Hazard'}
+            </span>
+            ${tr.requiresEscalation ? `
+              <div style="margin-top:4px;">
+                <button class="action-btn danger" style="padding:2px 6px;font-size:0.72rem;font-weight:700;cursor:pointer;" onclick="escalateComplaintUrgency('${c.id}','${tr.hazardType}')">
+                  ⚡ Escalate to High
+                </button>
+              </div>` : ''}
+          </div>`;
+      }
 
       tbody.innerHTML += `
         <tr>
@@ -133,7 +166,8 @@ async function loadAllComplaints() {
           </td>
           <td style="color:var(--text-secondary);">${c.category || 'Unassigned'}</td>
           <td>${getStatusBadge(c.status)}</td>
-          <td style="color:var(--text-secondary);">${formatDate(c.created_at)}</td>
+          <td>${triageHtml}</td>
+          <td style="color:var(--text-secondary);">${formatDate(c.created_at || c.createdAt)}</td>
         </tr>`;
     });
   } catch (err) { console.error(err); }
@@ -919,6 +953,14 @@ function filterHeadLeavesAdmin() {
       actionsHtml = `<span style="font-size:0.78rem;color:var(--text-muted);">${l.status}</span>`;
     }
 
+    let staffingRiskHtml = `<span style="font-size:0.75rem;color:var(--text-muted);">—</span>`;
+    if (l.status === 'Pending') {
+      staffingRiskHtml = `
+        <button class="ai-pill-btn" onclick="openLeaveAdvisorModal('${l.id}')" style="font-size:0.72rem; padding:3px 8px; border-color:rgba(99,102,241,0.4); color:var(--accent); cursor:pointer;">
+          ✨ Check Risk
+        </button>`;
+    }
+
     tbody.innerHTML += `
       <tr>
         <td>
@@ -928,8 +970,9 @@ function filterHeadLeavesAdmin() {
         <td><span style="font-weight:500;color:var(--text-primary);">${deptName}</span></td>
         <td><span style="font-weight:600;color:var(--accent);">${l.leave_type}</span></td>
         <td style="white-space:nowrap;">${durationText}</td>
-        <td style="max-width:220px;color:var(--text-secondary);font-size:0.82rem;">${l.reason}</td>
+        <td style="max-width:200px;color:var(--text-secondary);font-size:0.82rem;">${l.reason}</td>
         <td><span class="status-badge ${statusClass}">${l.status}</span></td>
+        <td>${staffingRiskHtml}</td>
         <td>${reviewInfo}</td>
         <td>${actionsHtml}</td>
       </tr>`;
@@ -1310,3 +1353,439 @@ function resetHeadPayslipsFilters() {
 
   filterHeadPayslipsAdmin();
 }
+
+// ─── MODULE 1: AI EXECUTIVE BRIEF & NATURAL LANGUAGE COPILOT ─
+async function fetchDailyAiBrief() {
+  const btn = document.getElementById('btnGenerateBrief');
+  const btnText = document.getElementById('btnGenerateBriefText');
+  const initial = document.getElementById('aiBriefInitialState');
+  const loading = document.getElementById('aiBriefLoadingState');
+  const content = document.getElementById('aiBriefContentState');
+  const tsBadge = document.getElementById('aiBriefTimestamp');
+  const tsVal = document.getElementById('aiBriefTimeVal');
+
+  if (btn) btn.disabled = true;
+  if (btnText) btnText.textContent = 'Generating...';
+  if (initial) initial.classList.add('hidden');
+  if (content) content.classList.add('hidden');
+  if (loading) loading.classList.remove('hidden');
+
+  try {
+    const res = await apiFetch('/ai/admin/daily-brief', { method: 'POST' });
+    if (!res || !res.success) throw new Error(res?.message || 'Failed to generate brief');
+
+    const brief = res.brief || {};
+    
+    // Headline
+    const hlEl = document.getElementById('aiBriefHeadline');
+    if (hlEl) hlEl.textContent = brief.headline || 'Operational summary generated.';
+
+    // Alerts
+    const alertsList = document.getElementById('aiBriefAlertsList');
+    if (alertsList) {
+      alertsList.innerHTML = (brief.criticalAlerts || []).map(a => `<li style="margin-bottom:6px; display:flex; align-items:flex-start; gap:6px;"><span style="color:var(--danger);font-weight:bold;">•</span><span>${a}</span></li>`).join('');
+      if (!brief.criticalAlerts || brief.criticalAlerts.length === 0) {
+        alertsList.innerHTML = '<li style="color:var(--text-muted);">No urgent safety issues detected.</li>';
+      }
+    }
+
+    // Dept Highlights
+    const deptsList = document.getElementById('aiBriefDeptsList');
+    if (deptsList) {
+      deptsList.innerHTML = (brief.departmentHighlights || []).map(d => `<li style="margin-bottom:6px; display:flex; align-items:flex-start; gap:6px;"><span style="color:var(--accent);font-weight:bold;">•</span><span>${d}</span></li>`).join('');
+    }
+
+    // Staffing
+    const staffingEl = document.getElementById('aiBriefStaffingText');
+    if (staffingEl) staffingEl.textContent = brief.staffingSummary || 'Workforce attendance stable.';
+
+    // Actions
+    const actionsList = document.getElementById('aiBriefActionsList');
+    if (actionsList) {
+      actionsList.innerHTML = (brief.recommendedActions || []).map(act => `<li style="margin-bottom:4px;">${act}</li>`).join('');
+    }
+
+    if (tsVal) tsVal.textContent = res.generatedAt || new Date().toLocaleTimeString();
+    if (tsBadge) tsBadge.style.display = 'inline-flex';
+
+    if (loading) loading.classList.add('hidden');
+    if (content) content.classList.remove('hidden');
+    if (btnText) btnText.textContent = 'Refresh AI Brief';
+  } catch (err) {
+    console.error('fetchDailyAiBrief error:', err);
+    if (loading) loading.classList.add('hidden');
+    if (initial) initial.classList.remove('hidden');
+    if (btnText) btnText.textContent = 'Generate Daily AI Brief';
+    showCustomAlert('AI Brief Error', err.message || 'Unable to generate daily brief at this time.');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+let _lastCopilotToggleTime = 0;
+function toggleAiCopilot(forceOpen = null, e = null) {
+  if (e) {
+    if (e.preventDefault) e.preventDefault();
+    if (e.stopPropagation) e.stopPropagation();
+  }
+  const now = Date.now();
+  if (forceOpen === null && now - _lastCopilotToggleTime < 200) {
+    return;
+  }
+  _lastCopilotToggleTime = now;
+
+  const drawer = document.getElementById('aiCopilotDrawer');
+  const overlay = document.getElementById('aiCopilotOverlay');
+  if (!drawer || !overlay) {
+    console.error('AI Copilot drawer elements not found');
+    return;
+  }
+
+  const isCurrentlyOpen = drawer.classList.contains('open') || drawer.style.right === '0px';
+  const shouldOpen = forceOpen !== null ? forceOpen : !isCurrentlyOpen;
+
+  if (shouldOpen) {
+    drawer.classList.add('open');
+    drawer.style.setProperty('right', '0px', 'important');
+    drawer.style.setProperty('display', 'flex', 'important');
+    overlay.classList.add('active');
+    overlay.classList.remove('hidden');
+    overlay.style.setProperty('display', 'block', 'important');
+    overlay.style.setProperty('opacity', '1', 'important');
+    overlay.style.setProperty('visibility', 'visible', 'important');
+    overlay.style.setProperty('pointer-events', 'auto', 'important');
+    const input = document.getElementById('aiCopilotInput');
+    if (input) setTimeout(() => input.focus(), 150);
+  } else {
+    drawer.classList.remove('open');
+    drawer.style.setProperty('right', '-520px', 'important');
+    overlay.classList.remove('active');
+    overlay.classList.add('hidden');
+    overlay.style.setProperty('display', 'none', 'important');
+    overlay.style.setProperty('opacity', '0', 'important');
+    overlay.style.setProperty('visibility', 'hidden', 'important');
+    overlay.style.setProperty('pointer-events', 'none', 'important');
+  }
+}
+window.toggleAiCopilot = toggleAiCopilot;
+
+function askCopilotPredefined(text) {
+  const input = document.getElementById('aiCopilotInput');
+  if (input) {
+    input.value = text;
+    submitAiCopilotQuery();
+  }
+}
+window.askCopilotPredefined = askCopilotPredefined;
+
+async function submitAiCopilotQuery(e) {
+  if (e) e.preventDefault();
+  const input = document.getElementById('aiCopilotInput');
+  const chatBody = document.getElementById('aiCopilotChatBody');
+  const sendBtn = document.getElementById('btnAiCopilotSend');
+  if (!input || !chatBody) return;
+
+  const question = input.value.trim();
+  if (!question) return;
+
+  // Add User Bubble
+  const userBubble = document.createElement('div');
+  userBubble.className = 'ai-chat-bubble user';
+  userBubble.textContent = question;
+  chatBody.appendChild(userBubble);
+  input.value = '';
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  // Add Thinking Bubble
+  const thinkingBubble = document.createElement('div');
+  thinkingBubble.className = 'ai-chat-bubble assistant';
+  thinkingBubble.innerHTML = `<span class="ai-spin-icon">⚡</span> Analyzing live campus records...`;
+  chatBody.appendChild(thinkingBubble);
+  chatBody.scrollTop = chatBody.scrollHeight;
+
+  if (sendBtn) sendBtn.disabled = true;
+
+  try {
+    const res = await apiFetch('/ai/admin/copilot-query', {
+      method: 'POST',
+      body: JSON.stringify({ question })
+    });
+
+    if (!res || !res.success) throw new Error(res?.message || 'Failed to query copilot');
+
+    let contentHtml = `<p style="margin:0 0 8px 0; line-height:1.5;">${res.answer}</p>`;
+
+    // Render supporting data table if relevant
+    if (res.queryType === 'overdue' && res.supportingData?.tickets?.length > 0) {
+      contentHtml += `
+        <div style="margin-top:10px;">
+          <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">Supporting Overdue Tickets:</div>
+          <table>
+            <thead><tr><th>Title</th><th>Dept</th><th>Deadline</th></tr></thead>
+            <tbody>
+              ${res.supportingData.tickets.slice(0, 5).map(t => `<tr><td>${t.title}</td><td>${t.dept}</td><td style="color:var(--danger);">${t.deadline || 'N/A'}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    } else if (res.queryType === 'attendance' && res.supportingData?.lateHeads?.length > 0) {
+      contentHtml += `
+        <div style="margin-top:10px;">
+          <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">Late Department Heads Today:</div>
+          <table>
+            <thead><tr><th>Head</th><th>Punch In</th><th>Status</th></tr></thead>
+            <tbody>
+              ${res.supportingData.lateHeads.map(h => `<tr><td>${h.name}</td><td>${h.clockIn}</td><td style="color:#f59e0b;">${h.status}</td></tr>`).join('')}
+            </tbody>
+          </table>
+        </div>`;
+    }
+
+    contentHtml += `<div style="font-size:0.7rem; color:var(--text-muted); margin-top:8px; text-align:right;">Verified via MongoDB at ${res.timestamp || new Date().toLocaleTimeString()}</div>`;
+
+    thinkingBubble.innerHTML = contentHtml;
+    chatBody.scrollTop = chatBody.scrollHeight;
+  } catch (err) {
+    thinkingBubble.innerHTML = `<span style="color:var(--danger);">Error: ${err.message || 'Unable to process query.'}</span>`;
+  } finally {
+    if (sendBtn) sendBtn.disabled = false;
+  }
+}
+
+// ─── MODULE 2: AI SAFETY TRIAGE & HAZARD AUDIT ───────────────
+async function loadComplaintTriageAdmin() {
+  const radar = document.getElementById('aiSafetyRadarCard');
+  const title = document.getElementById('aiRadarTitle');
+  const sub = document.getElementById('aiRadarSubtitle');
+
+  try {
+    const res = await apiFetch('/ai/admin/triage-audit');
+    if (!res || !res.success) return;
+
+    activeTriageAuditMap = {};
+    (res.items || []).forEach(item => {
+      activeTriageAuditMap[String(item.id)] = item;
+    });
+
+    if (radar) {
+      if (res.hazardCount > 0) {
+        radar.style.display = 'flex';
+        if (title) title.textContent = `🚨 ${res.hazardCount} Safety Hazard Ticket${res.hazardCount > 1 ? 's' : ''} Flagged`;
+        if (sub) sub.textContent = `${res.escalationCount} ticket(s) contain potential safety hazards (sparks, smoke, or water risks).`;
+      } else {
+        radar.style.display = 'none';
+      }
+    }
+
+    loadAllComplaints();
+  } catch (err) {
+    console.warn('loadComplaintTriageAdmin error:', err);
+  }
+}
+
+function filterSafetyHazardsOnly(flaggedOnly) {
+  filterOnlyHazardsMode = Boolean(flaggedOnly);
+  loadAllComplaints();
+}
+
+async function escalateComplaintUrgency(complaintId, hazardType) {
+  showCustomConfirm(
+    '⚡ Escalate to High Priority',
+    `Escalate this complaint to High Priority due to detected hazard (${hazardType || 'Safety Hazard'})?`,
+    async () => {
+      try {
+        await apiFetch('/ai/admin/escalate-complaint', {
+          method: 'POST',
+          body: JSON.stringify({ complaintId, reason: `Safety hazard (${hazardType}) identified via AI triage audit.` })
+        });
+        showCustomAlert('Priority Escalated', 'Complaint has been successfully upgraded to High Priority.');
+        loadComplaintTriageAdmin();
+      } catch (err) {
+        showCustomAlert('Error', err.message || 'Failed to escalate priority.');
+      }
+    }
+  );
+}
+
+// ─── MODULE 2: INFRASTRUCTURE RISKS & PREDICTIVE MAINTENANCE ──
+async function loadInfrastructureRisksAdmin() {
+  const tbody = document.getElementById('adminInfraRisksBody');
+  if (!tbody) return;
+
+  try {
+    const res = await apiFetch('/ai/admin/infrastructure-risks');
+    if (!res || !res.success || !res.risks?.length) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--text-muted); padding:24px;">No recurring infrastructure breakdown clusters detected across campus.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = '';
+    res.risks.forEach(r => {
+      const riskClass = r.riskLevel === 'High' ? 'status-reopened' : r.riskLevel === 'Medium' ? 'status-pending' : 'status-progress';
+      const evidenceList = (r.evidence || []).map(e => `• ${e.title} (${e.date})`).join('<br/>');
+
+      tbody.innerHTML += `
+        <tr>
+          <td style="font-weight:600; color:var(--text-primary);">${r.block}</td>
+          <td><span style="color:var(--accent); font-weight:600;">${r.category}</span></td>
+          <td><strong>${r.incidentCount} tickets</strong> <span style="font-size:0.75rem; color:var(--text-muted);">(${r.highUrgencyCount} high urgency)</span></td>
+          <td>
+            <span class="status-badge ${riskClass}">
+              ${r.riskLevel} (${r.estimatedRiskPct}% recurrence)
+            </span>
+          </td>
+          <td style="font-size:0.78rem; color:var(--text-secondary); max-width:240px; line-height:1.4;">${evidenceList}</td>
+          <td style="font-size:0.82rem; color:var(--text-primary);">${r.recommendedAction}</td>
+        </tr>`;
+    });
+  } catch (err) {
+    console.error('loadInfrastructureRisksAdmin error:', err);
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color:var(--danger); padding:24px;">Failed to load infrastructure risk assessment.</td></tr>';
+  }
+}
+
+// ─── MODULE 3: INTELLIGENT LEAVE ADVISOR ─────────────────────
+async function openLeaveAdvisorModal(leaveId) {
+  try {
+    const res = await apiFetch('/ai/admin/leave-advisor', {
+      method: 'POST',
+      body: JSON.stringify({ leaveId })
+    });
+
+    if (!res || !res.success) throw new Error(res?.message || 'Failed to analyze leave');
+
+    const riskColor = res.riskLevel === 'High' ? 'var(--danger)' : res.riskLevel === 'Medium' ? '#f59e0b' : 'var(--success)';
+    const reasonsHtml = (res.reasons || []).map(r => `<li style="margin-bottom:6px;">${r}</li>`).join('');
+
+    const contentHtml = `
+      <div style="margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <h4 style="margin:0; font-size:1.02rem; font-weight:700; color:var(--text-primary);">${res.applicant}</h4>
+          <span style="font-size:0.78rem; color:var(--text-muted);">${res.department} &nbsp;|&nbsp; ${res.dates}</span>
+        </div>
+        <span style="padding:4px 10px; border-radius:20px; font-weight:700; font-size:0.8rem; background:rgba(255,255,255,0.06); color:${riskColor}; border:1px solid ${riskColor};">
+          ${res.riskLevel} Staffing Risk
+        </span>
+      </div>
+
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+        <div style="background:var(--bg-card); padding:10px; border-radius:8px; border:1px solid var(--border-color);">
+          <span style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; display:block;">Active Dept Tickets</span>
+          <strong style="font-size:1.1rem; color:var(--text-primary);">${res.openTickets}</strong>
+        </div>
+        <div style="background:var(--bg-card); padding:10px; border-radius:8px; border:1px solid var(--border-color);">
+          <span style="font-size:0.72rem; color:var(--text-muted); text-transform:uppercase; font-weight:700; display:block;">Overlapping Leaves</span>
+          <strong style="font-size:1.1rem; color:var(--text-primary);">${res.overlappingLeavesCount}</strong>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <span style="font-size:0.78rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; display:block; margin-bottom:6px;">Workforce Context:</span>
+        <ul style="padding-left:18px; margin:0; font-size:0.83rem; color:var(--text-secondary); line-height:1.5;">
+          ${reasonsHtml}
+        </ul>
+      </div>
+
+      <div style="background:rgba(99,102,241,0.08); border-left:3px solid var(--accent); padding:10px 12px; border-radius:6px; font-size:0.83rem; color:var(--text-primary); line-height:1.4;">
+        <strong>AI Recommendation:</strong> ${res.recommendation}
+      </div>
+    `;
+
+    showCustomAlert('✨ AI Staffing Capacity Advisor', contentHtml);
+    // Render HTML inside the modal alert
+    const alertMsg = document.getElementById('globalAlertMsg');
+    if (alertMsg) alertMsg.innerHTML = contentHtml;
+  } catch (err) {
+    showCustomAlert('Error', err.message || 'Unable to evaluate leave risk.');
+  }
+}
+
+// ─── MODULE 3: ATTENDANCE ANOMALIES ─────────────────────────
+async function loadAttendanceAnomaliesAdmin() {
+  const container = document.getElementById('adminAttAnomalyList');
+  const badge = document.getElementById('adminAttAnomalyBadge');
+  if (!container) return;
+
+  try {
+    const res = await apiFetch('/ai/admin/attendance-audit');
+    if (!res || !res.success || !res.anomalies?.length) {
+      container.innerHTML = '<span style="color:var(--success);">✓ All recent clock-in records are verified within campus geofence (500m) with standard shift durations.</span>';
+      if (badge) badge.style.display = 'none';
+      return;
+    }
+
+    if (badge) {
+      badge.textContent = res.anomalyCount;
+      badge.style.display = 'inline-flex';
+    }
+
+    container.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        ${res.anomalies.map(a => `
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-left:3px solid ${a.severity === 'High' ? 'var(--danger)' : '#f59e0b'}; padding:10px 12px; border-radius:6px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+            <div>
+              <strong style="color:var(--text-primary);">${a.name}</strong> <span style="font-size:0.75rem; color:var(--text-muted);">(${a.dept} • ${a.date})</span>
+              <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:3px;">${a.details}</div>
+            </div>
+            <span style="font-size:0.72rem; font-weight:700; color:${a.severity === 'High' ? 'var(--danger)' : '#f59e0b'}; text-transform:uppercase;">
+              ${a.anomalyType}
+            </span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (err) {
+    container.innerHTML = '<span style="color:var(--text-muted);">Attendance scans currently unavailable.</span>';
+  }
+}
+
+// ─── MODULE 3: PAYROLL ANOMALIES ────────────────────────────
+async function loadPayrollAnomaliesAdmin() {
+  const container = document.getElementById('adminPayrollAnomalyList');
+  const badge = document.getElementById('adminPayrollAnomalyBadge');
+  if (!container) return;
+
+  try {
+    const res = await apiFetch('/ai/admin/payroll-audit');
+    if (!res || !res.success || !res.anomalies?.length) {
+      container.innerHTML = `<span style="color:var(--success);">✓ All ${res.totalVouchersAudited || 0} payroll vouchers match approved compensation baselines with zero duplicate entries. Projected quarterly disbursements: ₹${(res.projectedQuarterExpenditure || 0).toLocaleString()}.</span>`;
+      if (badge) badge.style.display = 'none';
+      return;
+    }
+
+    if (badge) {
+      badge.textContent = res.anomalyCount;
+      badge.style.display = 'inline-flex';
+    }
+
+    container.innerHTML = `
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        ${res.anomalies.map(a => `
+          <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); border-left:3px solid ${a.severity === 'High' ? 'var(--danger)' : '#f59e0b'}; padding:10px 12px; border-radius:6px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px;">
+            <div>
+              <strong style="color:var(--text-primary);">${a.name}</strong> <span style="font-size:0.75rem; color:var(--text-muted);">(${a.period})</span>
+              <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:3px;">${a.explanation}</div>
+            </div>
+            <span style="font-size:0.72rem; font-weight:700; color:${a.severity === 'High' ? 'var(--danger)' : '#f59e0b'}; text-transform:uppercase;">
+              ${a.type}
+            </span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  } catch (err) {
+    container.innerHTML = '<span style="color:var(--text-muted);">Payroll integrity scan currently unavailable.</span>';
+  }
+}
+
+// Global window attachments for inline event handlers
+window.submitAiCopilotQuery = submitAiCopilotQuery;
+window.fetchDailyAiBrief = fetchDailyAiBrief;
+window.loadComplaintTriageAdmin = loadComplaintTriageAdmin;
+window.filterSafetyHazardsOnly = filterSafetyHazardsOnly;
+window.escalateComplaintUrgency = escalateComplaintUrgency;
+window.loadInfrastructureRisksAdmin = loadInfrastructureRisksAdmin;
+window.openLeaveAdvisorModal = openLeaveAdvisorModal;
+window.loadAttendanceAnomaliesAdmin = loadAttendanceAnomaliesAdmin;
+window.loadPayrollAnomaliesAdmin = loadPayrollAnomaliesAdmin;
+
+
