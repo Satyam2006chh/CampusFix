@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
-const { JsonCollection } = require('../config/jsonDb');
 
 const userSchema = new mongoose.Schema(
   {
@@ -69,20 +68,4 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
-const MongoUserModel = mongoose.models.User || mongoose.model('User', userSchema);
-const jsonUsers = new JsonCollection('users');
-
-// Proxy to dynamically route to JsonCollection or Mongoose depending on process.env.USE_JSON_DB
-const UserProxy = new Proxy(MongoUserModel, {
-  get(target, prop) {
-    if (process.env.USE_JSON_DB === 'true') {
-      if (typeof jsonUsers[prop] === 'function') {
-        return jsonUsers[prop].bind(jsonUsers);
-      }
-      return jsonUsers[prop];
-    }
-    return target[prop];
-  },
-});
-
-module.exports = UserProxy;
+module.exports = mongoose.models.User || mongoose.model('User', userSchema);

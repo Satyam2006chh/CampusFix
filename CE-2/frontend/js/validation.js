@@ -1,4 +1,3 @@
-
 const PW_RULES = [
   { re: /.{8,}/,   id: 'rule-length',    text: 'At least 8 characters'          },
   { re: /[A-Z]/,   id: 'rule-upper',     text: 'At least 1 uppercase letter'    },
@@ -7,7 +6,6 @@ const PW_RULES = [
   { re: /[^A-Za-z0-9]/, id: 'rule-special', text: 'At least 1 special character (@#$%! etc.)' },
 ];
 
-
 function checkPasswordStrength(password) {
   const missing = PW_RULES
     .filter(r => !r.re.test(password))
@@ -15,13 +13,11 @@ function checkPasswordStrength(password) {
   return { valid: missing.length === 0, missing };
 }
 
-
 function showFieldError(fieldId, message) {
   const field = document.getElementById(fieldId);
   if (!field) return;
   field.classList.add('cf-input-error');
 
-  
   let errSpan = field.parentElement.querySelector('.cf-field-error');
   if (!errSpan) {
     const wrapper = field.closest('.password-wrapper') || field.closest('.cf-input-wrap');
@@ -41,7 +37,6 @@ function showFieldError(fieldId, message) {
   errSpan.style.display = 'block';
 }
 
-
 function clearFieldError(fieldId) {
   const field = document.getElementById(fieldId);
   if (!field) return;
@@ -52,13 +47,11 @@ function clearFieldError(fieldId) {
   if (errSpan) errSpan.style.display = 'none';
 }
 
-
 function clearAllErrors(containerEl) {
   if (!containerEl) return;
   containerEl.querySelectorAll('.cf-input-error').forEach(el => el.classList.remove('cf-input-error'));
   containerEl.querySelectorAll('.cf-field-error').forEach(el => { el.style.display = 'none'; });
 }
-
 
 
 function validateRequired(fieldId, label) {
@@ -76,7 +69,6 @@ function validateEmail(fieldId) {
   clearFieldError(fieldId);
   return true;
 }
-
 
 function validateStrongPassword(fieldId) {
   const val = document.getElementById(fieldId)?.value || '';
@@ -101,7 +93,7 @@ function validatePasswordMatch(pw1Id, pw2Id) {
 
 function validatePhone(fieldId) {
   const val = (document.getElementById(fieldId)?.value || '').trim();
-  if (!val) return true; // phone is optional everywhere
+  if (!val) return true;
   if (!/^\d{10}$/.test(val)) { showFieldError(fieldId, 'Phone must be a 10-digit number.'); return false; }
   clearFieldError(fieldId);
   return true;
@@ -115,6 +107,12 @@ function validateSelect(fieldId, label) {
 }
 
 
+/**
+ * Inject a password strength meter + rules list below a field.
+ * Call once after DOM is ready for registration / new-password fields.
+ * @param {string} fieldId   — id of the <input type="password">
+ * @param {string} meterId   — unique id for the meter container
+ */
 function injectPasswordMeter(fieldId, meterId) {
   const field = document.getElementById(fieldId);
   if (!field || document.getElementById(meterId)) return;

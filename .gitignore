@@ -1,11 +1,10 @@
-# Node modules (backend)
-CE-2/backend/node_modules/
-CE-2/backend/.env
+flowchart/
 
-# Logs
-*.log
+node_modules/
 npm-debug.log*
 
-# OS files
+.env
+.env.local
+
 .DS_Store
 Thumbs.db

@@ -27,7 +27,7 @@ const createPayslip = async (req, res) => {
       month, year, basic_salary, allowances: allowances || 0,
       deductions: deductions || 0, net_salary, generated_by,
     });
-    res.status(201).json(norm(slip.toObject ? slip.toObject() : slip));
+    res.status(201).json(norm(slip.toObject()));
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

@@ -26,15 +26,14 @@ const createLeave = async (req, res) => {
       employee_id, employee_name, department_id,
       leave_type, from_date, to_date, reason, status: 'Pending',
     });
-    res.status(201).json(norm(leave.toObject ? leave.toObject() : leave));
+    res.status(201).json(norm(leave.toObject()));
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // PATCH /api/leaves/:id  — dept head approves/rejects
 const updateLeave = async (req, res) => {
   try {
-    const result = await Leave.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    const leave = result && typeof result.lean === 'function' ? await result.lean() : result;
+    const leave = await Leave.findByIdAndUpdate(req.params.id, req.body, { new: true }).lean();
     if (!leave) return res.status(404).json({ message: 'Leave not found' });
     res.json(norm(leave));
   } catch (err) { res.status(500).json({ message: err.message }); }

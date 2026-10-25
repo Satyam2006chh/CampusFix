@@ -1,13 +1,5 @@
-/* ============================================================
-   CampusFix — Global Styles
-   Font: Inter (Google Fonts)
-   Theme: Professional Light + Dark Mode
-   Accent: Indigo #4f46e5
-   ============================================================ */
-
 @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap');
 
-/* ─── CSS VARIABLES ──────────────────────────────────────────── */
 :root {
   --bg-page:        #f0f2fb;
   --bg-surface:     #ffffff;
@@ -62,7 +54,6 @@
   --transition: 0.2s ease;
 }
 
-/* ─── RESET & BASE ───────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -90,14 +81,10 @@ body {
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Josefin Sans fix: reset aggressive letter-spacing */
   letter-spacing: 0.01em;
   font-weight: 400;
 }
 
-/* Josefin Sans sharpness control —
-   The font has very wide letter-spacing by default.
-   These overrides bring it to a comfortable reading weight. */
 h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.01em;
   font-weight: 600;
@@ -105,7 +92,7 @@ h1, h2, h3, h4, h5, h6 {
 p, span, li, td, th, label, input, select, textarea, button {
   letter-spacing: 0.01em;
 }
-/* Restore specific tight headings */
+
 .hero-title       { letter-spacing: -0.02em; font-weight: 700; }
 .section-title    { letter-spacing: -0.015em; font-weight: 700; }
 .logo-text        { letter-spacing: 0.01em; font-weight: 700; }
@@ -113,7 +100,6 @@ p, span, li, td, th, label, input, select, textarea, button {
 .modal-title      { letter-spacing: 0em; font-weight: 700; }
 .sc-value         { letter-spacing: -0.02em; font-weight: 700; }
 
-/* ─── DARK MODE ──────────────────────────────────────────────── */
 [data-theme="dark"] {
   --bg-page:        #0f0f18;
   --bg-surface:     #16162a;
@@ -151,13 +137,11 @@ p, span, li, td, th, label, input, select, textarea, button {
   --shadow-xl:  0 20px 25px rgba(0,0,0,0.5), 0 10px 10px rgba(0,0,0,0.4);
 }
 
-/* ─── SCROLLBAR ──────────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: var(--radius-full); }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-/* ─── THEME TOGGLE BUTTON ────────────────────────────────────── */
 .theme-toggle {
   position: fixed;
   bottom: 28px;
@@ -188,7 +172,6 @@ p, span, li, td, th, label, input, select, textarea, button {
 [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
 [data-theme="dark"] .theme-toggle .icon-moon { display: none; }
 
-/* ─── UTILITY ────────────────────────────────────────────────── */
 .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
 .hidden { display: none !important; }
 
@@ -231,7 +214,6 @@ p, span, li, td, th, label, input, select, textarea, button {
   line-height: 1.7;
 }
 
-/* ─── BUTTONS ────────────────────────────────────────────────── */
 .btn-primary {
   display: inline-flex;
   align-items: center;
@@ -280,7 +262,6 @@ p, span, li, td, th, label, input, select, textarea, button {
 
 .btn-full { width: 100%; }
 
-/* ─── LOGO ───────────────────────────────────────────────────── */
 .logo-wrap {
   display: flex;
   align-items: center;
@@ -302,7 +283,6 @@ p, span, li, td, th, label, input, select, textarea, button {
 }
 .logo-text span { color: var(--accent); }
 
-/* ─── NAVBAR ─────────────────────────────────────────────────── */
 .navbar {
   position: fixed;
   top: 0; left: 0; right: 0;
@@ -372,7 +352,6 @@ p, span, li, td, th, label, input, select, textarea, button {
   transform: translateY(-1px);
 }
 
-/* ─── NAV THEME TOGGLE ───────────────────────────────────────── */
 .nav-theme-btn {
   width: 36px;
   height: 36px;
@@ -416,7 +395,6 @@ p, span, li, td, th, label, input, select, textarea, button {
   transition: all var(--transition);
 }
 
-/* ─── HERO ───────────────────────────────────────────────────── */
 .hero {
   min-height: 100vh;
   display: flex;
@@ -437,7 +415,6 @@ p, span, li, td, th, label, input, select, textarea, button {
   align-items: center;
 }
 
-/* Subtle dot grid */
 .hero::before {
   content: '';
   position: absolute;
@@ -447,7 +424,7 @@ p, span, li, td, th, label, input, select, textarea, button {
   pointer-events: none;
   opacity: 0.6;
 }
-/* Glow blob */
+
 .hero::after {
   content: '';
   position: absolute;
@@ -538,7 +515,6 @@ p, span, li, td, th, label, input, select, textarea, button {
   background: var(--border);
 }
 
-/* ─── DASHBOARD PREVIEW CARD ─────────────────────────────────── */
 .hero-visual { position: relative; z-index: 1; }
 
 .dashboard-preview {
@@ -584,7 +560,6 @@ p, span, li, td, th, label, input, select, textarea, button {
   gap: 12px;
 }
 
-/* Preview stat cards — matching screenshot exactly */
 .preview-card {
   padding: 16px;
   border-radius: var(--radius);
@@ -656,25 +631,22 @@ p, span, li, td, th, label, input, select, textarea, button {
   from { width: 0 !important; }
 }
 
-/* ─── FEATURE SECTIONS ───────────────────────────────────────── */
 .how-it-works, .about, .problems, .roles, .contact {
   padding: 88px 0;
 }
-/* Light mode: alternate between white and a soft blue-grey */
+
 .how-it-works { background: #f8f9ff; }
 .about        { background: #ffffff; }
 .problems     { background: #f8f9ff; }
 .roles        { background: #ffffff; }
 .contact      { background: #f8f9ff; }
 
-/* Dark mode overrides */
 [data-theme="dark"] .how-it-works { background: var(--bg-surface); }
 [data-theme="dark"] .about        { background: var(--bg-page); }
 [data-theme="dark"] .problems     { background: var(--bg-surface); }
 [data-theme="dark"] .roles        { background: var(--bg-page); }
 [data-theme="dark"] .contact      { background: var(--bg-surface); }
 
-/* ─── FLOW STEPS ─────────────────────────────────────────────── */
 .flow-steps {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -753,7 +725,6 @@ p, span, li, td, th, label, input, select, textarea, button {
 }
 .flow-arrow { display: none; }
 
-/* ─── ABOUT ──────────────────────────────────────────────────── */
 .about-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -829,7 +800,6 @@ p, span, li, td, th, label, input, select, textarea, button {
   line-height: 1.55;
 }
 
-/* ─── PROBLEMS ───────────────────────────────────────────────── */
 .problems-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -848,7 +818,7 @@ p, span, li, td, th, label, input, select, textarea, button {
   box-shadow: var(--shadow-md);
   transform: translateY(-3px);
 }
-/* Problem icon — SVG box, no emoji */
+
 .problem-icon {
   width: 40px;
   height: 40px;
@@ -872,7 +842,7 @@ p, span, li, td, th, label, input, select, textarea, button {
   color: var(--text-secondary);
   line-height: 1.6;
 }
-/* Highlight (solution) card — indigo background, white text */
+
 .highlight-card {
   background: var(--accent);
   border-color: transparent;
@@ -889,7 +859,6 @@ p, span, li, td, th, label, input, select, textarea, button {
   transform: translateY(-3px);
 }
 
-/* ─── ROLES SECTION ──────────────────────────────────────────── */
 .roles-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -969,7 +938,7 @@ p, span, li, td, th, label, input, select, textarea, button {
   border: 1px solid var(--border);
   line-height: 1.4;
 }
-/* Dot check indicator before each feature */
+
 .role-features li::before {
   content: '';
   width: 6px;
@@ -987,7 +956,6 @@ p, span, li, td, th, label, input, select, textarea, button {
   border-color: rgba(79,70,229,0.12);
 }
 
-/* ─── CONTACT ────────────────────────────────────────────────── */
 .contact-grid {
   display: grid;
   grid-template-columns: 1fr 1.5fr;
@@ -1021,7 +989,6 @@ p, span, li, td, th, label, input, select, textarea, button {
   flex-shrink: 0;
 }
 
-/* ─── CONTACT FORM ───────────────────────────────────────────── */
 .contact-form {
   background: var(--bg-card);
   border: 1px solid var(--border);
@@ -1099,7 +1066,6 @@ select option {
   border-radius: var(--radius);
 }
 
-/* ─── FOOTER ─────────────────────────────────────────────────── */
 .footer {
   background: var(--bg-page);
   border-top: 1px solid var(--border);
@@ -1124,7 +1090,6 @@ select option {
   line-height: 1.65;
 }
 
-/* Social links */
 .footer-social {
   display: flex;
   gap: 10px;
@@ -1150,7 +1115,7 @@ select option {
   color: var(--accent);
   border-color: var(--accent);
 }
-/* LinkedIn brand color on hover */
+
 .footer-social-link[aria-label="LinkedIn"]:hover {
   background: #e8f0fe;
   color: #0a66c2;
@@ -1211,7 +1176,6 @@ select option {
 }
 .footer-bottom-links a:hover { color: var(--accent); }
 
-/* ─── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 1024px) {
   .hero-inner { grid-template-columns: 1fr; text-align: center; }
   .hero-subtitle { max-width: 100%; }

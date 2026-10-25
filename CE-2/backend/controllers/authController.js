@@ -33,13 +33,15 @@ const login = async (req, res) => {
 
     const token = generateToken(user._id);
 
-    // Build the user object to return (matching CE-1 shape)
+    // Build the user object to return
     const userData = {
       id: user._id,
       name: user.name,
       email: user.email,
       role: user.role,
       department_id: user.department_id,
+      designation: user.designation,
+      phone: user.phone,
       is_active: user.is_active,
     };
 

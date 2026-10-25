@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { JsonCollection } = require('../config/jsonDb');
 
 const complaintSchema = new mongoose.Schema(
   {
@@ -80,19 +79,4 @@ const complaintSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const MongoComplaintModel = mongoose.models.Complaint || mongoose.model('Complaint', complaintSchema);
-const jsonComplaints = new JsonCollection('complaints');
-
-const ComplaintProxy = new Proxy(MongoComplaintModel, {
-  get(target, prop) {
-    if (process.env.USE_JSON_DB === 'true') {
-      if (typeof jsonComplaints[prop] === 'function') {
-        return jsonComplaints[prop].bind(jsonComplaints);
-      }
-      return jsonComplaints[prop];
-    }
-    return target[prop];
-  },
-});
-
-module.exports = ComplaintProxy;
+module.exports = mongoose.models.Complaint || mongoose.model('Complaint', complaintSchema);

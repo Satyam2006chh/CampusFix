@@ -11,6 +11,9 @@ const User = require('./models/User');
 const Department = require('./models/Department');
 const Location = require('./models/Location');
 const Complaint = require('./models/Complaint');
+const Attendance = require('./models/Attendance');
+const Leave = require('./models/Leave');
+const Payslip = require('./models/Payslip');
 
 const seed = async () => {
   await connectDB();
@@ -22,6 +25,9 @@ const seed = async () => {
       Department.deleteMany(),
       Location.deleteMany(),
       Complaint.deleteMany(),
+      Attendance.deleteMany(),
+      Leave.deleteMany(),
+      Payslip.deleteMany(),
     ]);
     console.log('🗑️  Cleared existing data');
 
@@ -158,6 +164,7 @@ const seed = async () => {
     console.log('  Dept Head: ramesh@gmail.com     / password123  (Electrical)');
     console.log('  Dept Head: suresh@gmail.com     / password123  (Plumbing)');
     console.log('  Student:   satyam@gmail.com     / Satyam@123');
+    console.log('  Employee:  vikram@campusfix.com / Employee@123 (Electrician)');
   } catch (err) {
     console.error('❌ Seed error:', err.message);
   } finally {

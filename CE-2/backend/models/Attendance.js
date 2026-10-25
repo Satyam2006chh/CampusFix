@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { JsonCollection } = require('../config/jsonDb');
 
 const attendanceSchema = new mongoose.Schema(
   {
@@ -17,24 +16,11 @@ const attendanceSchema = new mongoose.Schema(
     // Early Departure = left campus during shift (detected by bg checks)
     status:         { type: String, enum: ['Present', 'Late', 'Late_1', 'Late_2', 'Early Departure', 'Absent', 'On Leave'], default: 'Present' },
     is_late:        { type: Boolean, default: false },
-    department_id:  { type: String },
+    department_id:  { type: mongoose.Schema.Types.ObjectId, ref: 'Department' },
     off_campus_count: { type: Number, default: 0 },   // how many bg checks showed off-campus
     off_campus_times: { type: String, default: '' },  // comma-separated "HH:MM" timestamps
   },
   { timestamps: true }
 );
 
-const MongoAttModel = mongoose.models.Attendance || mongoose.model('Attendance', attendanceSchema);
-const jsonAtt = new JsonCollection('attendance');
-
-const AttProxy = new Proxy(MongoAttModel, {
-  get(target, prop) {
-    if (process.env.USE_JSON_DB === 'true') {
-      if (typeof jsonAtt[prop] === 'function') return jsonAtt[prop].bind(jsonAtt);
-      return jsonAtt[prop];
-    }
-    return target[prop];
-  },
-});
-
-module.exports = AttProxy;
+module.exports = mongoose.models.Attendance || mongoose.model('Attendance', attendanceSchema);

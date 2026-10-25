@@ -29,15 +29,14 @@ const createAttendance = async (req, res) => {
       status: status || 'Present', is_late: is_late || false,
       department_id,
     });
-    res.status(201).json(norm(record.toObject ? record.toObject() : record));
+    res.status(201).json(norm(record.toObject()));
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // PATCH /api/attendance/:id  — clock out / update
 const updateAttendance = async (req, res) => {
   try {
-    const result = await Attendance.findByIdAndUpdate(req.params.id, req.body, { new: true });
-    const record = result && typeof result.lean === 'function' ? await result.lean() : result;
+    const record = await Attendance.findByIdAndUpdate(req.params.id, req.body, { new: true }).lean();
     if (!record) return res.status(404).json({ message: 'Record not found' });
     res.json(norm(record));
   } catch (err) { res.status(500).json({ message: err.message }); }

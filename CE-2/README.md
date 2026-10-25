@@ -11,13 +11,13 @@ Author: **Satyam Chhabra**
 
 ```
 CE-2/
-├── backend/          ← Express + MongoDB/JSON DB
+├── backend/          ← Express + MongoDB (Mongoose MVC)
 │   ├── controllers/  ← Business logic (auth, complaints, users, attendance, leaves, payslips)
-│   ├── models/       ← Mongoose schemas (User, Complaint, Department, Location, Attendance, Leave, Payslip)
+│   ├── models/       ← Mongoose models (User, Complaint, Department, Location, Attendance, Leave, Payslip)
 │   ├── routes/       ← API routes
 │   ├── middleware/   ← JWT auth
-│   ├── config/       ← DB connection + JSON DB fallback
-│   ├── data/db.json  ← Local JSON database (used when USE_JSON_DB=true)
+│   ├── config/       ← MongoDB connection
+│   ├── seeder.js     ← Database seeding script
 │   └── server.js     ← Entry point
 └── frontend/
     ├── index.html        ← Landing / homepage
@@ -63,9 +63,21 @@ npm install
 cp .env.example .env
 ```
 
-The default `.env.example` is already configured to run with the **local JSON database** — no MongoDB needed.
+The `.env` file should configure your MongoDB connection:
+```env
+PORT=5000
+MONGO_URI=mongodb://localhost:27017/campusfix
+JWT_SECRET=campusfix_secret_jwt_key_2024
+JWT_EXPIRE=7d
+```
 
-### 4. Start the backend server
+### 4. Seed MongoDB with initial data
+
+```bash
+npm run seed
+```
+
+### 5. Start the backend server
 
 ```bash
 npm run dev      # development (auto-restart on save)
@@ -75,7 +87,7 @@ npm start        # production
 
 Server starts at → `http://localhost:5000`
 
-### 5. Open the frontend
+### 6. Open the frontend
 
 No build step needed — just open the file directly in your browser:
 
@@ -91,23 +103,6 @@ Or serve it with any static server:
 # or using npx:
 npx serve CE-2/frontend
 ```
-
----
-
-## Running with MongoDB (optional)
-
-If you want to use MongoDB instead of the JSON file:
-
-1. Install [MongoDB](https://www.mongodb.com/try/download/community) or use [MongoDB Atlas](https://www.mongodb.com/atlas)
-2. In `.env`, comment out `USE_JSON_DB=true` and set your URI:
-   ```
-   # USE_JSON_DB=true
-   MONGO_URI=mongodb://localhost:27017/campusfix
-   ```
-3. Seed the database:
-   ```bash
-   npm run seed
-   ```
 
 ---
 
@@ -129,8 +124,8 @@ If you want to use MongoDB instead of the JSON file:
 
 | Layer | Technology |
 |-------|-----------|
-| Backend | Node.js, Express.js |
-| Database | MongoDB (Mongoose) + JSON file fallback |
+| Backend | Node.js, Express.js (MVC) |
+| Database | MongoDB (Mongoose) |
 | Auth | JWT (jsonwebtoken) + bcryptjs |
 | Frontend | HTML5, CSS3, Vanilla JS |
 | Font | Outfit (Google Fonts) |
@@ -176,6 +171,6 @@ POST   /api/payslips
 
 ## Project Structure Notes
 
-- All data is stored in `backend/data/db.json` when running in JSON mode — this file is committed so **you get all the sample data immediately after cloning**.
+- All data is stored in **MongoDB** via Mongoose models. Run `npm run seed` to load initial users, departments, locations, and sample complaints.
 - The `node_modules/` folder is gitignored — run `npm install` once after cloning.
 - The `.env` file is gitignored — copy `.env.example` to `.env` once after cloning.

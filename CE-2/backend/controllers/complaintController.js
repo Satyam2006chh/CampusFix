@@ -1,6 +1,4 @@
 const Complaint = require('../models/Complaint');
-const Location = require('../models/Location');
-const User = require('../models/User');
 
 // Helper: normalize complaint for frontend (id, created_at compatible)
 const normalize = (c) => ({
@@ -16,7 +14,7 @@ const getComplaints = async (req, res) => {
   try {
     const filter = {};
 
-    // Support query params used by CE-1 frontend
+    // Support query params used by frontend
     if (req.query.user_id) filter.user_id = req.query.user_id;
     if (req.query.status) filter.status = req.query.status;
     if (req.query.source) filter.source = req.query.source;
@@ -94,15 +92,10 @@ const createComplaint = async (req, res) => {
 // @access  Private
 const updateComplaint = async (req, res) => {
   try {
-    const result = await Complaint.findByIdAndUpdate(req.params.id, req.body, {
+    const complaint = await Complaint.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
-    });
-
-    // JSON DB returns a plain object; Mongoose returns a Mongoose doc — normalise both
-    const complaint = result && typeof result.lean === 'function'
-      ? await result.lean()
-      : result;
+    }).lean();
 
     if (!complaint) return res.status(404).json({ message: 'Complaint not found' });
     res.json(normalize(complaint));

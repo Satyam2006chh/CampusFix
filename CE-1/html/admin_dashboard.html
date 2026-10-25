@@ -12,7 +12,6 @@
 </head>
 <body class="dash-body">
 
-  <!-- ─── SIDEBAR ───────────────────────────────────────────── -->
   <aside class="sidebar">
     <div class="sidebar-brand">
       <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -73,7 +72,6 @@
     </div>
   </aside>
 
-  <!-- ─── MAIN CONTENT ──────────────────────────────────────── -->
   <main class="main-content">
     <header class="topbar">
       <h2 class="topbar-title" id="pageTitle">Campus Overview</h2>
@@ -87,7 +85,6 @@
 
     <div class="content-wrapper">
 
-      <!-- ── TAB: OVERVIEW ── -->
       <section id="tab-overview" class="tab-pane active">
         <div class="filter-row" style="margin-bottom:16px; justify-content:flex-end;">
           <select id="overviewFiltDept" onchange="loadStats()">
@@ -151,7 +148,6 @@
         </div>
       </section>
 
-      <!-- ── TAB: COMPLAINTS ── -->
       <section id="tab-complaints" class="tab-pane">
         <div class="filter-row">
           <select id="filtDept" onchange="loadAllComplaints()">
@@ -174,7 +170,6 @@
         </div>
       </section>
 
-      <!-- ── TAB: DEPARTMENTS ── -->
       <section id="tab-departments" class="tab-pane">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
           <div>
@@ -189,7 +184,6 @@
         <div id="deptsGrid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(280px, 1fr)); gap:16px;"></div>
       </section>
 
-      <!-- ── TAB: LOCATIONS ── -->
       <section id="tab-locations" class="tab-pane">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
           <h3 style="font-size:1rem; font-weight:700; color:var(--text-primary);">Manage Locations</h3>
@@ -203,7 +197,6 @@
         </div>
       </section>
 
-      <!-- ── TAB: USERS ── -->
       <section id="tab-users" class="tab-pane">
         <div class="filter-row" style="margin-bottom:20px;">
           <select id="userFiltRole" onchange="loadUsers()">
@@ -219,7 +212,6 @@
     </div>
   </main>
 
-  <!-- ── MODAL: ADD DEPARTMENT ── -->
   <div id="addDeptModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -252,7 +244,6 @@
     </div>
   </div>
 
-  <!-- ── MODAL: ASSIGN HEAD ── -->
   <div id="addHeadModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -297,7 +288,6 @@
     </div>
   </div>
 
-  <!-- ── MODAL: EDIT HEAD ── -->
   <div id="editHeadModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -339,7 +329,6 @@
     </div>
   </div>
 
-  <!-- ── MODAL: ADD LOCATION ── -->
   <div id="addLocModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">

@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { JsonCollection } = require('../config/jsonDb');
 
 const locationSchema = new mongoose.Schema(
   {
@@ -27,19 +26,4 @@ const locationSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const MongoLocModel = mongoose.models.Location || mongoose.model('Location', locationSchema);
-const jsonLocs = new JsonCollection('locations');
-
-const LocProxy = new Proxy(MongoLocModel, {
-  get(target, prop) {
-    if (process.env.USE_JSON_DB === 'true') {
-      if (typeof jsonLocs[prop] === 'function') {
-        return jsonLocs[prop].bind(jsonLocs);
-      }
-      return jsonLocs[prop];
-    }
-    return target[prop];
-  },
-});
-
-module.exports = LocProxy;
+module.exports = mongoose.models.Location || mongoose.model('Location', locationSchema);

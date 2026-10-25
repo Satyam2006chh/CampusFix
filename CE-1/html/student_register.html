@@ -18,7 +18,6 @@
 
   <a href="../index.html" class="back-home">← Back to Home</a>
 
-  <!-- Theme toggle -->
   <button class="nav-theme-btn" onclick="toggleTheme()" aria-label="Toggle theme"
     style="position:fixed; top:20px; right:20px; z-index:200;">
     <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -27,7 +26,6 @@
 
   <div class="auth-wrapper">
 
-    <!-- ── LEFT PANEL ── -->
     <div class="auth-left">
       <div class="auth-brand">
         <svg width="36" height="36" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -68,7 +66,6 @@
       </div>
     </div>
 
-    <!-- ── RIGHT PANEL ── -->
     <div class="auth-right">
       <div class="auth-panel">
         <div class="login-role-badge">Student Account</div>
@@ -101,7 +98,6 @@
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
               </div>
-              <!-- Password strength meter injected here by JS -->
             </div>
             <div class="form-group" style="grid-column: 1 / -1;">
               <label for="regConfirmPassword">Confirm Password</label>
@@ -152,7 +148,6 @@
       input.type = input.type === 'password' ? 'text' : 'password';
     }
 
-    // Inject password strength meter once DOM is ready
     document.addEventListener('DOMContentLoaded', () => {
       injectPasswordMeter('regPassword', 'reg-pw-meter');
     });
@@ -164,7 +159,6 @@
       errorEl.classList.add('hidden');
       clearAllErrors(document.getElementById('registerForm'));
 
-      // ── Client-side validation ──────────────────────────────
       let ok = true;
       ok = validateRequired('regName',  'Full name')  && ok;
       ok = validateRequired('regRollNo','Roll number') && ok;
@@ -173,8 +167,7 @@
       ok = validateStrongPassword('regPassword')       && ok;
       ok = validatePasswordMatch('regPassword', 'regConfirmPassword') && ok;
 
-      if (!ok) return; // stop — inline errors already show
-      // ────────────────────────────────────────────────────────
+      if (!ok) return;
 
       const name     = document.getElementById('regName').value.trim();
       const roll_no  = document.getElementById('regRollNo').value.trim();

@@ -75,6 +75,7 @@ async function handleLogin(e) {
   let ok = true;
   ok = validateEmail('loginEmail')                      && ok;
   ok = validateRequired('loginPassword', 'Password')    && ok;
+  if (!ok) return;
 
   btnText.textContent = 'Signing in...';
   document.getElementById('loginSubmitBtn').disabled = true;
@@ -92,11 +93,9 @@ async function handleLogin(e) {
         return;
       }
       
-      // Save session
       sessionStorage.setItem('cf_token', 'fake-jwt-token-for-json-server');
       sessionStorage.setItem('cf_user',  JSON.stringify(user));
       sessionStorage.setItem('cf_role',  user.role);
-
       const redirect = ROLE_CONFIG[user.role].redirect;
       window.location.href = redirect;
     } else {

@@ -1,3 +1,5 @@
+
+
 document.addEventListener("DOMContentLoaded", () => {
   if (currentUser.role !== "admin") { window.location.href = "login.html"; return; }
   loadStats(); loadAllComplaints(); loadDepartments(); loadLocations(); loadUsers();
@@ -152,10 +154,8 @@ async function loadDepartments() {
     if (!allDepts.length) { grid.innerHTML = '<p style="color:var(--text-muted);padding:24px;text-align:center;">No departments yet.</p>'; return; }
     
     allDepts.forEach(d => {
-      // Find head
       const head = allUsers.find(u => u.department_id == d.id);
       
-      // Find total complaints for this dept
       const totalComplaints = allComplaints.filter(c => c.category && c.category.toLowerCase() === d.category_tag.toLowerCase()).length;
 
       const ini = d.name.split(" ").map(w=>w[0]).join("").substring(0,2).toUpperCase();

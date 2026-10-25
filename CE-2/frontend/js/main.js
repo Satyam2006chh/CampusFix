@@ -1,4 +1,3 @@
-
 const navbar = document.getElementById('navbar');
 window.addEventListener('scroll', () => {
   if (window.scrollY > 40) {
@@ -8,7 +7,6 @@ window.addEventListener('scroll', () => {
   }
 });
 
-
 const hamburger = document.getElementById('hamburger');
 const navLinks  = document.getElementById('navLinks');
 
@@ -16,13 +14,11 @@ hamburger.addEventListener('click', () => {
   navLinks.classList.toggle('open');
 });
 
-
 document.querySelectorAll('.nav-link').forEach(link => {
   link.addEventListener('click', () => {
     navLinks.classList.remove('open');
   });
 });
-
 
 const sections = document.querySelectorAll('section[id]');
 window.addEventListener('scroll', () => {
@@ -41,7 +37,6 @@ window.addEventListener('scroll', () => {
   });
 });
 
-
 const observerOptions = {
   threshold: 0.1,
   rootMargin: '0px 0px -50px 0px'
@@ -56,7 +51,6 @@ const observer = new IntersectionObserver((entries) => {
   });
 }, observerOptions);
 
-
 document.querySelectorAll(
   '.problem-card, .about-feature-card, .flow-step, .role-card, .stat-item'
 ).forEach(el => {
@@ -66,7 +60,6 @@ document.querySelectorAll(
   observer.observe(el);
 });
 
-
 function handleContactSubmit(e) {
   e.preventDefault();
   const btn = e.target.querySelector('button[type="submit"]');
@@ -74,7 +67,6 @@ function handleContactSubmit(e) {
 
   btn.textContent = 'Sending...';
   btn.disabled = true;
-
 
   setTimeout(() => {
     btn.textContent = 'Send Message →';
@@ -84,7 +76,6 @@ function handleContactSubmit(e) {
     setTimeout(() => { success.style.display = 'none'; }, 5000);
   }, 1200);
 }
-
 
 const heroTitle = document.querySelector('.hero-title');
 if (heroTitle) {

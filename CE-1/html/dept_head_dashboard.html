@@ -12,7 +12,6 @@
 </head>
 <body class="dash-body">
 
-  <!-- ─── SIDEBAR ───────────────────────────────────────────── -->
   <aside class="sidebar">
     <div class="sidebar-brand">
       <svg width="28" height="28" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -61,7 +60,6 @@
     </div>
   </aside>
 
-  <!-- ─── MAIN CONTENT ──────────────────────────────────────── -->
   <main class="main-content">
     <header class="topbar">
       <h2 class="topbar-title" id="pageTitle">Dashboard Overview</h2>
@@ -75,7 +73,6 @@
 
     <div class="content-wrapper">
 
-      <!-- ── TAB: OVERVIEW ── -->
       <section id="tab-overview" class="tab-pane active">
         <div class="stats-grid">
           <div class="stat-card">
@@ -148,7 +145,6 @@
         </div>
       </section>
 
-      <!-- ── TAB: COMPLAINTS ── -->
       <section id="tab-dept-complaints" class="tab-pane">
         <div class="filter-row">
           <select id="filterStatus" onchange="loadComplaints()">
@@ -172,7 +168,6 @@
         </div>
       </section>
 
-      <!-- ── TAB: EMPLOYEES ── -->
       <section id="tab-employees" class="tab-pane">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
           <div>
@@ -189,7 +184,6 @@
     </div>
   </main>
 
-  <!-- ── MODAL: ASSIGN COMPLAINT ── -->
   <div id="assignModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -231,7 +225,6 @@
     </div>
   </div>
 
-  <!-- ── MODAL: ADD EMPLOYEE ── -->
   <div id="empModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -276,7 +269,6 @@
     </div>
   </div>
 
-  <!-- ── MODAL: EDIT EMPLOYEE ── -->
   <div id="editEmpModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">

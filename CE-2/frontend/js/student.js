@@ -1,5 +1,3 @@
-
-
 document.addEventListener('DOMContentLoaded', () => {
   if (currentUser.role !== 'student') {
     window.location.href = 'login.html';
@@ -24,7 +22,6 @@ async function loadLocations() {
   } catch (err) { console.error('Failed to load locations', err); }
 }
 
-
 async function loadStats() {
   try {
     const complaints = await apiFetch('/complaints');
@@ -43,7 +40,6 @@ async function loadStats() {
     document.getElementById('statResolved').textContent   = resolved;
   } catch (err) { console.error('Failed to load stats', err); }
 }
-
 
 let myComplaints = [];
 
@@ -151,7 +147,6 @@ function renderAllComplaints() {
   });
 }
 
-
 let currentDuplicateId = null;
 
 async function submitComplaint(e) {
@@ -221,7 +216,6 @@ async function submitComplaint(e) {
   }
 }
 
-
 function showDuplicateModal(complaint) {
   currentDuplicateId = complaint.id;
   const details = document.getElementById('duplicateDetails');
@@ -275,7 +269,6 @@ document.getElementById('btnUpvoteInstead').addEventListener('click', async () =
     showCustomAlert('Error', err.message);
   }
 });
-
 
 let confirmComplaintId = null;
 

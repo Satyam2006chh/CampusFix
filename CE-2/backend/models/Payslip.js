@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { JsonCollection } = require('../config/jsonDb');
 
 const payslipSchema = new mongoose.Schema(
   {
@@ -17,17 +16,4 @@ const payslipSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const MongoPayModel = mongoose.models.Payslip || mongoose.model('Payslip', payslipSchema);
-const jsonPay = new JsonCollection('payslips');
-
-const PayProxy = new Proxy(MongoPayModel, {
-  get(target, prop) {
-    if (process.env.USE_JSON_DB === 'true') {
-      if (typeof jsonPay[prop] === 'function') return jsonPay[prop].bind(jsonPay);
-      return jsonPay[prop];
-    }
-    return target[prop];
-  },
-});
-
-module.exports = PayProxy;
+module.exports = mongoose.models.Payslip || mongoose.model('Payslip', payslipSchema);

@@ -3,8 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     window.location.href = 'login.html';
     return;
   }
-  
-  // First load the department info for this head, then load data
+
   initDeptHead();
 });
 
@@ -12,7 +11,6 @@ let myDept = null;
 
 async function initDeptHead() {
   try {
-    
     const deptId = currentUser.department_id;
     if (!deptId) {
       console.error('No department_id on currentUser:', currentUser);
@@ -174,7 +172,6 @@ function renderAllComplaints() {
   });
 }
 
-// ─── DEADLINE BADGE HELPER ───────────────────────────────────
 function getDeadlineBadge(deadline, status) {
   if (!deadline) return '';
 
@@ -203,7 +200,6 @@ function getDeadlineBadge(deadline, status) {
   }
 }
 
-// ─── MARK RESOLVED ───────────────────────────────────────────
 async function markResolved(compId) {
   showCustomConfirm(
     'Mark as Resolved',
@@ -225,15 +221,12 @@ async function markResolved(compId) {
   );
 }
 
-// ─── ASSIGNMENT MODAL ────────────────────────────────────────
 let assignCompId = null;
 let allEmployees = [];
 
 async function loadEmployees() {
   if (!myDept) return;
   try {
-    // Fetch ALL users — filter fully client-side to avoid json-server
-    // type coercion issues (department_id stored as number OR string)
     const allUsers = await apiFetch('/users');
     allEmployees = allUsers.filter(u =>
       u.role === 'employee' &&
@@ -260,7 +253,7 @@ function openAssignModal(compId) {
     grpA.label = 'Available';
     available.forEach(e => {
       const opt = document.createElement('option');
-      opt.value = String(e.id);              // always string
+      opt.value = String(e.id);
       opt.textContent = `${e.name} — ${e.designation || 'Staff'}`;
       opt.dataset.name   = e.name;
       opt.dataset.status = 'available';
@@ -328,7 +321,6 @@ async function submitAssignment() {
     return;
   }
 
-  // Get employee name — from dataset, fallback to looking up allEmployees
   const selectedOpt = selectEl.options[selectEl.selectedIndex];
   let empName = selectedOpt ? selectedOpt.dataset.name : '';
   if (!empName) {
@@ -340,7 +332,6 @@ async function submitAssignment() {
   const deadline   = deadlineEl && deadlineEl.value ? deadlineEl.value : null;
 
   try {
-    // Update the complaint
     await apiFetch(`/complaints/${assignCompId}`, {
       method: 'PATCH',
       body: JSON.stringify({
@@ -351,7 +342,6 @@ async function submitAssignment() {
       })
     });
 
-    // Mark employee as Busy
     await apiFetch(`/users/${empId}`, {
       method: 'PATCH',
       body: JSON.stringify({ availability: 'Busy' })
@@ -367,7 +357,6 @@ async function submitAssignment() {
   }
 }
 
-// ─── EMPLOYEES GRID ──────────────────────────────────────────
 function renderEmployees() {
   const grid = document.getElementById('employeesGrid');
   if(!grid) return;
@@ -429,7 +418,6 @@ function renderEmployees() {
 function openEmpModal() {
   document.getElementById('empForm').reset();
   clearAllErrors(document.getElementById('empForm'));
-  // Remove any leftover password meter from a previous open
   const oldMeter = document.getElementById('emp-pw-meter');
   if (oldMeter) oldMeter.remove();
   document.getElementById('empModal').classList.remove('hidden');
@@ -443,15 +431,12 @@ async function submitEmployee(e) {
   e.preventDefault();
   clearAllErrors(document.getElementById('empForm'));
 
-  // Simple validation — no strong password requirement for employee accounts
-  // (they can change password after first login)
   let ok = true;
   ok = validateRequired('empName',  'Full name')   && ok;
   ok = validateEmail('empEmail')                   && ok;
   ok = validateRequired('empDesig', 'Designation') && ok;
   ok = validatePhone('empPhone')                   && ok;
 
-  // Basic password: just needs to exist and be >= 6 chars
   const pwVal = (document.getElementById('empPassword')?.value || '').trim();
   if (!pwVal) {
     showFieldError('empPassword', 'Password is required.');

@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { JsonCollection } = require('../config/jsonDb');
 
 const leaveSchema = new mongoose.Schema(
   {
@@ -17,17 +16,4 @@ const leaveSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const MongoLeaveModel = mongoose.models.Leave || mongoose.model('Leave', leaveSchema);
-const jsonLeaves = new JsonCollection('leaves');
-
-const LeaveProxy = new Proxy(MongoLeaveModel, {
-  get(target, prop) {
-    if (process.env.USE_JSON_DB === 'true') {
-      if (typeof jsonLeaves[prop] === 'function') return jsonLeaves[prop].bind(jsonLeaves);
-      return jsonLeaves[prop];
-    }
-    return target[prop];
-  },
-});
-
-module.exports = LeaveProxy;
+module.exports = mongoose.models.Leave || mongoose.model('Leave', leaveSchema);

@@ -1,7 +1,4 @@
-
-
 const BASE_URL = '';
-
 
 const token = sessionStorage.getItem('cf_token');
 const userStr = sessionStorage.getItem('cf_user');
@@ -11,8 +8,7 @@ if (!token || !userStr) {
   window.location.href = 'login.html';
 } else {
   currentUser = JSON.parse(userStr);
-  
- 
+
   const nameDisplay = document.getElementById('userNameDisplay');
   const avatarDisplay = document.getElementById('userAvatar');
   if (nameDisplay) nameDisplay.textContent = currentUser.name;
@@ -30,7 +26,6 @@ function logout() {
   window.location.href = 'login.html';
 }
 
-
 async function apiFetch(endpoint, options = {}) {
   const headers = {
     'Content-Type': 'application/json',
@@ -45,7 +40,6 @@ async function apiFetch(endpoint, options = {}) {
   
   const data = await response.json();
   if (response.status === 401) {
-    // Token expired or invalid
     sessionStorage.clear();
     window.location.href = 'login.html';
     return null;
@@ -70,16 +64,13 @@ navItems.forEach(item => {
 });
 
 function switchTab(tabId) {
-  
   navItems.forEach(i => i.classList.remove('active'));
   const activeNav = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
   if (activeNav) activeNav.classList.add('active');
   
-  
   tabPanes.forEach(pane => pane.classList.remove('active'));
   document.getElementById(`tab-${tabId}`).classList.add('active');
   
-
   const titles = {
     'overview': 'Dashboard Overview',
     'new-complaint': 'Report an Issue',
@@ -92,7 +83,6 @@ function switchTab(tabId) {
     titleEl.textContent = titles[tabId];
   }
 }
-
 
 function formatDate(dateStr) {
   if (!dateStr) return '-';
@@ -112,7 +102,6 @@ function getStatusBadge(status) {
   const cls = map[status] || 'status-pending';
   return `<span class="status-badge ${cls}">${status}</span>`;
 }
-
 
 function createGlobalModals() {
   if (document.getElementById('globalAlertModal')) return;
@@ -148,22 +137,18 @@ function createGlobalModals() {
 }
 document.addEventListener('DOMContentLoaded', createGlobalModals);
 
-
 window.showCustomAlert = function(titleOrMsg, msg) {
   const message = msg !== undefined ? msg : titleOrMsg;
   document.getElementById('globalAlertMsg').textContent = message;
   document.getElementById('globalAlertModal').classList.remove('hidden');
 };
 
-
 window.showCustomConfirm = function(titleOrMsg, msgOrCallback, callbackArg) {
   let message, callback;
   if (typeof msgOrCallback === 'function') {
-
     message  = titleOrMsg;
     callback = msgOrCallback;
   } else {
-
     message  = msgOrCallback;
     callback = callbackArg;
   }
@@ -171,6 +156,6 @@ window.showCustomConfirm = function(titleOrMsg, msgOrCallback, callbackArg) {
   document.getElementById('globalConfirmModal').classList.remove('hidden');
   window._confirmCb = function(result) {
     document.getElementById('globalConfirmModal').classList.add('hidden');
-    if (result) callback();  
+    if (result) callback();
   };
 };

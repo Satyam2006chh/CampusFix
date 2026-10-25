@@ -373,18 +373,16 @@ const BG_CHECK_INTERVAL_MS = 30 * 60 * 1000; // 30 minutes
 let bgLocationInterval = null;
 
 // In-memory violation log: [{ time: "HH:MM", distance: N }]
-// Also persisted to sessionStorage so it survives tab refreshes
+// Captured during shift and saved to MongoDB on clock-out
+let _inMemoryViolations = [];
 function getViolations() {
-  try { return JSON.parse(sessionStorage.getItem('cf_loc_violations') || '[]'); }
-  catch { return []; }
+  return _inMemoryViolations;
 }
 function addViolation(entry) {
-  const v = getViolations();
-  v.push(entry);
-  sessionStorage.setItem('cf_loc_violations', JSON.stringify(v));
+  _inMemoryViolations.push(entry);
 }
 function clearViolations() {
-  sessionStorage.removeItem('cf_loc_violations');
+  _inMemoryViolations = [];
 }
 
 function startBackgroundLocationCheck() {

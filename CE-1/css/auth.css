@@ -1,9 +1,3 @@
-/* ============================================================
-   CampusFix — Auth Styles (Login & Register)
-   File: css/auth.css
-   ============================================================ */
-
-/* ─── AUTH BODY ──────────────────────────────────────────────── */
 .auth-body {
   min-height: 100vh;
   display: flex;
@@ -12,7 +6,6 @@
   overflow: hidden;
 }
 
-/* Subtle dot grid background */
 .auth-bg-grid {
   position: fixed;
   inset: 0;
@@ -23,7 +16,6 @@
   opacity: 0.7;
 }
 
-/* Glow blobs */
 .auth-orb {
   position: fixed;
   border-radius: 50%;
@@ -42,7 +34,6 @@
   bottom: -80px; right: -60px;
 }
 
-/* Back link */
 .back-home {
   position: fixed;
   top: 20px;
@@ -67,7 +58,6 @@
   background: var(--accent-light);
 }
 
-/* ─── WRAPPER ────────────────────────────────────────────────── */
 .auth-wrapper {
   display: flex;
   width: 100%;
@@ -76,7 +66,6 @@
   z-index: 1;
 }
 
-/* ─── LEFT PANEL ─────────────────────────────────────────────── */
 .auth-left {
   flex: 1;
   background: var(--sidebar-bg);
@@ -88,7 +77,7 @@
   overflow: hidden;
 }
 
-/* Decorative left panel dot grid */
+
 .auth-left::before {
   content: '';
   position: absolute;
@@ -97,7 +86,7 @@
   background-size: 28px 28px;
   pointer-events: none;
 }
-/* Glow circle inside left panel */
+
 .auth-left::after {
   content: '';
   position: absolute;
@@ -181,7 +170,6 @@
   flex-shrink: 0;
 }
 
-/* ─── RIGHT PANEL ────────────────────────────────────────────── */
 .auth-right {
   width: 500px;
   display: flex;
@@ -213,7 +201,6 @@
   line-height: 1.5;
 }
 
-/* ─── PORTAL BUTTONS ─────────────────────────────────────────── */
 .portal-options {
   display: flex;
   flex-direction: column;
@@ -286,7 +273,6 @@
   transform: translateX(3px);
 }
 
-/* ─── LOGIN FORM ─────────────────────────────────────────────── */
 .back-btn {
   display: inline-flex;
   align-items: center;
@@ -377,14 +363,12 @@
   margin-top: 28px;
 }
 
-/* ─── REGISTER FORM ──────────────────────────────────────────── */
 .register-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
 }
 
-/* ─── RESPONSIVE ─────────────────────────────────────────────── */
 @media (max-width: 900px) {
   .auth-left { display: none; }
   .auth-right {
@@ -400,7 +384,6 @@
   .auth-right { padding: 48px 20px; }
 }
 
-/* ─── SHARED VALIDATION STYLES (used in auth + dashboard) ───── */
 .cf-input-error {
   border-color: var(--danger, #ef4444) !important;
   box-shadow: 0 0 0 3px rgba(239,68,68,0.12) !important;
@@ -414,7 +397,6 @@
   padding-left: 2px;
 }
 
-/* Password strength meter */
 .cf-pw-meter {
   margin-top: 8px;
 }
