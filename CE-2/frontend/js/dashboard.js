@@ -93,6 +93,7 @@ function switchTab(tabId) {
     'attendance': 'Attendance',
     'head-attendance': 'Department Head Attendance Analytics',
     'head-leaves': 'Department Head Leave Management',
+    'head-payslips': 'Department Head Payslips',
     'leave': 'Leave Management',
     'payslips': 'Payslips',
     'my-complaints': 'My Tasks',
@@ -108,6 +109,7 @@ function switchTab(tabId) {
   if (tabId === 'dh-my-attendance'    && typeof loadHeadMyAttendance === 'function') loadHeadMyAttendance();
   if (tabId === 'head-attendance'     && typeof loadHeadAttendanceAnalytics === 'function') loadHeadAttendanceAnalytics();
   if (tabId === 'head-leaves'         && typeof loadHeadLeavesAdmin === 'function') loadHeadLeavesAdmin();
+  if (tabId === 'head-payslips'       && typeof loadHeadPayslipsAdmin === 'function') loadHeadPayslipsAdmin();
   if (tabId === 'leave'               && typeof loadLeaves === 'function') loadLeaves();
   if (tabId === 'payslips'            && typeof loadPayslips === 'function') loadPayslips();
 }

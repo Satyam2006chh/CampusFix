@@ -552,12 +552,66 @@ async function reviewLeave(leaveId, decision) {
 }
 
 // ── PAYSLIPS (Dept Head view) ─────────────────────────────
+async function loadHeadMyPayslips() {
+  if (!currentUser || !currentUser.id) return;
+  const tbody = document.getElementById('dhMyPayslipsBody');
+  if (!tbody) return;
+
+  try {
+    const slips = await apiFetch(`/payslips?employee_id=${currentUser.id}`);
+    const sorted = (slips || []).sort((a, b) => {
+      if (b.year !== a.year) return b.year - a.year;
+      return b.month - a.month;
+    });
+
+    tbody.innerHTML = '';
+    if (sorted.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:24px;">No payslips have been issued for you by Super Admin yet.</td></tr>`;
+      return;
+    }
+
+    sorted.forEach(s => {
+      const period = `${MONTHS_DH[s.month - 1]} ${s.year}`;
+      tbody.innerHTML += `
+        <tr>
+          <td style="font-weight:600;color:var(--text-primary);">${period}</td>
+          <td>₹${Number(s.basic_salary).toLocaleString()}</td>
+          <td style="color:var(--success);">+₹${Number(s.allowances || 0).toLocaleString()}</td>
+          <td style="color:var(--danger);">-₹${Number(s.deductions || 0).toLocaleString()}</td>
+          <td style="font-weight:700;color:var(--accent);">₹${Number(s.net_salary).toLocaleString()}</td>
+          <td><span style="font-size:0.8rem;color:var(--text-muted);">${s.generated_by || 'Super Admin'}</span></td>
+          <td>
+            <button class="action-btn" onclick='dhDownloadPayslip(${JSON.stringify(s).replace(/'/g,"&apos;")})'>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+              Download
+            </button>
+          </td>
+        </tr>`;
+    });
+  } catch (err) {
+    console.error('loadHeadMyPayslips error:', err);
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--danger);padding:24px;">Failed to load your payslips.</td></tr>`;
+  }
+}
+
 async function loadDeptPayslips() {
   if (!myDept) return;
+  // Always load Head's own payslips too
+  loadHeadMyPayslips();
+
   try {
     const deptId = String(myDept.id || myDept._id || '');
     const slips = await apiFetch(`/payslips?department_id=${deptId}`);
-    const sorted = (slips || []).sort((a, b) => {
+
+    // Exclude the Dept Head's own payslips from staff table
+    const staffSlips = (slips || []).filter(s => {
+      const empId = s.employee_id && typeof s.employee_id === 'object'
+        ? String(s.employee_id._id || s.employee_id.id)
+        : String(s.employee_id);
+      return empId !== String(currentUser.id);
+    });
+
+    const sorted = staffSlips.sort((a, b) => {
       if (b.year !== a.year) return b.year - a.year;
       return b.month - a.month;
     });
@@ -567,7 +621,7 @@ async function loadDeptPayslips() {
     tbody.innerHTML = '';
 
     if (sorted.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px;">No payslips generated yet.</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px;">No employee payslips generated yet. Click <strong>+ Issue Staff Payslip</strong> to generate one.</td></tr>`;
       return;
     }
 

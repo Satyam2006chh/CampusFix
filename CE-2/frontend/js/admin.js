@@ -2,7 +2,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
   if (currentUser.role !== "admin") { window.location.href = "login.html"; return; }
-  loadStats(); loadAllComplaints(); loadDepartments(); loadLocations(); loadUsers(); loadHeadAttendanceAnalytics(); loadHeadLeavesAdmin();
+  loadStats(); loadAllComplaints(); loadDepartments(); loadLocations(); loadUsers(); loadHeadAttendanceAnalytics(); loadHeadLeavesAdmin(); loadHeadPayslipsAdmin();
 });
 
 async function loadStats() {
@@ -922,4 +922,319 @@ function resetHeadLeavesFilters() {
   if (search) search.value = '';
 
   filterHeadLeavesAdmin();
+}
+
+// ── DEPARTMENT HEAD PAYSLIPS (Admin Control) ──────────────
+const MONTHS_ADM = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let allHeadPayslipsList = [];
+
+async function loadHeadPayslipsAdmin() {
+  const tbody = document.getElementById('adminHeadPayslipsTableBody');
+  if (!tbody) return;
+
+  try {
+    const [heads, depts, slips] = await Promise.all([
+      apiFetch('/users?role=dept_head'),
+      apiFetch('/departments'),
+      apiFetch('/payslips?role=dept_head')
+    ]);
+
+    allDeptHeadsList = heads || [];
+    allDepartmentsList = depts || [];
+    allHeadPayslipsList = slips || [];
+
+    // Populate department filter
+    const deptFilter = document.getElementById('adminHeadPsDeptFilter');
+    if (deptFilter && deptFilter.options.length <= 1) {
+      deptFilter.innerHTML = '<option value="">All Departments</option>';
+      allDepartmentsList.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id || d._id;
+        opt.textContent = d.name;
+        deptFilter.appendChild(opt);
+      });
+    }
+
+    // Calculate KPIs
+    const now = new Date();
+    const curMonth = now.getMonth() + 1;
+    const curYear = now.getFullYear();
+
+    const totalCount = allHeadPayslipsList.length;
+    const totalDisbursed = allHeadPayslipsList.reduce((acc, s) => acc + (Number(s.net_salary) || 0), 0);
+    const thisMonthCount = allHeadPayslipsList.filter(s => s.month === curMonth && s.year === curYear).length;
+    const avgSalary = totalCount > 0 ? Math.round(totalDisbursed / totalCount) : 0;
+
+    const tEl = document.getElementById('adminHeadTotalPayslips');
+    const dEl = document.getElementById('adminHeadTotalDisbursed');
+    const mEl = document.getElementById('adminHeadMonthGenerated');
+    const aEl = document.getElementById('adminHeadAvgSalary');
+
+    if (tEl) tEl.textContent = totalCount;
+    if (dEl) dEl.textContent = `₹${totalDisbursed.toLocaleString()}`;
+    if (mEl) mEl.textContent = `${thisMonthCount} Issued`;
+    if (aEl) aEl.textContent = `₹${avgSalary.toLocaleString()}`;
+
+    filterHeadPayslipsAdmin();
+  } catch (err) {
+    console.error('loadHeadPayslipsAdmin error:', err);
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--danger);padding:32px;">Failed to load Department Head payslips.</td></tr>`;
+  }
+}
+
+function filterHeadPayslipsAdmin() {
+  const tbody = document.getElementById('adminHeadPayslipsTableBody');
+  if (!tbody) return;
+
+  const deptFilter = document.getElementById('adminHeadPsDeptFilter')?.value || '';
+  const monthFilter = document.getElementById('adminHeadPsMonthFilter')?.value || '';
+  const yearFilter = document.getElementById('adminHeadPsYearFilter')?.value || '';
+  const searchFilter = (document.getElementById('adminHeadPsSearchInput')?.value || '').toLowerCase().trim();
+
+  let filtered = [...allHeadPayslipsList];
+
+  if (deptFilter) {
+    filtered = filtered.filter(s => {
+      const dId = s.department_id && typeof s.department_id === 'object'
+        ? String(s.department_id._id || s.department_id.id)
+        : String(s.department_id || '');
+      return dId === String(deptFilter);
+    });
+  }
+
+  if (monthFilter) {
+    filtered = filtered.filter(s => String(s.month) === String(monthFilter));
+  }
+
+  if (yearFilter) {
+    filtered = filtered.filter(s => String(s.year) === String(yearFilter));
+  }
+
+  if (searchFilter) {
+    filtered = filtered.filter(s => {
+      const name = (s.employee_name || s.employee_id?.name || '').toLowerCase();
+      const email = (s.employee_id?.email || '').toLowerCase();
+      return name.includes(searchFilter) || email.includes(searchFilter);
+    });
+  }
+
+  // Sort newest first
+  filtered.sort((a, b) => {
+    if (b.year !== a.year) return b.year - a.year;
+    return b.month - a.month;
+  });
+
+  tbody.innerHTML = '';
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:32px;">No Department Head payslips found matching filters.</td></tr>`;
+    return;
+  }
+
+  filtered.forEach(s => {
+    const headName = s.employee_name || s.employee_id?.name || 'Dept Head';
+    const headEmail = s.employee_id?.email || '';
+
+    let deptName = '—';
+    if (s.department_id && typeof s.department_id === 'object') {
+      deptName = s.department_id.name;
+    } else {
+      const d = allDepartmentsList.find(dep => String(dep.id || dep._id) === String(s.department_id));
+      if (d) deptName = d.name;
+    }
+
+    const period = `${MONTHS_ADM[s.month - 1] || s.month} ${s.year}`;
+
+    tbody.innerHTML += `
+      <tr>
+        <td>
+          <div style="font-weight:600;color:var(--text-primary);">${headName}</div>
+          <div style="font-size:0.75rem;color:var(--text-muted);">${headEmail}</div>
+        </td>
+        <td><span style="font-weight:500;color:var(--text-primary);">${deptName}</span></td>
+        <td><span style="font-weight:600;color:var(--accent);">${period}</span></td>
+        <td>₹${Number(s.basic_salary).toLocaleString()}</td>
+        <td style="color:var(--success);">+₹${Number(s.allowances || 0).toLocaleString()}</td>
+        <td style="color:var(--danger);">-₹${Number(s.deductions || 0).toLocaleString()}</td>
+        <td style="font-weight:700;color:var(--accent);font-size:0.95rem;">₹${Number(s.net_salary).toLocaleString()}</td>
+        <td><span style="font-size:0.8rem;color:var(--text-muted);">${s.generated_by || 'Super Admin'}</span></td>
+        <td>
+          <div style="display:flex; gap:6px;">
+            <button class="action-btn" onclick='printHeadPayslip(${JSON.stringify(s).replace(/'/g,"&apos;")})'>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="8 17 12 21 16 17"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.88 18.09A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.29"/></svg>
+              Print
+            </button>
+            <button class="action-btn danger" onclick="deleteHeadPayslipAdmin('${s.id}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  });
+}
+
+function openAdminHeadPayslipModal() {
+  const modal = document.getElementById('adminHeadPayslipModal');
+  const sel = document.getElementById('adminHeadPsSelect');
+  if (!modal || !sel) return;
+
+  sel.innerHTML = '<option value="" disabled selected>Select a Department Head</option>';
+  (allDeptHeadsList || []).forEach(h => {
+    const opt = document.createElement('option');
+    opt.value = h.id || h._id;
+    opt.textContent = `${h.name} (${h.email})`;
+    opt.dataset.name = h.name;
+    opt.dataset.dept = h.department_id || '';
+    sel.appendChild(opt);
+  });
+
+  const now = new Date();
+  const mSel = document.getElementById('adminHeadPsMonth');
+  const yInput = document.getElementById('adminHeadPsYear');
+  if (mSel) mSel.value = now.getMonth() + 1;
+  if (yInput) yInput.value = now.getFullYear();
+
+  const basicInput = document.getElementById('adminHeadPsBasic');
+  const allowInput = document.getElementById('adminHeadPsAllow');
+  const deductInput = document.getElementById('adminHeadPsDeduct');
+  if (basicInput) basicInput.value = '';
+  if (allowInput) allowInput.value = '0';
+  if (deductInput) deductInput.value = '0';
+  calcAdminNetPreview();
+
+  modal.classList.remove('hidden');
+}
+
+function closeAdminHeadPayslipModal() {
+  const modal = document.getElementById('adminHeadPayslipModal');
+  if (modal) modal.classList.add('hidden');
+  document.getElementById('adminHeadPayslipForm')?.reset();
+}
+
+function calcAdminNetPreview() {
+  const basic = Number(document.getElementById('adminHeadPsBasic')?.value || 0);
+  const allow = Number(document.getElementById('adminHeadPsAllow')?.value || 0);
+  const deduct = Number(document.getElementById('adminHeadPsDeduct')?.value || 0);
+  const net = Math.max(0, basic + allow - deduct);
+  const preview = document.getElementById('adminHeadPsNetPreview');
+  if (preview) preview.textContent = `₹${net.toLocaleString()}`;
+}
+
+async function submitAdminHeadPayslip(e) {
+  e.preventDefault();
+  const sel = document.getElementById('adminHeadPsSelect');
+  const headId = sel?.value;
+  if (!headId) {
+    showCustomAlert('Missing Selection', 'Please select a Department Head.');
+    return;
+  }
+
+  const selectedOpt = sel.options[sel.selectedIndex];
+  const headName = selectedOpt?.dataset.name || 'Dept Head';
+  const deptId = selectedOpt?.dataset.dept || null;
+
+  const month = parseInt(document.getElementById('adminHeadPsMonth')?.value || 1);
+  const year = parseInt(document.getElementById('adminHeadPsYear')?.value || 2026);
+  const basic = parseFloat(document.getElementById('adminHeadPsBasic')?.value || 0);
+  const allow = parseFloat(document.getElementById('adminHeadPsAllow')?.value || 0);
+  const deduct = parseFloat(document.getElementById('adminHeadPsDeduct')?.value || 0);
+
+  if (!basic || basic <= 0) {
+    showCustomAlert('Invalid Salary', 'Basic salary must be greater than zero.');
+    return;
+  }
+
+  const payload = {
+    employee_id: headId,
+    employee_name: headName,
+    department_id: deptId ? String(deptId) : null,
+    month,
+    year,
+    basic_salary: basic,
+    allowances: allow,
+    deductions: deduct,
+    generated_by: currentUser.name || 'Super Admin',
+  };
+
+  try {
+    await apiFetch('/payslips', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+
+    closeAdminHeadPayslipModal();
+    loadHeadPayslipsAdmin();
+    showCustomAlert('Payslip Generated', `Official payslip for ${headName} (${MONTHS_ADM[month - 1]} ${year}) has been issued successfully.`);
+  } catch (err) {
+    showCustomAlert('Error', err.message || 'Failed to generate payslip.');
+  }
+}
+
+async function deleteHeadPayslipAdmin(slipId) {
+  showCustomConfirm(
+    'Delete Payslip',
+    'Are you sure you want to permanently delete this Department Head payslip?',
+    async () => {
+      try {
+        await apiFetch(`/payslips/${slipId}`, { method: 'DELETE' });
+        loadHeadPayslipsAdmin();
+        showCustomAlert('Deleted', 'The payslip record has been deleted.');
+      } catch (err) {
+        showCustomAlert('Error', err.message || 'Failed to delete payslip.');
+      }
+    }
+  );
+}
+
+function printHeadPayslip(slip) {
+  const period = `${MONTHS_ADM[slip.month - 1] || slip.month} ${slip.year}`;
+  const html = `
+    <html><head><title>Payslip - ${slip.employee_name}</title>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; padding: 40px; color: #0f172a; }
+      .header { border-bottom: 2px solid #6366f1; padding-bottom: 16px; margin-bottom: 24px; }
+      h2 { margin: 0 0 6px; color: #4338ca; }
+      .sub { color: #64748b; font-size: 0.88rem; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; font-size: 0.9rem; }
+      table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+      td { padding: 12px 16px; border-bottom: 1px solid #e2e8f0; font-size: 0.92rem; }
+      .net { background: #eef2ff; font-weight: 700; color: #4338ca; font-size: 1.05rem; }
+      .footer { margin-top: 36px; font-size: 0.78rem; color: #94a3b8; text-align: center; border-top: 1px dashed #cbd5e1; padding-top: 16px; }
+    </style></head><body>
+    <div class="header">
+      <h2>CampusFix — Department Head Remuneration Voucher</h2>
+      <div class="sub">Chitkara University Administration &nbsp;|&nbsp; Pay Period: ${period}</div>
+    </div>
+    <div class="grid">
+      <div><strong>Beneficiary:</strong> ${slip.employee_name} (Department Head)</div>
+      <div><strong>Disbursed By:</strong> ${slip.generated_by || 'Campus Administration'}</div>
+    </div>
+    <table>
+      <tr><td>Basic Salary</td><td style="text-align:right;">₹${Number(slip.basic_salary).toLocaleString()}</td></tr>
+      <tr><td style="color:#16a34a;">Special Allowances & Incentives</td><td style="text-align:right;color:#16a34a;">+ ₹${Number(slip.allowances || 0).toLocaleString()}</td></tr>
+      <tr><td style="color:#dc2626;">Statutory Deductions & TDS</td><td style="text-align:right;color:#dc2626;">- ₹${Number(slip.deductions || 0).toLocaleString()}</td></tr>
+      <tr class="net"><td>Total Net Salary Credited</td><td style="text-align:right;">₹${Number(slip.net_salary).toLocaleString()}</td></tr>
+    </table>
+    <div class="footer">
+      Computer-generated remuneration payslip issued via CampusFix Super Admin Portal.<br/>
+      Secured and synchronized with MongoDB Atlas.
+    </div>
+    </body></html>`;
+  const win = window.open('', '_blank');
+  win.document.write(html);
+  win.document.close();
+  win.print();
+}
+
+function resetHeadPayslipsFilters() {
+  const dept = document.getElementById('adminHeadPsDeptFilter');
+  const month = document.getElementById('adminHeadPsMonthFilter');
+  const year = document.getElementById('adminHeadPsYearFilter');
+  const search = document.getElementById('adminHeadPsSearchInput');
+
+  if (dept) dept.value = '';
+  if (month) month.value = '';
+  if (year) year.value = '2026';
+  if (search) search.value = '';
+
+  filterHeadPayslipsAdmin();
 }
