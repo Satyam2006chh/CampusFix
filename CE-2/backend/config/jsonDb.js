@@ -220,6 +220,33 @@ class JsonCollection {
     };
   }
 
+  // Find one and update
+  async findOneAndUpdate(query = {}, updates = {}, options = {}) {
+    const items = this.getAll();
+    const index = items.findIndex((it) => {
+      return Object.entries(query).every(([k, v]) => {
+        if (v === undefined || v === null) return true;
+        return String(it[k] ?? '').toLowerCase() === String(v).toLowerCase();
+      });
+    });
+    if (index === -1) return null;
+
+    items[index] = {
+      ...items[index],
+      ...updates,
+      _id: items[index].id,
+      updatedAt: new Date().toISOString(),
+    };
+    this.saveAll(items);
+
+    const updated = items[index];
+    return {
+      ...updated,
+      lean: () => Promise.resolve(updated),
+      then: (resolve, reject) => Promise.resolve(updated).then(resolve, reject),
+    };
+  }
+
   // Find and delete
   async findByIdAndDelete(id) {
     const items = this.getAll();

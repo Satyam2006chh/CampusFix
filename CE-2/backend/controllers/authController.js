@@ -1,6 +1,13 @@
 const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
 const User = require('../models/User');
-const { sendOTPEmail, verifyOTP } = require('../services/otpService');
+const {
+  sendOTPEmail,
+  verifyOTP,
+  verifyResetOTP,
+  isResetVerified,
+  clearResetSession
+} = require('../services/otpService');
 
 const CHITKARA_DOMAIN = 'chitkara.edu.in';
 
@@ -82,7 +89,7 @@ const sendRegistrationOtp = async (req, res) => {
       });
     }
 
-    await sendOTPEmail(emailLower, name || 'Student');
+    await sendOTPEmail(emailLower, name || 'Student', 'registration');
     res.json({
       success: true,
       message: `Verification code sent to ${emailLower}. Check your inbox.`
@@ -154,7 +161,128 @@ const verifyAndRegister = async (req, res) => {
   }
 };
 
-// @desc    Register student (fallback direct registration)
+// ── FORGOT PASSWORD FLOW ──────────────────────────────────────────
+
+// @desc    Send password reset OTP
+// @route   POST /api/auth/forgot-password
+// @access  Public
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Please enter your registered college email.' });
+  }
+
+  const emailLower = email.toLowerCase().trim();
+
+  // Domain check
+  if (!emailLower.endsWith(`@${CHITKARA_DOMAIN}`)) {
+    return res.status(403).json({
+      success: false,
+      code: 'DOMAIN_BLOCKED',
+      message: 'Only official college email ID is permitted for accessing this application.'
+    });
+  }
+
+  try {
+    const user = await User.findOne({ email: emailLower });
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'No account registered with this email address.'
+      });
+    }
+
+    await sendOTPEmail(emailLower, user.name || 'Student', 'password_reset');
+    res.json({
+      success: true,
+      message: `Password reset verification code has been sent to ${emailLower}.`
+    });
+  } catch (err) {
+    console.error('forgotPassword error:', err.message);
+    res.status(500).json({ success: false, message: 'Failed to send reset code. Please try again.' });
+  }
+};
+
+// @desc    Verify reset OTP
+// @route   POST /api/auth/verify-reset-otp
+// @access  Public
+const verifyResetOtp = async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ success: false, message: 'Email and verification code are required.' });
+  }
+
+  const emailLower = email.toLowerCase().trim();
+  const result = verifyResetOTP(emailLower, otp);
+
+  if (!result.valid) {
+    return res.status(400).json({ success: false, message: result.reason });
+  }
+
+  res.json({
+    success: true,
+    message: 'Code verified successfully. You may now enter your new password.'
+  });
+};
+
+// @desc    Reset password (replaces old password with new)
+// @route   POST /api/auth/reset-password
+// @access  Public
+const resetPassword = async (req, res) => {
+  const { email, newPassword } = req.body;
+
+  if (!email || !newPassword) {
+    return res.status(400).json({ success: false, message: 'Email and new password are required.' });
+  }
+
+  const emailLower = email.toLowerCase().trim();
+
+  if (!isResetVerified(emailLower)) {
+    return res.status(400).json({
+      success: false,
+      message: 'Reset session expired or not verified. Please request a new code.'
+    });
+  }
+
+  try {
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    let updated = null;
+    if (typeof User.findOneAndUpdate === 'function') {
+      updated = await User.findOneAndUpdate({ email: emailLower }, { password: hashedPassword });
+    } else {
+      const user = await User.findOne({ email: emailLower });
+      if (user) {
+        user.password = hashedPassword;
+        if (typeof user.save === 'function') {
+          await user.save();
+        } else {
+          await User.findByIdAndUpdate(user._id || user.id, { password: hashedPassword });
+        }
+        updated = user;
+      }
+    }
+
+    if (!updated) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
+
+    clearResetSession(emailLower);
+
+    res.json({
+      success: true,
+      message: 'Your password has been reset successfully! You can now sign in with your new password.'
+    });
+  } catch (err) {
+    console.error('resetPassword error:', err.message);
+    res.status(500).json({ success: false, message: 'Failed to reset password. Please try again.' });
+  }
+};
+
+// @desc    Register student (direct fallback)
 // @route   POST /api/auth/register
 // @access  Public
 const register = async (req, res) => {
@@ -207,16 +335,12 @@ const register = async (req, res) => {
   }
 };
 
-// @desc    Logout (client-side, just acknowledge)
-// @route   POST /api/auth/logout
-// @access  Private
+// @desc    Logout
 const logout = (req, res) => {
   res.json({ message: 'Logged out successfully' });
 };
 
 // @desc    Get current user profile
-// @route   GET /api/auth/me
-// @access  Private
 const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate('department_id', 'name category_tag');
@@ -233,5 +357,8 @@ module.exports = {
   logout,
   getMe,
   sendRegistrationOtp,
-  verifyAndRegister
+  verifyAndRegister,
+  forgotPassword,
+  verifyResetOtp,
+  resetPassword
 };

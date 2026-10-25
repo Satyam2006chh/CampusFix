@@ -6,7 +6,10 @@ const {
   logout,
   getMe,
   sendRegistrationOtp,
-  verifyAndRegister
+  verifyAndRegister,
+  forgotPassword,
+  verifyResetOtp,
+  resetPassword
 } = require('../controllers/authController');
 const { protect } = require('../middleware/authMiddleware');
 
@@ -18,5 +21,10 @@ router.get('/me', protect, getMe);
 // OTP-based student registration
 router.post('/send-registration-otp', sendRegistrationOtp);
 router.post('/verify-and-register', verifyAndRegister);
+
+// Forgot Password Flow
+router.post('/forgot-password', forgotPassword);
+router.post('/verify-reset-otp', verifyResetOtp);
+router.post('/reset-password', resetPassword);
 
 module.exports = router;
