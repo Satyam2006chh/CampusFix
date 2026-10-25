@@ -185,6 +185,50 @@
       "availability": "Available",
       "is_active": 1,
       "id": "HUdi1cmB6p4"
+    },
+    {
+      "name": "kamlesh",
+      "email": "kamlesh@gmail.com",
+      "password": "Kamlesh@123",
+      "role": "dept_head",
+      "department_id": 6,
+      "phone": "8998988998",
+      "availability": "Available",
+      "is_active": 1,
+      "id": "mvmq5un7dlhbt",
+      "_id": "mvmq5un7dlhbt",
+      "createdAt": "2026-10-24T18:21:01.411Z",
+      "updatedAt": "2026-10-24T18:21:01.411Z"
+    },
+    {
+      "name": "Rajan Sharma",
+      "email": "rajan@gmail.com",
+      "password": "Rajan@123",
+      "role": "employee",
+      "department_id": "6",
+      "designation": "Senior plumber",
+      "phone": "7878787878",
+      "availability": "Available",
+      "is_active": 1,
+      "id": "mvmq70hnx5hrx",
+      "_id": "mvmq70hnx5hrx",
+      "createdAt": "2026-10-24T18:21:55.643Z",
+      "updatedAt": "2026-10-24T18:21:55.643Z"
+    },
+    {
+      "name": "krishna",
+      "email": "krishna@gmail.com",
+      "password": "Krishna@123",
+      "role": "employee",
+      "department_id": "6",
+      "designation": "Senior Plumber",
+      "phone": "8989898989",
+      "availability": "Busy",
+      "is_active": 1,
+      "id": "mvmqjgt1lyfws",
+      "_id": "mvmqjgt1lyfws",
+      "createdAt": "2026-10-24T18:31:36.661Z",
+      "updatedAt": "2026-10-24T20:30:50.143Z"
     }
   ],
   "departments": [
@@ -395,9 +439,59 @@
     }
   ],
   "employees": [],
-  "attendance": [],
-  "leaves": [],
-  "payslips": [],
+  "attendance": [
+    {
+      "employee_id": "mvmqjgt1lyfws",
+      "date": "2026-10-24",
+      "clock_in": "00:21",
+      "day_type": "Regular",
+      "status": "Present",
+      "is_late": false,
+      "department_id": "6",
+      "id": "mvmr8lbsbfmjo",
+      "_id": "mvmr8lbsbfmjo",
+      "createdAt": "2026-10-24T18:51:08.920Z",
+      "updatedAt": "2026-10-24T18:51:12.815Z",
+      "clock_out": "00:21",
+      "working_hours": 0
+    }
+  ],
+  "leaves": [
+    {
+      "employee_id": "mvmqjgt1lyfws",
+      "employee_name": "krishna",
+      "department_id": "6",
+      "leave_type": "Sick Leave",
+      "from_date": "2026-10-25",
+      "to_date": "2026-10-29",
+      "reason": "genkerlgtrgrg",
+      "status": "Rejected",
+      "id": "mvnk01k18xzce",
+      "_id": "mvnk01k18xzce",
+      "createdAt": "2026-10-25T08:16:18.913Z",
+      "updatedAt": "2026-10-25T08:18:02.048Z",
+      "reviewed_by": "kamlesh",
+      "reviewed_at": "2026-10-25T08:18:01.998Z"
+    }
+  ],
+  "payslips": [
+    {
+      "employee_id": "mvmqjgt1lyfws",
+      "employee_name": "krishna",
+      "department_id": "6",
+      "month": 10,
+      "year": 2026,
+      "basic_salary": 34000,
+      "allowances": 900,
+      "deductions": 0,
+      "net_salary": 34900,
+      "generated_by": "suresh",
+      "id": "mvmuu4oijrdc9",
+      "_id": "mvmuu4oijrdc9",
+      "createdAt": "2026-10-24T20:31:52.626Z",
+      "updatedAt": "2026-10-24T20:31:52.626Z"
+    }
+  ],
   "complaints": [
     {
       "title": "Fan not working",
@@ -480,6 +574,28 @@
       "upvote_count": 0,
       "created_at": "2026-08-23T09:38:00.489Z",
       "id": "v5i_h7zQrCA"
+    },
+    {
+      "title": "Water not coming",
+      "category": "Water",
+      "location_id": 7,
+      "location_desc": "Block A, Washroom",
+      "urgency": "Medium",
+      "description": "Sample for te ce2",
+      "user_id": "4",
+      "user_name": "satyam",
+      "status": "Closed",
+      "upvote_count": 0,
+      "source": "original",
+      "original_complaint_id": null,
+      "id": "mvmtt0ui4rcel",
+      "_id": "mvmtt0ui4rcel",
+      "createdAt": "2026-10-24T20:03:01.386Z",
+      "updatedAt": "2026-10-25T08:17:34.340Z",
+      "assigned_to_id": "mvmqjgt1lyfws",
+      "assigned_to_name": "krishna",
+      "deadline": "2026-10-27",
+      "reopen_reason": null
     }
   ],
   "$schema": "./node_modules/json-server/schema.json"
