@@ -1,276 +1,108 @@
 const nodemailer = require('nodemailer');
 
-// ── In-memory OTP store { email -> { otp, expiresAt, name, verified } } ──
+// ── In-memory OTP store ─────────────────────────────────────────
 const otpStore = new Map();
 
-// ── Generate a 6-digit OTP ──────────────────────────────────────
 function generateOTP() {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// ── Store OTP with expiry ───────────────────────────────────────
 function storeOTP(email, otp, name, purpose = 'general') {
   const minutes = parseInt(process.env.OTP_EXPIRE_MINUTES || '10', 10);
-  const expiresAt = Date.now() + minutes * 60 * 1000;
-  otpStore.set(email.toLowerCase(), { otp, expiresAt, name, purpose, verified: false });
+  otpStore.set(email.toLowerCase(), {
+    otp, name, purpose, verified: false,
+    expiresAt: Date.now() + minutes * 60 * 1000,
+  });
 }
 
-// ── Verify OTP ──────────────────────────────────────────────────
 function verifyOTP(email, enteredOtp) {
   const record = otpStore.get(email.toLowerCase());
   if (!record) return { valid: false, reason: 'No verification code found. Please request a new one.' };
-  if (Date.now() > record.expiresAt) {
-    otpStore.delete(email.toLowerCase());
-    return { valid: false, reason: 'Verification code has expired. Please request a new one.' };
-  }
-  if (record.otp !== enteredOtp.toString().trim()) {
-    return { valid: false, reason: 'Incorrect verification code. Please check your email and try again.' };
-  }
-  otpStore.delete(email.toLowerCase()); // one-time use
+  if (Date.now() > record.expiresAt) { otpStore.delete(email.toLowerCase()); return { valid: false, reason: 'Code expired. Please request a new one.' }; }
+  if (record.otp !== enteredOtp.toString().trim()) return { valid: false, reason: 'Incorrect code. Please check your email.' };
+  otpStore.delete(email.toLowerCase());
   return { valid: true };
 }
 
-// ── Verify Password Reset OTP (marks verified so new password can be set) ──
 function verifyResetOTP(email, enteredOtp) {
   const record = otpStore.get(email.toLowerCase());
-  if (!record) return { valid: false, reason: 'No reset request found. Please request a code first.' };
-  if (Date.now() > record.expiresAt) {
-    otpStore.delete(email.toLowerCase());
-    return { valid: false, reason: 'Reset code has expired. Please request a new one.' };
-  }
-  if (record.otp !== enteredOtp.toString().trim()) {
-    return { valid: false, reason: 'Incorrect verification code. Please try again.' };
-  }
-  // Mark as verified for password change step
+  if (!record) return { valid: false, reason: 'No reset request found.' };
+  if (Date.now() > record.expiresAt) { otpStore.delete(email.toLowerCase()); return { valid: false, reason: 'Code expired.' }; }
+  if (record.otp !== enteredOtp.toString().trim()) return { valid: false, reason: 'Incorrect code.' };
   record.verified = true;
   return { valid: true };
 }
 
 function isResetVerified(email) {
-  const record = otpStore.get(email.toLowerCase());
-  if (!record) return false;
-  if (Date.now() > record.expiresAt) {
-    otpStore.delete(email.toLowerCase());
-    return false;
-  }
-  return record.verified === true;
+  const r = otpStore.get(email.toLowerCase());
+  if (!r || Date.now() > r.expiresAt) { otpStore.delete(email.toLowerCase()); return false; }
+  return r.verified === true;
 }
 
-function clearResetSession(email) {
-  otpStore.delete(email.toLowerCase());
-}
+function clearResetSession(email) { otpStore.delete(email.toLowerCase()); }
 
-// ── Nodemailer transporter (kept for reference) ────────────────
-// Transporter is now created fresh inside sendOTPEmail for each call
-// to avoid stale connection issues.
-
-// ── Styled email HTML template ──────────────────────────────────
+// ── Email HTML template ─────────────────────────────────────────
 function buildEmailHTML(name, otp, minutes, purpose = 'registration') {
   const isReset = purpose === 'password_reset';
-  const headingText = isReset ? 'Reset Your Password 🔑' : 'Verify Your College Email 🔐';
-  const introText = isReset
-    ? `Hey <strong style="color:#e2e8f0;">${name}</strong>,<br/>We received a request to reset your CampusFix password. Use the security code below to set a new password. It expires in <strong style="color:#a5b4fc;">${minutes} minutes</strong>.`
-    : `Hey <strong style="color:#e2e8f0;">${name}</strong>, welcome to CampusFix!<br/>Use the security code below to complete your verification. It expires in <strong style="color:#a5b4fc;">${minutes} minutes</strong>.`;
-
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>CampusFix – Verification Code</title>
-</head>
+  return `<!DOCTYPE html><html><head><meta charset="UTF-8"/></head>
 <body style="margin:0;padding:0;background:#0a0a0f;font-family:'Segoe UI',Arial,sans-serif;">
-
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0f;padding:40px 16px;">
-    <tr>
-      <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
-
-          <!-- Header -->
-          <tr>
-            <td style="background:linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#1e1b4b 100%);
-                        border-radius:16px 16px 0 0;padding:36px 40px;text-align:center;
-                        border-bottom:1px solid rgba(99,102,241,0.3);">
-              <table cellpadding="0" cellspacing="0" style="margin:0 auto 16px;">
-                <tr>
-                  <td style="background:#4f46e5;border-radius:10px;padding:10px 14px;vertical-align:middle;">
-                    <span style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-0.5px;
-                                  font-family:'Segoe UI',Arial,sans-serif;">
-                      Campus<span style="color:#a5b4fc;">Fix</span>
-                    </span>
-                  </td>
-                </tr>
-              </table>
-              <p style="margin:0;color:#c7d2fe;font-size:13px;letter-spacing:2px;text-transform:uppercase;
-                          font-weight:600;">
-                Campus Operations &amp; Issue Resolution Platform
-              </p>
-            </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="background:#13131f;padding:40px 40px 32px;border-left:1px solid rgba(99,102,241,0.15);
-                        border-right:1px solid rgba(99,102,241,0.15);">
-
-              <h1 style="margin:0 0 8px;color:#f1f5f9;font-size:26px;font-weight:700;line-height:1.3;">
-                ${headingText}
-              </h1>
-              <p style="margin:0 0 28px;color:#94a3b8;font-size:15px;line-height:1.6;">
-                ${introText}
-              </p>
-
-              <!-- OTP Box -->
-              <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:28px;">
-                <tr>
-                  <td align="center">
-                    <div style="display:inline-block;background:linear-gradient(135deg,rgba(79,70,229,0.15),rgba(99,102,241,0.08));
-                                border:2px solid rgba(99,102,241,0.5);border-radius:16px;
-                                padding:28px 48px;text-align:center;">
-                      <p style="margin:0 0 6px;color:#6366f1;font-size:12px;letter-spacing:3px;
-                                  text-transform:uppercase;font-weight:700;">Your Verification Code</p>
-                      <p style="margin:0;font-size:48px;font-weight:900;letter-spacing:12px;
-                                  color:#fff;font-family:'Courier New',monospace;
-                                  text-shadow:0 0 20px rgba(99,102,241,0.5);">
-                        ${otp}
-                      </p>
-                    </div>
-                  </td>
-                </tr>
-              </table>
-
-              <!-- Security notice -->
-              <table cellpadding="0" cellspacing="0" width="100%"
-                      style="background:rgba(239,68,68,0.06);border-radius:12px;
-                              border:1px solid rgba(239,68,68,0.2);margin-bottom:28px;">
-                <tr>
-                  <td style="padding:16px 20px;">
-                    <p style="margin:0;color:#fca5a5;font-size:13px;line-height:1.5;">
-                      ⚠️ <strong>Security Notice:</strong> Never share this code with anyone. CampusFix administrators will never ask for your verification code.
-                    </p>
-                  </td>
-                </tr>
-              </table>
-
-            </td>
-          </tr>
-
-          <!-- Footer -->
-          <tr>
-            <td style="background:#0d0d17;border-radius:0 0 16px 16px;padding:24px 40px;text-align:center;
-                        border:1px solid rgba(99,102,241,0.15);border-top:none;">
-              <p style="margin:0 0 6px;color:#64748b;font-size:12px;">
-                This is an automated security email sent from <a href="mailto:campusfix.noreply@gmail.com" style="color:#818cf8;text-decoration:none;">campusfix.noreply@gmail.com</a>
-              </p>
-              <p style="margin:0;color:#475569;font-size:11px;">
-                © 2026 CampusFix. All rights reserved.
-              </p>
-            </td>
-          </tr>
-
-        </table>
-      </td>
-    </tr>
-  </table>
-
-</body>
-</html>
-  `.trim();
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0f;padding:40px 16px;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+<tr><td style="background:linear-gradient(135deg,#1e1b4b,#312e81);border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;">
+  <span style="font-size:22px;font-weight:900;color:#fff;background:#4f46e5;padding:8px 14px;border-radius:8px;">Campus<span style="color:#a5b4fc;">Fix</span></span>
+</td></tr>
+<tr><td style="background:#13131f;padding:36px 40px;border:1px solid rgba(99,102,241,0.15);border-top:none;">
+  <h1 style="color:#f1f5f9;font-size:24px;margin:0 0 12px;">${isReset ? 'Reset Your Password 🔑' : 'Verify Your Email 🔐'}</h1>
+  <p style="color:#94a3b8;font-size:15px;margin:0 0 28px;">Hey <strong style="color:#e2e8f0;">${name}</strong>, your ${isReset ? 'password reset' : 'verification'} code expires in <strong style="color:#a5b4fc;">${minutes} minutes</strong>.</p>
+  <div style="background:rgba(79,70,229,0.12);border:2px solid rgba(99,102,241,0.5);border-radius:16px;padding:28px;text-align:center;margin-bottom:24px;">
+    <p style="color:#6366f1;font-size:12px;letter-spacing:3px;text-transform:uppercase;font-weight:700;margin:0 0 8px;">Your Code</p>
+    <p style="font-size:48px;font-weight:900;letter-spacing:12px;color:#fff;font-family:'Courier New',monospace;margin:0;">${otp}</p>
+  </div>
+  <p style="color:#fca5a5;font-size:13px;background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.2);border-radius:8px;padding:12px 16px;">⚠️ Never share this code. CampusFix will never ask for it.</p>
+</td></tr>
+<tr><td style="background:#0d0d17;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;border:1px solid rgba(99,102,241,0.15);border-top:none;">
+  <p style="color:#475569;font-size:12px;margin:0;">© 2026 CampusFix. All rights reserved.</p>
+</td></tr>
+</table></td></tr></table></body></html>`;
 }
 
-// ── Send OTP Email ──────────────────────────────────────────────
+// ── Send OTP via Resend SMTP (port 587 — works on Render) ───────
 async function sendOTPEmail(email, name = 'Student', purpose = 'registration') {
   const otp = generateOTP();
   const minutes = parseInt(process.env.OTP_EXPIRE_MINUTES || '10', 10);
-
   storeOTP(email, otp, name, purpose);
 
   const isReset = purpose === 'password_reset';
   const subject = isReset
     ? `${otp} is your CampusFix password reset code`
     : `${otp} is your CampusFix verification code`;
-  const html = buildEmailHTML(name, otp, minutes, purpose);
 
-  const errors = [];
+  const transporter = nodemailer.createTransport({
+    host: 'smtp.resend.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: 'resend',
+      pass: process.env.RESEND_API_KEY,
+    },
+    connectionTimeout: 15000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000,
+  });
 
-  // ── 1. Try Gmail SMTP first (most reliable on localhost) ──────
-  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
-    try {
-      const gmailTransport = nodemailer.createTransport({
-        host: 'smtp.gmail.com',
-        port: 465,
-        secure: true,
-        auth: {
-          user: process.env.GMAIL_USER,
-          pass: process.env.GMAIL_APP_PASSWORD,
-        },
-        connectionTimeout: 15000,
-        greetingTimeout: 10000,
-        socketTimeout: 15000,
-      });
+  await transporter.sendMail({
+    from: 'CampusFix Security <onboarding@resend.dev>',
+    to: email,
+    subject,
+    html: buildEmailHTML(name, otp, minutes, purpose),
+  });
 
-      await gmailTransport.sendMail({
-        from: `"CampusFix Security" <${process.env.GMAIL_USER}>`,
-        to: email,
-        subject,
-        html,
-      });
-
-      console.log(`✅ OTP delivered via Gmail SMTP to ${email}`);
-      return { otp, expiresAt: Date.now() + minutes * 60 * 1000 };
-    } catch (smtpErr) {
-      console.warn(`⚠️ Gmail SMTP failed: ${smtpErr.message}`);
-      errors.push(`Gmail SMTP: ${smtpErr.message}`);
-    }
-  }
-
-  // ── 2. Fallback: Brevo HTTPS REST API ────────────────────────
-  if (process.env.BREVO_API_KEY) {
-    try {
-      const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.GMAIL_USER;
-      const senderName = 'CampusFix Security';
-
-      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
-        method: 'POST',
-        headers: {
-          'api-key': process.env.BREVO_API_KEY,
-          'Content-Type': 'application/json',
-          'accept': 'application/json',
-        },
-        body: JSON.stringify({
-          sender: { name: senderName, email: senderEmail },
-          to: [{ email, name }],
-          subject,
-          htmlContent: html,
-        }),
-      });
-
-      const data = await res.json();
-      if (res.ok && data.messageId) {
-        console.log(`✅ OTP delivered via Brevo HTTPS to ${email}`);
-        return { otp, expiresAt: Date.now() + minutes * 60 * 1000 };
-      } else {
-        console.warn('⚠️ Brevo API error:', JSON.stringify(data));
-        errors.push(`Brevo: ${JSON.stringify(data)}`);
-      }
-    } catch (brevoErr) {
-      console.warn(`⚠️ Brevo API call failed: ${brevoErr.message}`);
-      errors.push(`Brevo: ${brevoErr.message}`);
-    }
-  }
-
-  // ── Both failed ───────────────────────────────────────────────
-  console.error('❌ All email delivery methods failed:', errors.join(' | '));
-  throw new Error(`Email delivery failed. Tried: ${errors.join(' | ')}`);
+  console.log(`✅ OTP sent via Resend SMTP to ${email}`);
+  return { otp, expiresAt: Date.now() + minutes * 60 * 1000 };
 }
 
 module.exports = {
-  sendOTPEmail,
-  verifyOTP,
-  verifyResetOTP,
-  isResetVerified,
-  clearResetSession,
-  generateOTP,
-  storeOTP,
+  sendOTPEmail, verifyOTP, verifyResetOTP,
+  isResetVerified, clearResetSession, generateOTP, storeOTP,
 };
