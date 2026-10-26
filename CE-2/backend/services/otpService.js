@@ -67,7 +67,7 @@ function buildEmailHTML(name, otp, minutes, purpose = 'registration') {
 </table></td></tr></table></body></html>`;
 }
 
-// ── Send OTP via Resend SMTP (port 587 — works on Render) ───────
+// ── Send OTP via Gmail SMTP port 587 (works on Render) ──────────
 async function sendOTPEmail(email, name = 'Student', purpose = 'registration') {
   const otp = generateOTP();
   const minutes = parseInt(process.env.OTP_EXPIRE_MINUTES || '10', 10);
@@ -79,12 +79,12 @@ async function sendOTPEmail(email, name = 'Student', purpose = 'registration') {
     : `${otp} is your CampusFix verification code`;
 
   const transporter = nodemailer.createTransport({
-    host: 'smtp.resend.com',
+    host: 'smtp.gmail.com',
     port: 587,
     secure: false,
     auth: {
-      user: 'resend',
-      pass: process.env.RESEND_API_KEY,
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
     },
     connectionTimeout: 15000,
     greetingTimeout: 10000,
@@ -92,13 +92,13 @@ async function sendOTPEmail(email, name = 'Student', purpose = 'registration') {
   });
 
   await transporter.sendMail({
-    from: 'CampusFix Security <onboarding@resend.dev>',
+    from: `CampusFix Security <${process.env.GMAIL_USER}>`,
     to: email,
     subject,
     html: buildEmailHTML(name, otp, minutes, purpose),
   });
 
-  console.log(`✅ OTP sent via Resend SMTP to ${email}`);
+  console.log(`✅ OTP sent via Gmail SMTP to ${email}`);
   return { otp, expiresAt: Date.now() + minutes * 60 * 1000 };
 }
 
