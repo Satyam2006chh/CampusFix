@@ -73,12 +73,12 @@ const sendRegistrationOtp = async (req, res) => {
 
   const emailLower = email.toLowerCase().trim();
 
-  // Internal domain check: only college domain permitted
-  if (!emailLower.endsWith(`@${CHITKARA_DOMAIN}`)) {
-    return res.status(403).json({
+  // Basic email syntax check
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(emailLower)) {
+    return res.status(400).json({
       success: false,
-      code: 'DOMAIN_BLOCKED',
-      message: 'Only official college email ID is permitted for accessing this application.'
+      message: 'Please provide a valid email address.'
     });
   }
 
@@ -114,12 +114,12 @@ const verifyAndRegister = async (req, res) => {
 
   const emailLower = email.toLowerCase().trim();
 
-  // Internal domain check
-  if (!emailLower.endsWith(`@${CHITKARA_DOMAIN}`)) {
-    return res.status(403).json({
+  // Basic email syntax check
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(emailLower)) {
+    return res.status(400).json({
       success: false,
-      code: 'DOMAIN_BLOCKED',
-      message: 'Only official college email ID is permitted for accessing this application.'
+      message: 'Please provide a valid email address.'
     });
   }
 
@@ -177,12 +177,12 @@ const forgotPassword = async (req, res) => {
 
   const emailLower = email.toLowerCase().trim();
 
-  // Domain check
-  if (!emailLower.endsWith(`@${CHITKARA_DOMAIN}`)) {
-    return res.status(403).json({
+  // Basic email syntax check
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(emailLower)) {
+    return res.status(400).json({
       success: false,
-      code: 'DOMAIN_BLOCKED',
-      message: 'Only official college email ID is permitted for accessing this application.'
+      message: 'Please provide a valid email address.'
     });
   }
 

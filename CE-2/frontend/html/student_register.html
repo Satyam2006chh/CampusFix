@@ -266,15 +266,7 @@
       const btnText  = document.getElementById('regBtnText');
       const btn      = document.getElementById('regSubmitBtn');
 
-      // Check if email ends with official college domain
-      if (!email.endsWith('@' + INTERNAL_COLLEGE_DOMAIN)) {
-        // Plain email detected -> DO NOT SEND OTP OR EMAIL
-        domainCard.classList.remove('hidden');
-        errorEl.classList.add('hidden'); // Keep downside warning hidden, upper red card is shown
-        return;
-      }
-
-      // Valid college email -> Send OTP
+      // Allow official college email or any valid email for testing
       pendingRegistrationData = { name, roll_no, email, phone, password };
 
       btnText.textContent = 'Sending Verification Code...';
