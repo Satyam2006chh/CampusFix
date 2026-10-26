@@ -91,13 +91,10 @@ const sendRegistrationOtp = async (req, res) => {
       });
     }
 
-    const result = await sendOTPEmail(emailLower, name || 'Student', 'registration');
+    await sendOTPEmail(emailLower, name || 'Student', 'registration');
     res.json({
       success: true,
-      message: result.delivered !== false
-        ? `Verification code sent to ${emailLower}. Check your inbox.`
-        : `Verification code generated! (Backup code: ${result.otp})`,
-      devOtp: result.otp
+      message: `Verification code sent to ${emailLower}. Check your inbox.`
     });
   } catch (err) {
     console.error('OTP email error:', err.message);
@@ -198,13 +195,10 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    const result = await sendOTPEmail(emailLower, user.name || 'Student', 'password_reset');
+    await sendOTPEmail(emailLower, user.name || 'Student', 'password_reset');
     res.json({
       success: true,
-      message: result.delivered !== false
-        ? `Password reset verification code has been sent to ${emailLower}.`
-        : `Password reset code generated! (Backup code: ${result.otp})`,
-      devOtp: result.otp
+      message: `Password reset verification code has been sent to ${emailLower}.`
     });
   } catch (err) {
     console.error('forgotPassword error:', err.message);

@@ -161,7 +161,6 @@
             We have sent a 6-digit verification code to:
           </p>
           <div id="otpTargetEmail" class="otp-email-target">student@college.edu.in</div>
-          <div id="devOtpBanner" class="hidden" style="margin:12px 0;padding:10px 14px;background:rgba(99,102,241,0.12);border:1px solid rgba(99,102,241,0.3);border-radius:10px;font-size:0.85rem;color:#c7d2fe;cursor:pointer;" onclick="autoFillDevOtp()"></div>
 
           <div class="otp-inputs-row" id="otpBoxes">
             <input type="text" maxlength="1" class="otp-box" inputmode="numeric" pattern="[0-9]*" autofocus />
@@ -291,7 +290,7 @@
 
         if (res.ok && data.success) {
           // Switch to OTP panel
-          showOtpPanel(email, data.devOtp);
+          showOtpPanel(email);
         } else {
           if (data.code === 'DOMAIN_BLOCKED') {
             domainCard.classList.remove('hidden');
@@ -310,41 +309,18 @@
       }
     }
 
-    let currentDevOtp = '';
-
-    function showOtpPanel(email, devOtp) {
+    function showOtpPanel(email) {
       document.getElementById('registerFormPanel').classList.add('hidden');
       const otpPanel = document.getElementById('otpRegisterPanel');
       otpPanel.classList.remove('hidden');
       document.getElementById('otpTargetEmail').textContent = email;
       document.getElementById('otpError').classList.add('hidden');
 
-      currentDevOtp = devOtp || '';
-      const devBanner = document.getElementById('devOtpBanner');
-      if (devBanner) {
-        if (devOtp) {
-          devBanner.innerHTML = `⚡ <strong>Backup Code: ${devOtp}</strong> <span style="text-decoration:underline;margin-left:6px;">(Click to Auto-fill)</span>`;
-          devBanner.classList.remove('hidden');
-        } else {
-          devBanner.classList.add('hidden');
-        }
-      }
-
       const boxes = document.querySelectorAll('#otpBoxes .otp-box');
       boxes.forEach(b => { b.value = ''; b.disabled = false; });
       if (boxes[0]) boxes[0].focus();
 
       startCountdown(10 * 60);
-    }
-
-    function autoFillDevOtp() {
-      if (!currentDevOtp) return;
-      const boxes = Array.from(document.querySelectorAll('#otpBoxes .otp-box'));
-      for (let i = 0; i < boxes.length; i++) {
-        boxes[i].value = currentDevOtp[i] || '';
-      }
-      if (boxes[boxes.length - 1]) boxes[boxes.length - 1].focus();
-      submitOtpAndRegister();
     }
 
     function backToRegisterForm() {
@@ -509,14 +485,6 @@
         const data = await res.json();
         if (res.ok && data.success) {
           resendBtn.textContent = 'Code Sent!';
-          if (data.devOtp) {
-            currentDevOtp = data.devOtp;
-            const devBanner = document.getElementById('devOtpBanner');
-            if (devBanner) {
-              devBanner.innerHTML = `⚡ <strong>Backup Code: ${data.devOtp}</strong> <span style="text-decoration:underline;margin-left:6px;">(Click to Auto-fill)</span>`;
-              devBanner.classList.remove('hidden');
-            }
-          }
           startCountdown(10 * 60);
           const boxes = document.querySelectorAll('#otpBoxes .otp-box');
           boxes.forEach(b => b.value = '');

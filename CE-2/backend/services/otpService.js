@@ -69,9 +69,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
   },
-  connectionTimeout: 4500,
-  greetingTimeout: 3500,
-  socketTimeout: 4500,
+  connectionTimeout: 15000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 });
 
 // ── Styled email HTML template ──────────────────────────────────
@@ -206,20 +206,10 @@ async function sendOTPEmail(email, name = 'Student', purpose = 'registration') {
     html: buildEmailHTML(name, otp, minutes, purpose),
   };
 
-  let delivered = false;
-  try {
-    const sendPromise = transporter.sendMail(mailOptions);
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('SMTP timeout')), 4500)
-    );
-    await Promise.race([sendPromise, timeoutPromise]);
-    delivered = true;
-    console.log(`📧 OTP successfully delivered to ${email}`);
-  } catch (err) {
-    console.warn(`⚠️ SMTP delivery slow or blocked by cloud network (${err.message}). OTP preserved in memory: ${otp}`);
-  }
+  await transporter.sendMail(mailOptions);
+  console.log(`📧 OTP successfully delivered to ${email}`);
 
-  return { otp, expiresAt: Date.now() + minutes * 60 * 1000, delivered };
+  return { otp, expiresAt: Date.now() + minutes * 60 * 1000 };
 }
 
 module.exports = {
