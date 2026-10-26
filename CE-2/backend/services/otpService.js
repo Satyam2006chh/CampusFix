@@ -197,17 +197,54 @@ async function sendOTPEmail(email, name = 'Student', purpose = 'registration') {
   storeOTP(email, otp, name, purpose);
 
   const isReset = purpose === 'password_reset';
+  const subject = isReset
+    ? `${otp} is your CampusFix password reset code`
+    : `${otp} is your CampusFix verification code`;
+  const html = buildEmailHTML(name, otp, minutes, purpose);
+
+  // 1. Primary on Render / Cloud: Brevo HTTPS REST API (Port 443 - Never blocked by Render)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.GMAIL_USER || 'ramanbansal164@gmail.com';
+      const senderName = process.env.BREVO_SENDER_NAME || 'CampusFix Security';
+
+      const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {
+          'api-key': process.env.BREVO_API_KEY,
+          'Content-Type': 'application/json',
+          'accept': 'application/json'
+        },
+        body: JSON.stringify({
+          sender: { name: senderName, email: senderEmail },
+          to: [{ email, name }],
+          subject,
+          htmlContent: html
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok && data.messageId) {
+        console.log(`📧 OTP successfully delivered via Brevo HTTPS to ${email}`);
+        return { otp, expiresAt: Date.now() + minutes * 60 * 1000 };
+      } else {
+        console.warn('⚠️ Brevo response warning:', data);
+      }
+    } catch (apiErr) {
+      console.warn('⚠️ Brevo API call failed, trying fallback:', apiErr.message);
+    }
+  }
+
+  // 2. Fallback to Gmail SMTP (Works on localhost)
   const mailOptions = {
-    from: `"CampusFix Security" <${process.env.GMAIL_USER}>`,
+    from: `"CampusFix Security" <${process.env.GMAIL_USER || 'campusfix.noreply@gmail.com'}>`,
     to: email,
-    subject: isReset
-      ? `${otp} is your CampusFix password reset code`
-      : `${otp} is your CampusFix verification code`,
-    html: buildEmailHTML(name, otp, minutes, purpose),
+    subject,
+    html,
   };
 
   await transporter.sendMail(mailOptions);
-  console.log(`📧 OTP successfully delivered to ${email}`);
+  console.log(`📧 OTP successfully delivered via SMTP to ${email}`);
 
   return { otp, expiresAt: Date.now() + minutes * 60 * 1000 };
 }
