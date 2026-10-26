@@ -1,6 +1,10 @@
 
 
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = window.__API_BASE__ || (
+  (window.location.origin.startsWith('http://localhost') || window.location.origin.startsWith('http://127.0.0.1')) && !window.location.port.includes('5000')
+    ? 'http://localhost:5000/api'
+    : `${window.location.origin}/api`
+);
 
 
 const token = sessionStorage.getItem('cf_token');

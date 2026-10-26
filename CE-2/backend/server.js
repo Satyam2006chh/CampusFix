@@ -1,6 +1,7 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const connectDB = require('./config/db');
 
 // ─── Connect to MongoDB ───────────────────────────────────────
@@ -11,6 +12,10 @@ const app = express();
 // ─── Middleware ───────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
+
+// ─── Serve Frontend Static Files ─────────────────────────────
+const frontendPath = path.join(__dirname, '..', 'frontend');
+app.use(express.static(frontendPath));
 
 // ─── Routes ──────────────────────────────────────────────────
 app.use('/api/auth',        require('./routes/authRoutes'));
@@ -23,8 +28,16 @@ app.use('/api/leaves',      require('./routes/leaveRoutes'));
 app.use('/api/payslips',    require('./routes/payslipRoutes'));
 app.use('/api/ai',          require('./routes/aiRoutes'));
 
-// ─── Health check ────────────────────────────────────────────
-app.get('/', (req, res) => {
+// ─── Health check & API Overview ──────────────────────────────
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    uptime: process.uptime(),
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api', (req, res) => {
   res.json({
     message: '🎓 CampusFix API is running',
     version: '2.0.0',
@@ -57,9 +70,17 @@ app.get('/', (req, res) => {
   });
 });
 
+// Explicit home and portal shortcuts
+app.get('/', (req, res) => {
+  res.sendFile(path.join(frontendPath, 'index.html'));
+});
+
 // ─── 404 Handler ─────────────────────────────────────────────
 app.use((req, res) => {
-  res.status(404).json({ message: `Route ${req.originalUrl} not found` });
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ message: `API route ${req.originalUrl} not found` });
+  }
+  res.status(404).sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // ─── Global Error Handler ─────────────────────────────────────

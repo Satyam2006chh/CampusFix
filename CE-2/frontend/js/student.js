@@ -173,7 +173,7 @@ async function handleAiIntakeSubmit() {
   btnText.textContent = 'AI Analyzing Issue & Structuring Specs...';
 
   try {
-    const res = await fetch('http://localhost:5000/api/ai/analyze', {
+    const res = await fetch(`${BASE_URL}/ai/analyze`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ description: text })
@@ -303,7 +303,7 @@ async function polishComplaintDescription() {
   const locationText = locSelect.options[locSelect.selectedIndex]?.text || '';
 
   try {
-    const res = await fetch('http://localhost:5000/api/ai/polish', {
+    const res = await fetch(`${BASE_URL}/ai/polish`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -392,7 +392,7 @@ async function submitComplaint(e) {
   // Step 1: Evaluate if issue can be resolved via 30-second quick fix
   btn.textContent = 'Analyzing issue...';
   try {
-    const qfRes = await fetch('http://localhost:5000/api/ai/quick-fix', {
+    const qfRes = await fetch(`${BASE_URL}/ai/quick-fix`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

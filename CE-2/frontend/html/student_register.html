@@ -228,6 +228,13 @@
     let pendingRegistrationData = null;
     let otpTimerInterval = null;
 
+    // API Base URL
+    const BASE_URL = window.__API_BASE__ || (
+      (window.location.origin.startsWith('http://localhost') || window.location.origin.startsWith('http://127.0.0.1')) && !window.location.port.includes('5000')
+        ? 'http://localhost:5000/api'
+        : `${window.location.origin}/api`
+    );
+
     // Internal college domain
     const INTERNAL_COLLEGE_DOMAIN = 'chitkara.edu.in';
 
@@ -274,7 +281,7 @@
       btn.disabled = true;
 
       try {
-        const res = await fetch('http://localhost:5000/api/auth/send-registration-otp', {
+        const res = await fetch(`${BASE_URL}/auth/send-registration-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ email, name })
@@ -294,7 +301,7 @@
           }
         }
       } catch (err) {
-        errorEl.textContent = 'Cannot connect to backend server. Make sure port 5000 is running.';
+        errorEl.textContent = 'Cannot connect to server. Please check your connection or server status.';
         errorEl.classList.remove('hidden');
       } finally {
         btnText.textContent = 'Verify Email & Create Account →';
@@ -423,7 +430,7 @@
 
       try {
         const payload = { ...pendingRegistrationData, otp };
-        const res = await fetch('http://localhost:5000/api/auth/verify-and-register', {
+        const res = await fetch(`${BASE_URL}/auth/verify-and-register`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -467,7 +474,7 @@
       otpError.classList.add('hidden');
 
       try {
-        const res = await fetch('http://localhost:5000/api/auth/send-registration-otp', {
+        const res = await fetch(`${BASE_URL}/auth/send-registration-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

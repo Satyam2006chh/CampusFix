@@ -1,4 +1,8 @@
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = window.__API_BASE__ || (
+  (window.location.origin.startsWith('http://localhost') || window.location.origin.startsWith('http://127.0.0.1')) && !window.location.port.includes('5000')
+    ? 'http://localhost:5000/api'
+    : `${window.location.origin}/api`
+);
 const INTERNAL_COLLEGE_DOMAIN = 'chitkara.edu.in';
 
 let selectedRole = '';
@@ -135,7 +139,7 @@ async function handleLogin(e) {
       errorEl.classList.remove('hidden');
     }
   } catch (err) {
-    errorEl.textContent = 'Cannot connect to the server. Make sure port 5000 is active.';
+    errorEl.textContent = 'Cannot connect to the server. Please check your network or server status.';
     errorEl.classList.remove('hidden');
   } finally {
     btnText.textContent = 'Sign In →';
@@ -227,7 +231,7 @@ async function handleSendForgotOtp(e) {
       }
     }
   } catch (err) {
-    errorEl.textContent = 'Network error. Make sure backend port 5000 is running.';
+    errorEl.textContent = 'Network error. Could not connect to the backend server.';
     errorEl.classList.remove('hidden');
   } finally {
     btnText.textContent = 'Send Verification Code →';
