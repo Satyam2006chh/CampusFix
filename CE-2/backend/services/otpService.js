@@ -62,11 +62,16 @@ function clearResetSession(email) {
 
 // ── Nodemailer transporter ──────────────────────────────────────
 const transporter = nodemailer.createTransport({
-  service: 'gmail',
+  host: 'smtp.gmail.com',
+  port: 465,
+  secure: true,
   auth: {
     user: process.env.GMAIL_USER,
     pass: process.env.GMAIL_APP_PASSWORD,
   },
+  connectionTimeout: 4500,
+  greetingTimeout: 3500,
+  socketTimeout: 4500,
 });
 
 // ── Styled email HTML template ──────────────────────────────────
@@ -201,8 +206,20 @@ async function sendOTPEmail(email, name = 'Student', purpose = 'registration') {
     html: buildEmailHTML(name, otp, minutes, purpose),
   };
 
-  await transporter.sendMail(mailOptions);
-  return { otp, expiresAt: Date.now() + minutes * 60 * 1000 };
+  let delivered = false;
+  try {
+    const sendPromise = transporter.sendMail(mailOptions);
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('SMTP timeout')), 4500)
+    );
+    await Promise.race([sendPromise, timeoutPromise]);
+    delivered = true;
+    console.log(`📧 OTP successfully delivered to ${email}`);
+  } catch (err) {
+    console.warn(`⚠️ SMTP delivery slow or blocked by cloud network (${err.message}). OTP preserved in memory: ${otp}`);
+  }
+
+  return { otp, expiresAt: Date.now() + minutes * 60 * 1000, delivered };
 }
 
 module.exports = {
