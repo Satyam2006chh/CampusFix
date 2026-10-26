@@ -114,26 +114,25 @@
       <section id="tab-overview" class="tab-pane active">
 
         <!-- ── AI EXECUTIVE BRIEFING SECTION ── -->
-        <div id="aiExecutiveBriefCard" class="ai-starter-card" style="margin-bottom:24px; padding:20px; border-radius:12px; background:linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(168,85,247,0.06) 100%); border:1px solid rgba(99,102,241,0.22); position:relative; overflow:hidden;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
-            <div style="display:flex; align-items:center; gap:10px;">
-              <span class="ai-pill-badge" style="background:rgba(99,102,241,0.18); color:var(--accent); border:1px solid rgba(99,102,241,0.3); padding:4px 10px; border-radius:20px; font-size:0.75rem; font-weight:700; letter-spacing:0.3px; text-transform:uppercase; margin:0;">
-                <span class="ai-sparkle-icon">✨</span> Gemini Operations Intelligence
-              </span>
-              <span id="aiBriefTimestamp" style="font-size:0.78rem; color:var(--text-muted); display:none;">Last updated: <span id="aiBriefTimeVal">--</span></span>
-            </div>
-            <button id="btnGenerateBrief" class="btn-primary" onclick="fetchDailyAiBrief()" style="display:flex; align-items:center; gap:8px; padding:8px 16px; font-size:0.84rem; cursor:pointer;">
-              <span class="ai-sparkle-icon">✨</span>
-              <span id="btnGenerateBriefText">Generate Daily AI Brief</span>
-            </button>
+        <div id="aiExecutiveBriefCard" class="ai-starter-card" style="margin:0 auto 28px; max-width:860px; padding:28px 32px; border-radius:16px; background:linear-gradient(135deg, rgba(99,102,241,0.10) 0%, rgba(168,85,247,0.07) 100%); border:1px solid rgba(99,102,241,0.28); position:relative; overflow:hidden; text-align:center;">
+          <!-- Top row -->
+          <div style="display:flex; justify-content:center; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:18px;">
+            <span class="ai-pill-badge" style="background:rgba(99,102,241,0.18); color:var(--accent); border:1px solid rgba(99,102,241,0.3); padding:5px 14px; border-radius:20px; font-size:0.75rem; font-weight:700; letter-spacing:0.5px; text-transform:uppercase;">
+              <span class="ai-sparkle-icon">✨</span> Gemini Operations Intelligence
+            </span>
+            <span id="aiBriefTimestamp" style="font-size:0.78rem; color:var(--text-muted); display:none;">Last updated: <span id="aiBriefTimeVal">--</span></span>
           </div>
 
           <!-- Empty / Initial Prompt State -->
-          <div id="aiBriefInitialState" style="padding:10px 2px;">
-            <h4 style="font-size:1.02rem; font-weight:700; color:var(--text-primary); margin-bottom:4px;">Campus Operations Daily Briefing</h4>
-            <p style="font-size:0.85rem; color:var(--text-secondary); max-width:680px; line-height:1.5; margin:0;">
+          <div id="aiBriefInitialState" style="padding:4px 0 20px;">
+            <h4 style="font-size:1.15rem; font-weight:700; color:var(--text-primary); margin-bottom:8px;">Campus Operations Daily Briefing</h4>
+            <p style="font-size:0.88rem; color:var(--text-secondary); max-width:560px; line-height:1.6; margin:0 auto 20px;">
               Synthesize real-time complaints, department resolution velocity, infrastructure hotspots, and department head attendance in a 30-second AI executive summary.
             </p>
+            <button id="btnGenerateBrief" class="btn-primary" onclick="fetchDailyAiBrief()" style="display:inline-flex; align-items:center; gap:8px; padding:11px 28px; font-size:0.9rem; cursor:pointer; margin:0 auto;">
+              <span class="ai-sparkle-icon">✨</span>
+              <span id="btnGenerateBriefText">Generate Daily AI Brief</span>
+            </button>
           </div>
 
           <!-- Loading Skeleton State -->
@@ -442,7 +441,7 @@
             <option value="Early Departure">Early Departure</option>
             <option value="Absent">Not Clocked In (Absent)</option>
           </select>
-          <input type="text" id="adminHeadSearchInput" placeholder="Search head by name or email..." oninput="filterHeadAttendance()" style="flex:1; min-width:200px;" />
+          <input type="text" id="adminHeadSearchInput" placeholder="Search head by name or email..." oninput="filterHeadAttendance()" style="flex:1; min-width:200px; background:#1a1a2e; border:1px solid rgba(99,102,241,0.25); color:#f1f5f9; border-radius:8px; padding:8px 14px; font-size:0.85rem; outline:none;" />
           <button class="btn-ghost" onclick="resetHeadAttendanceFilters()" style="padding:8px 14px; font-size:0.82rem;">Reset</button>
         </div>
 
@@ -550,7 +549,7 @@
             <option value="Approved">Approved</option>
             <option value="Rejected">Rejected</option>
           </select>
-          <input type="text" id="adminLeaveSearchInput" placeholder="Search by head name, email or reason..." oninput="filterHeadLeavesAdmin()" style="flex:1; min-width:200px;" />
+          <input type="text" id="adminLeaveSearchInput" placeholder="Search by head name, email or reason..." oninput="filterHeadLeavesAdmin()" style="flex:1; min-width:200px; background:#1a1a2e; border:1px solid rgba(99,102,241,0.25); color:#f1f5f9; border-radius:8px; padding:8px 14px; font-size:0.85rem; outline:none;" />
           <button class="btn-ghost" onclick="resetHeadLeavesFilters()" style="padding:8px 14px; font-size:0.82rem;">Reset</button>
         </div>
 
@@ -667,7 +666,7 @@
             <option value="2026" selected>2026</option>
             <option value="2025">2025</option>
           </select>
-          <input type="text" id="adminHeadPsSearchInput" placeholder="Search by head name, email..." oninput="filterHeadPayslipsAdmin()" style="flex:1; min-width:200px;" />
+          <input type="text" id="adminHeadPsSearchInput" placeholder="Search by head name, email..." oninput="filterHeadPayslipsAdmin()" style="flex:1; min-width:200px; background:#1a1a2e; border:1px solid rgba(99,102,241,0.25); color:#f1f5f9; border-radius:8px; padding:8px 14px; font-size:0.85rem; outline:none;" />
           <button class="btn-ghost" onclick="resetHeadPayslipsFilters()" style="padding:8px 14px; font-size:0.82rem;">Reset</button>
         </div>
 

@@ -60,19 +60,9 @@ function clearResetSession(email) {
   otpStore.delete(email.toLowerCase());
 }
 
-// ── Nodemailer transporter ──────────────────────────────────────
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.GMAIL_USER,
-    pass: process.env.GMAIL_APP_PASSWORD,
-  },
-  connectionTimeout: 15000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-});
+// ── Nodemailer transporter (kept for reference) ────────────────
+// Transporter is now created fresh inside sendOTPEmail for each call
+// to avoid stale connection issues.
 
 // ── Styled email HTML template ──────────────────────────────────
 function buildEmailHTML(name, otp, minutes, purpose = 'registration') {
@@ -202,51 +192,77 @@ async function sendOTPEmail(email, name = 'Student', purpose = 'registration') {
     : `${otp} is your CampusFix verification code`;
   const html = buildEmailHTML(name, otp, minutes, purpose);
 
-  // 1. Primary on Render / Cloud: Brevo HTTPS REST API (Port 443 - Never blocked by Render)
+  const errors = [];
+
+  // ── 1. Try Gmail SMTP first (most reliable on localhost) ──────
+  if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+    try {
+      const gmailTransport = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 465,
+        secure: true,
+        auth: {
+          user: process.env.GMAIL_USER,
+          pass: process.env.GMAIL_APP_PASSWORD,
+        },
+        connectionTimeout: 15000,
+        greetingTimeout: 10000,
+        socketTimeout: 15000,
+      });
+
+      await gmailTransport.sendMail({
+        from: `"CampusFix Security" <${process.env.GMAIL_USER}>`,
+        to: email,
+        subject,
+        html,
+      });
+
+      console.log(`✅ OTP delivered via Gmail SMTP to ${email}`);
+      return { otp, expiresAt: Date.now() + minutes * 60 * 1000 };
+    } catch (smtpErr) {
+      console.warn(`⚠️ Gmail SMTP failed: ${smtpErr.message}`);
+      errors.push(`Gmail SMTP: ${smtpErr.message}`);
+    }
+  }
+
+  // ── 2. Fallback: Brevo HTTPS REST API ────────────────────────
   if (process.env.BREVO_API_KEY) {
     try {
-      const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.GMAIL_USER || 'ramanbansal164@gmail.com';
-      const senderName = process.env.BREVO_SENDER_NAME || 'CampusFix Security';
+      const senderEmail = process.env.BREVO_SENDER_EMAIL || process.env.GMAIL_USER;
+      const senderName = 'CampusFix Security';
 
       const res = await fetch('https://api.brevo.com/v3/smtp/email', {
         method: 'POST',
         headers: {
           'api-key': process.env.BREVO_API_KEY,
           'Content-Type': 'application/json',
-          'accept': 'application/json'
+          'accept': 'application/json',
         },
         body: JSON.stringify({
           sender: { name: senderName, email: senderEmail },
           to: [{ email, name }],
           subject,
-          htmlContent: html
-        })
+          htmlContent: html,
+        }),
       });
 
       const data = await res.json();
       if (res.ok && data.messageId) {
-        console.log(`📧 OTP successfully delivered via Brevo HTTPS to ${email}`);
+        console.log(`✅ OTP delivered via Brevo HTTPS to ${email}`);
         return { otp, expiresAt: Date.now() + minutes * 60 * 1000 };
       } else {
-        console.warn('⚠️ Brevo response warning:', data);
+        console.warn('⚠️ Brevo API error:', JSON.stringify(data));
+        errors.push(`Brevo: ${JSON.stringify(data)}`);
       }
-    } catch (apiErr) {
-      console.warn('⚠️ Brevo API call failed, trying fallback:', apiErr.message);
+    } catch (brevoErr) {
+      console.warn(`⚠️ Brevo API call failed: ${brevoErr.message}`);
+      errors.push(`Brevo: ${brevoErr.message}`);
     }
   }
 
-  // 2. Fallback to Gmail SMTP (Works on localhost)
-  const mailOptions = {
-    from: `"CampusFix Security" <${process.env.GMAIL_USER || 'campusfix.noreply@gmail.com'}>`,
-    to: email,
-    subject,
-    html,
-  };
-
-  await transporter.sendMail(mailOptions);
-  console.log(`📧 OTP successfully delivered via SMTP to ${email}`);
-
-  return { otp, expiresAt: Date.now() + minutes * 60 * 1000 };
+  // ── Both failed ───────────────────────────────────────────────
+  console.error('❌ All email delivery methods failed:', errors.join(' | '));
+  throw new Error(`Email delivery failed. Tried: ${errors.join(' | ')}`);
 }
 
 module.exports = {
