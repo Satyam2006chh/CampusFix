@@ -1,6 +1,12 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  // ── Local JSON DB mode (no MongoDB needed) ───────────────────
+  if (process.env.USE_JSON_DB === 'true') {
+    console.log('⚡ Running in JSON DB mode (data/db.json) — MongoDB bypassed.');
+    return;
+  }
+
   if (!process.env.MONGO_URI) {
     console.error('❌ MONGO_URI is not defined in .env');
     process.exit(1);
@@ -28,8 +34,8 @@ const connectDB = async () => {
       }
     }
 
-    console.error('❌ Could not establish MongoDB connection.');
-    process.exit(1);
+    console.log('⚡ Falling back to JSON DB mode (data/db.json) for local development.');
+    process.env.USE_JSON_DB = 'true';
   }
 };
 
