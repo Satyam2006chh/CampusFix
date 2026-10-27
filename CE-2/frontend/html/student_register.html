@@ -111,8 +111,8 @@
               <input type="email" id="regEmail" placeholder="e.g. yourname.roll@college.edu.in" required />
             </div>
             <div class="form-group">
-              <label for="regPhone">Phone (Optional)</label>
-              <input type="tel" id="regPhone" placeholder="9876543210" />
+          <label for="regPhone">Phone Number <span style="color:var(--danger);">*</span></label>
+              <input type="tel" id="regPhone" placeholder="9876543210" required />
             </div>
             <div class="form-group">
               <label for="regPassword">Password</label>
@@ -252,6 +252,7 @@
       ok = validateRequired('regName',   'Full name')   && ok;
       ok = validateRequired('regRollNo', 'Roll number')  && ok;
       ok = validateEmail('regEmail')                    && ok;
+      ok = validateRequired('regPhone', 'Phone number') && ok;
       ok = validatePhone('regPhone')                    && ok;
       ok = validateStrongPassword('regPassword')        && ok;
       ok = validatePasswordMatch('regPassword', 'regConfirmPassword') && ok;
@@ -276,7 +277,7 @@
         const res = await fetch(`${BASE_URL}/auth/send-registration-otp`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, name })
+          body: JSON.stringify({ email, name, phone })
         });
         const data = await res.json();
 
