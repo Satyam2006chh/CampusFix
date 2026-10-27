@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema(
       type: String,
     },
     department_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.Mixed,
       ref: 'Department',
     },
     designation: {

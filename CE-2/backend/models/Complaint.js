@@ -13,7 +13,7 @@ const complaintSchema = new mongoose.Schema(
       trim: true,
     },
     location_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.Mixed,
       ref: 'Location',
       required: [true, 'Location is required'],
     },
@@ -30,7 +30,7 @@ const complaintSchema = new mongoose.Schema(
       required: [true, 'Description is required'],
     },
     user_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.Mixed,
       ref: 'User',
       required: true,
     },
@@ -54,7 +54,7 @@ const complaintSchema = new mongoose.Schema(
       default: 0,
     },
     assigned_to_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.Mixed,
       ref: 'User',
     },
     assigned_to_name: {
@@ -72,7 +72,7 @@ const complaintSchema = new mongoose.Schema(
       default: 'original',
     },
     original_complaint_id: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.Mixed,
       ref: 'Complaint',
     },
   },
