@@ -180,23 +180,22 @@ function backToLoginFromForgot() {
 async function handleSendForgotOtp(e) {
   e.preventDefault();
 
-  const emailInput = document.getElementById('forgotEmail');
-  const email = emailInput.value.trim().toLowerCase();
-  const domainCard = document.getElementById('forgotDomainCard');
+  const phoneInput = document.getElementById('forgotEmail'); // field id kept same
+  const phone = phoneInput.value.trim().replace(/\D/g, '');
   const errorEl = document.getElementById('forgotError1');
   const submitBtn = document.getElementById('forgotSubmitBtn1');
   const btnText = document.getElementById('forgotSubmitBtnText1');
 
-  domainCard.classList.add('hidden');
+  document.getElementById('forgotDomainCard').classList.add('hidden');
   errorEl.classList.add('hidden');
 
-  // Check college domain internally
-  if (!email.endsWith('@' + INTERNAL_COLLEGE_DOMAIN)) {
-    domainCard.classList.remove('hidden');
+  if (!phone || phone.length < 10) {
+    errorEl.textContent = 'Please enter a valid 10-digit phone number.';
+    errorEl.classList.remove('hidden');
     return;
   }
 
-  forgotState.email = email;
+  forgotState.email = phone; // reuse forgotState.email field to store phone
   btnText.textContent = 'Sending Verification Code...';
   submitBtn.disabled = true;
 
@@ -204,16 +203,15 @@ async function handleSendForgotOtp(e) {
     const res = await fetch(`${BASE_URL}/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email })
+      body: JSON.stringify({ phone })
     });
 
     const data = await res.json();
 
     if (res.ok && data.success) {
-      // Transition to Step 2: OTP screen
       document.getElementById('forgotStep1').classList.add('hidden');
       document.getElementById('forgotStep2').classList.remove('hidden');
-      document.getElementById('forgotTargetEmail').textContent = email;
+      document.getElementById('forgotTargetEmail').textContent = '+91' + phone;
       document.getElementById('forgotError2').classList.add('hidden');
 
       const boxes = document.querySelectorAll('#forgotOtpBoxes .otp-box');
@@ -223,12 +221,8 @@ async function handleSendForgotOtp(e) {
       setupForgotOtpBoxInputs();
       startForgotOtpCountdown(10 * 60);
     } else {
-      if (data.code === 'DOMAIN_BLOCKED') {
-        domainCard.classList.remove('hidden');
-      } else {
-        errorEl.textContent = data.message || 'Failed to send reset code.';
-        errorEl.classList.remove('hidden');
-      }
+      errorEl.textContent = data.message || 'Failed to send reset code.';
+      errorEl.classList.remove('hidden');
     }
   } catch (err) {
     errorEl.textContent = 'Network error. Could not connect to the backend server.';
@@ -338,7 +332,7 @@ async function handleVerifyForgotOtp() {
     const res = await fetch(`${BASE_URL}/auth/verify-reset-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: forgotState.email, otp })
+      body: JSON.stringify({ phone: forgotState.email, otp })
     });
 
     const data = await res.json();
@@ -379,7 +373,7 @@ async function resendForgotOtp() {
     const res = await fetch(`${BASE_URL}/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: forgotState.email })
+      body: JSON.stringify({ phone: forgotState.email })
     });
     const data = await res.json();
 
@@ -435,10 +429,7 @@ async function handleResetPassword(e) {
     const res = await fetch(`${BASE_URL}/auth/reset-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: forgotState.email,
-        newPassword: newPass
-      })
+      body: JSON.stringify({ phone: forgotState.email, newPassword: newPass })
     });
 
     const data = await res.json();
