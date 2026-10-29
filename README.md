@@ -1,5 +1,11 @@
 <div align="center">
 
+<svg width="80" height="80" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="40" height="40" rx="10" fill="#4f46e5"/>
+  <path d="M20 9L11 13V19C11 24.2 15 29.1 20 30.3C25 29.1 29 24.2 29 19V13L20 9Z" fill="white" fill-opacity="0.12" stroke="white" stroke-width="1" stroke-opacity="0.3"/>
+  <path d="M23.5 14.5C22.1 13.1 20.1 12.7 18.3 13.5L20.8 16L19.5 17.3L17 14.8C16.2 16.6 16.6 18.6 18 20C19.2 21.2 20.9 21.6 22.5 21.1L25.5 24.1C25.9 24.5 26.5 24.5 26.9 24.1C27.3 23.7 27.3 23.1 26.9 22.7L23.9 19.7C24.4 18.1 24 16.4 23.5 14.5Z" fill="white"/>
+</svg>
+
 # CampusFix
 
 ### Campus Issue Management System
@@ -12,7 +18,7 @@
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6%2B-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![Render](https://img.shields.io/badge/Deployed%20on-Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com)
 
-**[Live Demo](https://campusfix-1-kt9.onrender.com)**&nbsp;&nbsp;|&nbsp;&nbsp;**[GitHub Repository](https://github.com/Satyam2006chh/CampusFix)**
+**[Live Backend](https://campusfix-q2ix.onrender.com)**&nbsp;&nbsp;|&nbsp;&nbsp;**[GitHub Repository](https://github.com/Satyam2006chh/CampusFix)**
 
 </div>
 
@@ -102,7 +108,7 @@ CampusFix replaces the entire informal complaint-handling process with a structu
 
 | Feature | Description |
 |---------|-------------|
-| OTP-based Registration | Only verified `@chitkara.edu.in` email addresses can register as students |
+| OTP-based Registration | Only `@chitkara.edu.in` emails allowed. OTP sent via Twilio SMS to student phone number |
 | Geo-Verified Attendance | Employees must be within 500m of Chitkara University, Rajpura (30.5094° N, 76.6566° E) to clock in or out |
 | Shift Monitoring | Background GPS checks every 30 minutes detect early departures and adjust working hours |
 | Duplicate Detection | Same location + same category triggers an upvote prompt instead of creating a duplicate ticket |
@@ -129,9 +135,9 @@ CampusFix replaces the entire informal complaint-handling process with a structu
 | Mongoose | 8.x | ODM for MongoDB |
 | JSON Web Token | 9.x | Authentication |
 | bcryptjs | 2.x | Password hashing |
-| SendGrid | REST API | OTP email delivery (HTTPS, works on Render) |
+| Twilio Verify | REST API | OTP SMS delivery (works on Render) |
 | Groq AI | REST API | AI-powered admin briefings |
-| nodemailer | 10.x | Email transport layer |
+| Twilio | REST API | SMS verification service |
 
 ### Frontend
 
@@ -149,7 +155,7 @@ CampusFix replaces the entire informal complaint-handling process with a structu
 | Render | Backend hosting |
 | MongoDB Atlas | Database hosting |
 | GitHub | Version control |
-| SendGrid | Transactional email |
+| Twilio | SMS OTP delivery |
 
 ---
 
@@ -210,7 +216,7 @@ flowchart TD
 The student portal is the primary interface for reporting and tracking campus infrastructure issues.
 
 **Capabilities:**
-- Register using a `@chitkara.edu.in` email address, verified via OTP sent through SendGrid
+- Register using a `@chitkara.edu.in` email address, verified via OTP sent via Twilio SMS to their phone number
 - File structured complaints by selecting category (Electrical, Plumbing, IT, Civil, Cleaning, Security, Hostel), location from a hierarchical picker (Campus → Block → Floor → Room), urgency level (Low, Medium, High), and a detailed description
 - When filing a complaint, the system checks for an existing open complaint with the same category and location. If one exists, the student is prompted to upvote instead of filing a duplicate
 - Track complaint status in real time: Pending, In Progress, Waiting Confirmation, Closed, Reopened, or Overdue
@@ -293,8 +299,8 @@ cp .env.example .env
 
 Edit `.env` and fill in:
 - `MONGO_URI` — your MongoDB Atlas connection string
-- `SENDGRID_API_KEY` — from SendGrid dashboard
-- `SENDGRID_FROM_EMAIL` — your verified sender email
+- `TWILIO_ACCOUNT_SID � from twilio.com
+- `TWILIO_AUTH_TOKEN � from twilio.com
 - `JWT_SECRET` — any long random string
 - `GROQ_API_KEY` — from console.groq.com (optional, for AI briefings)
 
@@ -372,3 +378,4 @@ Built at the Department of Computer Science, Chitkara University, Rajpura — 20
 **CampusFix** — Centralized. Transparent. Accountable.
 
 </div>
+
