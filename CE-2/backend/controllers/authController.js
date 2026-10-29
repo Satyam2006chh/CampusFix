@@ -65,6 +65,10 @@ const sendRegistrationOtp = async (req, res) => {
     if (existing)
       return res.status(400).json({ success: false, message: 'Email already registered. Please sign in.' });
 
+    const existingPhone = await User.findOne({ phone: phone.replace(/\D/g, '') });
+    if (existingPhone)
+      return res.status(400).json({ success: false, message: 'This phone number is already registered with another account.' });
+
     await sendOTPSms(phone, 'registration');
     res.json({ success: true, message: `Verification code sent to +91${phone.replace(/\D/g, '')}.` });
   } catch (err) {
